@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>شهادة التحاق</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 20mm;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12pt;
+            direction: rtl;
+        }
+        .certificate-container {
+            max-width: 750px;
+            margin: 0 auto;
+            padding: 40px;
+            border: 3px solid #2c5aa0;
+            border-radius: 15px;
+            background: white;
+            position: relative;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #2c5aa0;
+            padding-bottom: 20px;
+        }
+        .institute-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c5aa0;
+        }
+        .certificate-title {
+            font-size: 18px;
+            margin-top: 5px;
+            color: #444;
+        }
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        .info-table td {
+            border: 1px solid #2c5aa0;
+            padding: 8px;
+        }
+        .label {
+            /*background: #2c5aa0;*/
+            /*color: white;*/
+            font-weight: bold;
+            width: 40%;
+        }
+        .value {
+            background: #f8f9fa;
+        }
+        .description {
+            margin: 20px 0;
+            padding: 15px;
+            border-right: 3px solid #2c5aa0;
+            background: #f8f9fa;
+            line-height: 1.8;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            border-top: 2px solid #2c5aa0;
+            padding-top: 15px;
+            font-weight: bold;
+            color: #2c5aa0;
+        }
+    </style>
+</head>
+<body>
+    {% for diploma in diplomas %}
+    <div class="certificate-container">
+        <div class="header">
+            <div class="institute-name">معهد آفاق التطور العدالي للتدريب</div>
+            <div class="certificate-title">شهادة التحاق وإفادة</div>
+        </div>
+
+        <table class="info-table">
+            <tr>
+                <td class="label">اسم المتدرب</td>
+                <td class="value">{{ client.name }}</td>
+            </tr>
+            <tr>
+                <td class="label">رقم الهوية الوطنية</td>
+                <td class="value">{{ client.identity_number }}</td>
+            </tr>
+            <tr>
+                <td class="label">اسم الدبلوم</td>
+                <td class="value">{{ diploma.name }}</td>
+            </tr>
+            <tr>
+                <td class="label">مدة الدبلوم</td>
+                <td class="value">{{ diploma.duration }}</td>
+            </tr>
+            <tr>
+                <td class="label">عدد الساعات المعتمدة</td>
+                <td class="value">{{ diploma.hours }}</td>
+            </tr>
+            <tr>
+                <td class="label">تاريخ بداية الالتحاق بالدبلوم</td>
+                <td class="value">{{ diploma.start_date }}</td>
+            </tr>
+            <tr>
+                <td class="label">تاريخ نهاية الدبلوم</td>
+                <td class="value">{{ diploma.end_date }}</td>
+            </tr>
+        </table>
+
+        <div class="description">
+
+تفيد إدارة معهد افاق التطور العالي للتدريب بالدمام والمعتمد من المؤسسة العامة للتدريب التقني والمهني برخصة رقم (٢٢٤٥١٢٧٣٣٥٥٩١٨١٢) بأن المذكور بياناته أعلاه تقدم إلينا للالتحاق والدراسة بالمعهد حسب التقويم التدريبي للعام ١٤٤٧ - ١٤٤٨هـ الصادر من المؤسسة العامة للتدريب التقني والمهني. علماً بأن الدراسة حضوريا خلال الفترة المسائية منتظم وعلى حساب المتدرب الخاص. ونأمل من الراغب بالالتحاق بالدراسة مراجعة قسم القبول والتسجيل بالمعهد قبل بداية تاريخ الدراسة حتى يتسنى للمعهد انهاء اجراءات التسجيل وإلحاق الدارس بالدبلوم بالتاريخ المحدد.
+ولقد اعطيت له هذه الافادة بناء على طلبه دون أدني مسؤولية على المعهد.
+ولكم تحياتنا
+قسم القبول والتسجيل
+        </div>
+
+        <div class="footer">
+            قسم القبول والتسجيل
+        </div>
+    </div>
+    <div style="page-break-after: always;"></div>
+    {% endfor %}
+</body>
+</html>
