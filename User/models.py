@@ -188,4 +188,7 @@ class ClientDiploma(models.Model):
         verbose_name="تم الإضافة بواسطة"
     )
     class Meta:
-        unique_together = ('client', 'diploma')  # تمنع التكرار لنفس الدبلوم
+        unique_together = ('client', 'diploma')
+
+    def __str__(self):
+        return self.client.name + " - " + self.diploma.name

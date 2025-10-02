@@ -3,14 +3,18 @@ from django.utils.dateparse import parse_date
 
 from django.template.loader import render_to_string
 from django.http import HttpResponse
+from django_filters.rest_framework import DjangoFilterBackend
 from weasyprint import HTML
 
 # views.py
 from rest_framework import generics, serializers
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
+
+from .filters import ClientDiplomaFilter
 from .models import User, Diploma, Client, ClientDiploma
-from .serializers import UserSerializer, DiplomaSerializer, ClientSerializer, ClientDiplomaListSerializer
+from .serializers import UserSerializer, DiplomaSerializer, ClientSerializer, ClientDiplomaListSerializer, \
+    ClientDiplomaReportSerializer
 
 
 class UserListCreateAPIView(generics.CreateAPIView):
@@ -79,32 +83,13 @@ class ClientCreateView(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ClientSerializer
 
-    def perform_create(self, serializer):
-        diplomas_ids = serializer.validated_data.pop('diplomas_ids', [])
-        if not diplomas_ids:
-            raise serializers.ValidationError({"diplomas_ids": "يجب إضافة دبلوم واحد على الأقل."})
-
-        user = self.request.user
-        client, created = Client.objects.get_or_create(
-            identity_number=serializer.validated_data['identity_number'],
-            defaults={
-                'name': serializer.validated_data.get('name'),
-                'phone_number': serializer.validated_data.get('phone_number'),
-                'email': serializer.validated_data.get('email'),
-                'sector': serializer.validated_data.get('sector'),
-                'area': serializer.validated_data.get('area'),
-
-            }
-        )
-
-        # ربط الدبلومات بالعميل
-        for diploma_id in diplomas_ids:
-            diploma = Diploma.objects.get(id=diploma_id)
-            ClientDiploma.objects.get_or_create(client=client, diploma=diploma, added_by=user)
-
-
-        serializer.instance = client
-
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        client_data = serializer.save()  # dict من الـ serializer
+        return Response({
+            "data": client_data
+        }, status=status.HTTP_201_CREATED)
 
 
 class ClientRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
@@ -140,54 +125,16 @@ def client_diploma_pdf(request, client_id, diploma_id):
     return response
 
 
-
-class DetailedClientReportView(APIView):
-
-
-    def get(self, request):
-        start_date = request.GET.get("start_date")
-        end_date = request.GET.get("end_date")
-        area = request.GET.get("area")
-        sector = request.GET.get("sector")
-        diploma_id = request.GET.get("diploma")
-        user_id = request.GET.get("user")
-
-        clients = Client.objects.prefetch_related('diplomas').all()
-        if start_date:
-            clients = clients.filter(diplomas__date__gte=parse_date(start_date))
-        if end_date:
-            clients = clients.filter(diplomas__date__lte=parse_date(end_date))
-        if area:
-            clients = clients.filter(area=area)
-        if sector:
-            clients = clients.filter(sector=sector)
-        if diploma_id:
-            clients = clients.filter(diplomas__id=diploma_id)
-        if user_id:
-            clients = clients.filter(added_by_id=user_id)
-
-        clients = clients.distinct()
-
-        report = []
-        for client in clients:
-            diplomas = client.diplomas.all()
-            report.append({
-                "id": client.id,
-                "name": client.name,
-                "identity_number": client.identity_number,
-                "phone_number": client.phone_number,
-                "email": client.email,
-                "sector": client.sector,
-                "area": client.area,
-                "added_by": client.added_by.full_name,
-                "diplomas": [{"id": d.id, "name": d.name, "date": d.date} for d in diplomas]
-            })
-
-        return Response(report)
+class DetailedClientReportView(generics.ListAPIView):
+    queryset = ClientDiploma.objects.select_related('client', 'diploma', 'added_by').all()
+    serializer_class = ClientDiplomaReportSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = ClientDiplomaFilter
 
 class ClientDiplomaListView(generics.ListAPIView):
     serializer_class = ClientDiplomaListSerializer
     permission_classes = [IsAuthenticated]
+
 
     def get_queryset(self):
         queryset = ClientDiploma.objects.select_related('client', 'diploma', 'added_by').all()

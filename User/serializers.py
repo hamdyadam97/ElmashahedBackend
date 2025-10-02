@@ -10,7 +10,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             "id", "full_name", "email", "identity_number",'refresh', 'access',
-            "branch", "profile_picture", "is_active", "password", 'is_Superuser', 'is_staff',
+            "branch", "profile_picture", "is_active", "password", 'is_superuser', 'is_staff',
 
         ]
         extra_kwargs = {
@@ -111,7 +111,7 @@ class ClientDiplomaSerializer(serializers.ModelSerializer):
 class ClientSerializer(serializers.ModelSerializer):
     diplomas = ClientDiplomaSerializer(source="client_diplomas",many=True, read_only=True)
     diplomas_ids = serializers.ListField(
-        child=serializers.IntegerField(), write_only=True, required=False
+        child=serializers.IntegerField(), write_only=True, required=True
     )
 
 
@@ -125,21 +125,66 @@ class ClientSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         diplomas_ids = validated_data.pop('diplomas_ids', [])
+        if not diplomas_ids:
+            raise serializers.ValidationError({"diplomas_ids": "يجب إضافة دبلوم واحد على الأقل."})
+
         user = self.context['request'].user
         validated_data['added_by'] = user
 
-        # إنشاء العميل أو جلبه إذا موجود
         client, created = Client.objects.get_or_create(
             identity_number=validated_data['identity_number'],
-            defaults=validated_data
+            defaults={
+                'name': validated_data.get('name'),
+                'phone_number': validated_data.get('phone_number'),
+                'email': validated_data.get('email'),
+                'sector': validated_data.get('sector'),
+                'area': validated_data.get('area'),
+
+            }
         )
+        existing_diplomas = ClientDiploma.objects.filter(
+            client=client,
+            diploma_id__in=diplomas_ids
+        ).values_list('diploma__name', flat=True)
 
-        # إضافة الدبلومات مع تفادي التكرار
+        if existing_diplomas:
+            # لو فيه دبلومات موجودة مسبقًا، نرجع خطأ
+            raise serializers.ValidationError(
+                {"diplomas_ids": f"العميل موجود بالفعل بالدبلوم/الدبلومات: {', '.join(existing_diplomas)}"}
+            )
+        added_diplomas = []
         for diploma_id in diplomas_ids:
-            diploma = Diploma.objects.get(id=diploma_id)
-            ClientDiploma.objects.get_or_create(client=client, diploma=diploma)
+            diploma = Diploma.objects.filter(id=diploma_id).first()
+            if(diploma):
+                cd = ClientDiploma.objects.create(client=client, diploma=diploma, added_by=user)
+                added_diplomas.append(cd)
+            else:
+                raise serializers.ValidationError('هذا دبلوم غير متاح حاليا')
 
-        return client
+        return {
+            "id": client.id,
+            "name": client.name,
+            "identity_number": client.identity_number,
+            "phone_number": client.phone_number,
+            "email": client.email,
+            "sector": client.sector,
+            "area": client.area,
+            "diplomas": [
+                {
+                    "client": cd.client.id,
+                    "diploma": {
+                        "id": cd.diploma.id,
+                        "name": cd.diploma.name,
+                        "date": cd.diploma.date
+                    },
+                    "added_at": cd.added_at,
+                    # "added_by_name": cd.added_by_name,
+                    "added_by": cd.added_by.full_name,
+                    "added_by_id": cd.added_by.id
+                }
+                for cd in added_diplomas
+            ]
+        }
 
 
 class ClientDiplomaListSerializer(serializers.ModelSerializer):
@@ -158,4 +203,26 @@ class ClientDiplomaListSerializer(serializers.ModelSerializer):
             'diploma',
             'added_at',
             'added_by', 'added_by_name'
+        ]
+
+
+class ClientDiplomaReportSerializer(serializers.ModelSerializer):
+    client_id = serializers.IntegerField(source="client.id")
+    client_name = serializers.CharField(source="client.name")
+    identity_number = serializers.CharField(source="client.identity_number")
+    phone_number = serializers.CharField(source="client.phone_number")
+    email = serializers.EmailField(source="client.email")
+    sector = serializers.CharField(source="client.sector")
+    area = serializers.CharField(source="client.area")
+    diploma_id = serializers.IntegerField(source="diploma.id")
+    diploma_name = serializers.CharField(source="diploma.name")
+    diploma_date = serializers.DateField(source="diploma.date")
+    added_by_name = serializers.CharField(source="added_by.full_name")
+
+    class Meta:
+        model = ClientDiploma
+        fields = [
+            "client_id", "client_name", "identity_number", "phone_number",
+            "email", "sector", "area", "diploma_id", "diploma_name", "diploma_date",
+            "added_by_name", "added_at"
         ]

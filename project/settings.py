@@ -171,9 +171,10 @@ AUTH_USER_MODEL = 'User.User'
 # CORS_ALLOW_ALL_ORIGINS = True
 
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-]
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:5173",
+# ]
+CORS_ALLOW_ALL_ORIGINS = True
 
 MAX_UPLOAD_IMAGE_SIZE = 25 * 1024 * 1024  # 25 MB
 MAX_POST_IMAGE_COUNT = 10
