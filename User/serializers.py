@@ -201,7 +201,7 @@ class ClientDiplomaListSerializer(serializers.ModelSerializer):
         model = ClientDiploma
         fields = [
             'id',
-            'client_id', 'name', 'identity_number', 'sector', 'area','email','phone_number'
+            'client_id', 'name', 'identity_number', 'sector', 'area','email','phone_number',
             'diploma',
             'added_at',
             'added_by', 'added_by_name'
