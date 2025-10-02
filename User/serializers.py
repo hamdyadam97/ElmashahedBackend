@@ -190,6 +190,8 @@ class ClientSerializer(serializers.ModelSerializer):
 class ClientDiplomaListSerializer(serializers.ModelSerializer):
     name = serializers.CharField(source='client.name', read_only=True)
     identity_number = serializers.CharField(source='client.identity_number', read_only=True)
+    phone_number = serializers.CharField(source='client.phone_number', read_only=True)
+    email = serializers.CharField(source='client.email', read_only=True)
     sector = serializers.CharField(source='client.sector', read_only=True)
     area = serializers.CharField(source='client.area', read_only=True)
     diploma = DiplomaSerializer(read_only=True)
@@ -199,7 +201,7 @@ class ClientDiplomaListSerializer(serializers.ModelSerializer):
         model = ClientDiploma
         fields = [
             'id',
-            'client_id', 'name', 'identity_number', 'sector', 'area',
+            'client_id', 'name', 'identity_number', 'sector', 'area','email','phone_number'
             'diploma',
             'added_at',
             'added_by', 'added_by_name'
