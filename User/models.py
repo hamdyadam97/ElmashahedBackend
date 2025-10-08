@@ -122,16 +122,20 @@ class Diploma(models.Model):
 
 class Client(models.Model):
     SECTOR_CHOICES = [
-        ('government', 'حكومي'),
-        ('private', 'خاص'),
-        ('non_profit', 'غير ربحي'),
-        ('education', 'تعليمي'),
-        ('health', 'صحي'),
-        ('tech', 'تقني'),
-        ('finance', 'مالي'),
-        ('trade', 'تجاري'),
-        ('industry', 'صناعي'),
-        ('services', 'خدمي'),
+        ('mod', 'وزارة الدفاع'),
+        ('moi', 'وزارة الداخلية'),
+        ('emergency_forces', 'قوات الطوارئ الخاصة'),
+        ('security_forces', 'قوات أمن المنشآت'),
+        ('passports', 'الإدارة العامة للجوازات'),
+        ('industrial_security', 'الهيئة العليا لأمن الصناعي'),
+        ('royal_guard', 'الحرس الملكي السعودي'),
+        ('national_guard', 'وزارة الحرس الوطني'),
+        ('civil_defense', 'الدفاع المدني'),
+        ('special_security_forces', 'قوات الأمن الخاصة'),
+        ('drug_control', 'المديرية العامة لمكافحة المخدرات'),
+        ('prisons', 'المديرية العامة للسجون'),
+        ('aramco', 'أرامكو السعودية'),
+        ('environmental_security', 'القوات الخاصة للأمن البيئي'),
     ]
     AREA_CHOICES = [
         ('riyadh', 'الرياض'),
