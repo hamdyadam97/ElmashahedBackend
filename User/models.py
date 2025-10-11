@@ -1,4 +1,6 @@
 import uuid
+import datetime
+from hijri_converter import Gregorian
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin, UserManager as DjangoUserManager
 from django.core.exceptions import ValidationError
@@ -112,13 +114,42 @@ class User(AbstractBaseUser, PermissionsMixin):
     def __str__(self):
         return self.full_name
 
+def default_hijri():
+    today = datetime.date.today()
+    hijri = Gregorian(today.year, today.month, today.day).to_hijri()
+    return f"{hijri.day}/{hijri.month}/{hijri.year}"  # صيغة: يوم/شهر/سنة
+
+class Diploma(models.Model):
+    # ... نفس الحقول السابقة
+    start_date_hijri = models.CharField(
+        max_length=10, default=default_hijri, verbose_name="تاريخ بداية الدبلوم (هجري)"
+    )
+    end_date_hijri = models.CharField(
+        max_length=10, default=default_hijri, verbose_name="تاريخ نهاية الدبلوم (هجري)"
+    )
 
 class Diploma(models.Model):
     name = models.CharField(max_length=255, verbose_name="اسم الدبلوم")
     date = models.DateField(auto_now_add=True, verbose_name="تاريخ إنشاء الدبلوم")
 
-    def __str__(self):
-        return self.name
+    duration_hours = models.CharField(max_length=50, blank=True, null=True, verbose_name="عدد الساعات المعتمدة")
+    duration = models.CharField(max_length=50, blank=True, null=True, verbose_name="مدة الدبلوم")
+
+    # تواريخ الميلادي
+    start_date_gregorian = models.DateField(
+        default=datetime.date.today, verbose_name="تاريخ بداية الدبلوم (ميلادي)"
+    )
+    end_date_gregorian = models.DateField(
+        default=datetime.date.today, verbose_name="تاريخ نهاية الدبلوم (ميلادي)")
+
+    # تواريخ هجري (يمكن حفظها كنص)
+    start_date_hijri = models.CharField(
+        max_length=10, default=default_hijri, verbose_name="تاريخ بداية الدبلوم (هجري)"
+    )
+    end_date_hijri = models.CharField(
+        max_length=10, default=default_hijri, verbose_name="تاريخ نهاية الدبلوم (هجري)"
+    )
+
 
 class Client(models.Model):
     SECTOR_CHOICES = [

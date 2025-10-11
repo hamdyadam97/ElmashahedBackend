@@ -5,7 +5,12 @@ from django.template.loader import render_to_string
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from weasyprint import HTML
-
+from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
+from django.template.loader import render_to_string
+from weasyprint import HTML
+from django.templatetags.static import static  # <--- هذا السطر مهم
+from django.conf import settings
 # views.py
 from rest_framework import generics, serializers
 from rest_framework.permissions import IsAuthenticated
@@ -98,31 +103,30 @@ class ClientRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ClientSerializer
 
 
-
-
-
 def client_diploma_pdf(request, client_id, diploma_id):
-    # جلب العميل والدبلوم
     client = get_object_or_404(Client, id=client_id)
     diploma = client.diplomas.filter(id=diploma_id).first()
     if not diploma:
         return HttpResponse("الدبلوم غير موجود للعميل.", status=404)
 
-    # بيانات الـ template
+
+    bg_url = request.build_absolute_uri(static('img.jpg'))
+    bg2_url = request.build_absolute_uri(static('image2.png'))
+
     context = {
         "client": client,
-        "diplomas": [diploma]  # لو عايز كل الدبلومات، خليها client.diplomas.all()
+        "diplomas": [diploma],
+        "bg_url": bg_url,
+        "bg2_url": bg2_url,
     }
 
-    # توليد HTML
     html_string = render_to_string("print.html", context)
-
-    # توليد PDF
-    pdf_file = HTML(string=html_string).write_pdf()
+    pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
 
     response = HttpResponse(pdf_file, content_type="application/pdf")
     response['Content-Disposition'] = f'inline; filename="client_{client.id}_diploma_{diploma.id}.pdf"'
     return response
+
 
 
 class DetailedClientReportView(generics.ListAPIView):

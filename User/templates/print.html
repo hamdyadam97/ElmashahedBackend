@@ -1,130 +1,252 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
+
 <head>
     <meta charset="UTF-8">
     <title>شهادة التحاق</title>
     <style>
-        @page {
-            size: A4;
-            margin: 20mm;
-        }
-        body {
-            font-family: Arial, sans-serif;
-            font-size: 12pt;
-            direction: rtl;
-        }
         .certificate-container {
             max-width: 750px;
             margin: 0 auto;
             padding: 40px;
             border: 3px solid #2c5aa0;
             border-radius: 15px;
-            background: white;
+            background: url("{{ bg_url }}") no-repeat center center;
+            background-size: cover;
+            position: relative;
+
+        }
+
+        @page {
+            size: A4;
+            margin: 20mm;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12pt;
+            direction: rtl;
+
+
+        }
+
+        .table-border {
+            border: 2px solid;
+            /* الحد الخفيف */
+            padding: 4px;
+            /* الفراغ بين الحد الخفيف والعريض */
+            border-radius: 4px;
             position: relative;
         }
+
         .header {
             text-align: center;
-            margin-bottom: 30px;
-            border-bottom: 2px solid #2c5aa0;
-            padding-bottom: 20px;
+            margin-bottom: 10px;
+
+            padding-bottom: 10px;
         }
+
         .institute-name {
             font-size: 24px;
             font-weight: bold;
             color: #2c5aa0;
         }
+
         .certificate-title {
             font-size: 18px;
             margin-top: 5px;
             color: #444;
         }
+
+
+
+        .table-border {
+            border: 2px solid;
+            /* الحد الخفيف */
+            padding: 4px;
+            /* الفراغ بين الحد الخفيف والعريض */
+            border-radius: 4px;
+            position: relative;
+        }
+
+        .table-border::after {
+            content: "";
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            right: 2px;
+            bottom: 2px;
+            border: 4px solid;
+            /* الحد العريض */
+            pointer-events: none;
+        }
+
         .info-table {
             width: 100%;
             border-collapse: collapse;
-            margin: 20px 0;
         }
+
         .info-table td {
-            border: 1px solid #2c5aa0;
+            border: 1px solid;
+            /* إزالة أي حد داخلي */
             padding: 8px;
+            text-align: center;
+            vertical-align: middle;
+            font-weight: bold;
         }
+
         .label {
-            /*background: #2c5aa0;*/
-            /*color: white;*/
+
             font-weight: bold;
             width: 40%;
         }
+
         .value {
             background: #f8f9fa;
         }
+
+        .stamp {
+            width: 220px;
+            height: auto;
+            display: block;
+            /*      بعض */
+            margin-top: 5px;
+            /*   كلمة "ختم" والصورة */
+        }
+
+
         .description {
-            margin: 20px 0;
-            padding: 15px;
-            border-right: 3px solid #2c5aa0;
+
+            margin: 20px 0 0 20px;
+
+            padding: 15px 15px 0 15px;
             background: #f8f9fa;
             line-height: 1.8;
-        }
-        .footer {
             text-align: center;
-            margin-top: 30px;
-            border-top: 2px solid #2c5aa0;
-            padding-top: 15px;
+
+            vertical-align: middle;
+            font-weight: bold;
+        }
+
+        .description span {
+            text-decoration: underline;
+        }
+
+        .description-two {
+
+
+            background: #f8f9fa;
+            line-height: 1.8;
+            text-align: center;
+
+            vertical-align: middle;
+            font-weight: bold;
+        }
+
+        .footer {
             font-weight: bold;
             color: #2c5aa0;
+            position: relative;
+            margin-top: 30px;
+            padding-top: 15px;
         }
     </style>
 </head>
+
 <body>
     {% for diploma in diplomas %}
-    <div class="certificate-container">
-        <div class="header">
-            <div class="institute-name">معهد آفاق التطور العدالي للتدريب</div>
-            <div class="certificate-title">شهادة التحاق وإفادة</div>
+
+    <body>
+        <div class="certificate-container">
+            <div class="header">
+                <div class="institute-name">معهد آفاق التطور العدالي للتدريب</div>
+                <div class="certificate-title">شهادة التحاق وإفادة</div>
+            </div>
+            <div class="table-border">
+                <table class="info-table">
+                    <tr>
+                        <td class="label">اسم المتدرب</td>
+                        <td class="value">{{ client.name }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">رقم الهوية الوطنية</td>
+                        <td class="value">{{ client.identity_number }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">اسم الدبلوم</td>
+                        <td class="value">{{ diploma.name }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">مدة الدبلوم</td>
+                        <td class="value">{{ diploma.duration }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">عدد الساعات المعتمدة</td>
+                        <td class="value">{{ diploma.duration_hours }}</td>
+                    </tr>
+                    <tr>
+                        <td class="label">تاريخ بداية الالتحاق بالدبلوم</td>
+                        <td class="value" style="text-align: center;">
+                            <span style="border-left: 2px solid #000; margin: 0 10px; padding-left: 10px;">
+                                {{ diploma.start_date_hijri }}
+                            </span>
+                            <span>{{ diploma.start_date_gregorian }}</span>
+                            
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label">تاريخ نهاية الدبلوم</td>
+                        <td class="value" style="text-align: center;">
+                             <span style="border-left: 2px solid #000; margin: 0 10px; padding-left: 10px;">
+                                {{ diploma.end_date_hijri }}
+                            </span>
+                            <span>{{ diploma.end_date_gregorian }}</span>
+                           
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="description"> تفيد إدارة معهد افاق التطور العالي للتدريب بالدمام والمعتمد من المؤسسة العامة
+                للتدريب
+                التقني والمهني برخصة رقم (٢٢٤٥١٢٧٣٣٥٥٩١٨١٢) بأن المذكور بياناته أعلاه تقدم إلينا للالتحاق والدراسة
+                بالمعهد
+                حسب التقويم التدريبي للعام ١٤٤٧-١٤٤٨هـ الصادر من المؤسسة العامة للتدريب التقني والمهني. علماً بأن
+                الدراسة
+                حضوريا خلال الفترة المسائية منتظم وعلى حساب المتدرب الخاص.
+                <span>
+
+                    ونأمل من الراغب بالالتحاق بالدراسة مراجعة قسم
+                    القبول والتسجيل بالمعهد قبل بداية تاريخ الدراسة حتى يتسنى للمعهد انهاء اجراءات التسجيل وإلحاق الدارس
+                    بالدبلوم بالتاريخ المحدد.
+
+                </span>
+            </div>
+            <div class="description-two">
+                ولقد اعطيت له هذه الافادة بناء على طلبه دون أدني مسؤولية على المعهد.
+            </div>
+            <div class="description-two">
+                ولكم تحياتنا
+            </div>
+
+
+            <div class="footer"
+                style="display: flex; justify-content: space-between; align-items: flex-end; position: relative; margin-top: 30px; padding-top: 15px;">
+
+                <div style="text-align: center;">
+                    <div style="font-weight: bold; font-size: 16px;">ختم</div>
+                    <img src="{{ bg2_url }}" alt="ختم" class="stamp" />
+                </div>
+                <div style="font-weight: bold; color: #2c5aa0;  margin-left: 60px; margin-bottom: 100px;">
+                    قسم القبول والتسجيل
+                </div>
+            </div>
         </div>
+        <div style="page-break-after: always;"></div>
 
-        <table class="info-table">
-            <tr>
-                <td class="label">اسم المتدرب</td>
-                <td class="value">{{ client.name }}</td>
-            </tr>
-            <tr>
-                <td class="label">رقم الهوية الوطنية</td>
-                <td class="value">{{ client.identity_number }}</td>
-            </tr>
-            <tr>
-                <td class="label">اسم الدبلوم</td>
-                <td class="value">{{ diploma.name }}</td>
-            </tr>
-            <tr>
-                <td class="label">مدة الدبلوم</td>
-                <td class="value">{{ diploma.duration }}</td>
-            </tr>
-            <tr>
-                <td class="label">عدد الساعات المعتمدة</td>
-                <td class="value">{{ diploma.hours }}</td>
-            </tr>
-            <tr>
-                <td class="label">تاريخ بداية الالتحاق بالدبلوم</td>
-                <td class="value">{{ diploma.start_date }}</td>
-            </tr>
-            <tr>
-                <td class="label">تاريخ نهاية الدبلوم</td>
-                <td class="value">{{ diploma.end_date }}</td>
-            </tr>
-        </table>
-
-        <div class="description">
-
-تفيد إدارة معهد افاق التطور العالي للتدريب بالدمام والمعتمد من المؤسسة العامة للتدريب التقني والمهني برخصة رقم (٢٢٤٥١٢٧٣٣٥٥٩١٨١٢) بأن المذكور بياناته أعلاه تقدم إلينا للالتحاق والدراسة بالمعهد حسب التقويم التدريبي للعام ١٤٤٧ - ١٤٤٨هـ الصادر من المؤسسة العامة للتدريب التقني والمهني. علماً بأن الدراسة حضوريا خلال الفترة المسائية منتظم وعلى حساب المتدرب الخاص. ونأمل من الراغب بالالتحاق بالدراسة مراجعة قسم القبول والتسجيل بالمعهد قبل بداية تاريخ الدراسة حتى يتسنى للمعهد انهاء اجراءات التسجيل وإلحاق الدارس بالدبلوم بالتاريخ المحدد.
-ولقد اعطيت له هذه الافادة بناء على طلبه دون أدني مسؤولية على المعهد.
-ولكم تحياتنا
-قسم القبول والتسجيل
-        </div>
-
-        <div class="footer">
-            قسم القبول والتسجيل
-        </div>
-    </div>
-    <div style="page-break-after: always;"></div>
+    </body>
     {% endfor %}
 </body>
+
 </html>
