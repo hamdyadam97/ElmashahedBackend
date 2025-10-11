@@ -110,17 +110,44 @@ def client_diploma_pdf(request, client_id, diploma_id):
         return HttpResponse("الدبلوم غير موجود للعميل.", status=404)
 
 
-    bg_url = request.build_absolute_uri(static('img.jpg'))
+    # bg_url = request.build_absolute_uri(static('Afaq.jpg'))
+    # bg2_url = request.build_absolute_uri(static('image2.png'))
+
+    area_templates = {
+        'riyadh': {'template': 'Afaq.html', 'bg': 'Afaq.jpg'},
+        'makkah': {'template': 'Ahley.html', 'bg': 'Ahley.jpeg'},
+        # 'madinah': {'template': 'Afaq.html', 'bg': 'madinah_bg.jpg'},
+        # 'qassim': {'template': 'Afaq.html', 'bg': 'qassim_bg.jpg'},
+        # 'eastern': {'template': 'Afaq.html', 'bg': 'eastern_bg.jpg'},
+        # 'asir': {'template': 'Afaq.html', 'bg': 'asir_bg.jpg'},
+        # 'tabuk': {'template': 'Afaq.html', 'bg': 'tabuk_bg.jpg'},
+        # 'hail': {'template': 'Afaq.html', 'bg': 'hail_bg.jpg'},
+        # 'north_border': {'template': 'Afaq.html', 'bg': 'north_border_bg.jpg'},
+        # 'jazan': {'template': 'Afaq.html', 'bg': 'jazan_bg.jpg'},
+        # 'najran': {'template': 'Afaq.html', 'bg': 'najran_bg.jpg'},
+        # 'baha': {'template': 'Afaq.html', 'bg': 'baha_bg.jpg'},
+        'jouf': {'template': 'Elfawo.html', 'bg': 'logoelfawo.jpg'},
+    }
+    area_settings = area_templates.get(client.area, {'template': 'Afaq.html', 'bg': 'Afaq.jpg',})
+    bg_url = request.build_absolute_uri(static(area_settings['bg']))
+
+
     bg2_url = request.build_absolute_uri(static('image2.png'))
+    bg3_url = request.build_absolute_uri(static('sigElwafo.jpeg'))
+    bg2 = request.build_absolute_uri(static('trainElfawo.jpeg'))
+    bg3 = request.build_absolute_uri(static('visioElfawo.jpg'))
 
     context = {
         "client": client,
         "diplomas": [diploma],
         "bg_url": bg_url,
+        "bg2": bg2,
+        "bg3": bg3,
         "bg2_url": bg2_url,
+        "bg3_url": bg3_url,
     }
 
-    html_string = render_to_string("print.html", context)
+    html_string = render_to_string(area_settings['template'], context)
     pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
 
     response = HttpResponse(pdf_file, content_type="application/pdf")
