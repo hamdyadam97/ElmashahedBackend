@@ -9,12 +9,10 @@
             max-width: 750px;
             margin: 0 auto;
             padding: 40px;
-          
+            border: 5px solid #2c5aa0;
             border-radius: 15px;
-            background: url('img.jpg') no-repeat center center;
             background-size: cover;
             position: relative;
-
         }
 
         @page {
@@ -26,22 +24,126 @@
             font-family: Arial, sans-serif;
             font-size: 12pt;
             direction: rtl;
-
-
         }
 
-.table-border {
-    border: 2px solid;  /* الحد الخفيف */
-    padding: 4px;               /* الفراغ بين الحد الخفيف والعريض */
-    border-radius: 4px;
-    position: relative;
-}
+        .table-border {
+            border: 2px solid;
+            padding: 4px;
+            border-radius: 4px;
+            position: relative;
+        }
+
+        .table-border::after {
+            content: "";
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            right: 2px;
+            bottom: 2px;
+            border: 4px solid;
+            pointer-events: none;
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .info-table td {
+            border: 1px solid;
+            padding: 8px;
+            text-align: center;
+            vertical-align: middle;
+            font-weight: bold;
+        }
+
+        .label {
+            font-weight: bold;
+            width: 40%;
+        }
+
+        .value {
+            background: #f8f9fa;
+        }
+
+        .stamp {
+            width: 220px;
+            height: auto;
+            display: block;
+            margin-top: 5px;
+        }
+
+        .description {
+            margin: 20px 0 0 20px;
+            padding: 15px 15px 0 15px;
+            background: #f8f9fa;
+            line-height: 1.8;
+            text-align: center;
+            vertical-align: middle;
+            font-weight: bold;
+        }
+
+        .description span {
+            text-decoration: underline;
+        }
+
+        .description-two {
+            background: #f8f9fa;
+            line-height: 1.8;
+            text-align: center;
+            vertical-align: middle;
+            font-weight: bold;
+        }
+
+        .footer {
+            font-weight: bold;
+            color: #2c5aa0;
+            position: relative;
+            margin-top: 30px;
+            padding-top: 15px;
+        }
+
+        /* ترتيب الصور */
+        .header-logos {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 10px;
+        }
+
+        .header-logos img {
+            height: 130px;
+            width: auto;
+            display: inline-block;
+        }
 
         .header {
             text-align: center;
-            margin-bottom: 30px;
-           
-            padding-bottom: 20px;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+             border-bottom: 5px solid #2c5aa0;
+        }
+
+        .institute-info {
+            text-align: right;
+            font-weight: bold;
+            line-height: 1.6;
+        }
+
+        .institute-info .name {
+            color: red;
+            font-size: 18px;
+            display: block;
+        }
+
+        .institute-info .license {
+            color: #530202;
+            display: block;
+        }
+
+        .institute-info .date {
+            display: block;
+            margin-top: 4px;
         }
 
         .institute-name {
@@ -55,144 +157,90 @@
             margin-top: 5px;
             color: #444;
         }
-
-      
-
-        .table-border {
-    border: 2px solid;  /* الحد الخفيف */
-    padding: 4px;               /* الفراغ بين الحد الخفيف والعريض */
-    border-radius: 4px;
-    position: relative;
-}
-
-.table-border::after {
-    content: "";
-    position: absolute;
-    top: 2px; left: 2px; right: 2px; bottom: 2px;
-    border: 4px solid; /* الحد العريض */
-    pointer-events: none;
-}
-
-.info-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.info-table td {
-    border: 1px solid;  /* إزالة أي حد داخلي */
-    padding: 8px;
-    text-align: center;
-    vertical-align: middle;
-    font-weight: bold;
-}
-        .label {
-           
-            font-weight: bold;
-            width: 40%;
-        }
-
-        .value {
-            background: #f8f9fa;
-        }
-
-        .description {
-            margin: 20px 0;
-            padding: 15px;
-            border-right: 3px solid #2c5aa0;
-            background: #f8f9fa;
-            line-height: 1.8;
-            text-align: center;
-            /* محاذاة أفقية في الوسط */
-            vertical-align: middle;
-            font-weight: bold;
-        }
-
-        .description span {
-            text-decoration: underline;
-        }
-
-        .footer {
-            text-align: left;
-            margin-top: 30px;
-            border-top: 2px solid #2c5aa0;
-            padding-top: 15px;
-            font-weight: bold;
-            color: #2c5aa0;
-        }
-        .stamp {
-    position: absolute;
-    bottom: 20px;  /* المسافة من أسفل الصفحة */
-    right: 20px;   /* المسافة من اليمين */
-    width: 120px;  /* عرض الصورة حسب الحجم المطلوب */
-    height: auto;
-}
     </style>
 </head>
 
 <body>
     <div class="certificate-container">
         <div class="header">
-            <div class="institute-name">معهد آفاق التطور العدالي للتدريب</div>
-            <div class="certificate-title">شهادة التحاق وإفادة</div>
-        </div>
-<div class="table-border">
-        <table class="info-table">
-            <tr>
-                <td class="label">اسم المتدرب</td>
-                <td class="value">{{ client.name }}</td>
-            </tr>
-            <tr>
-                <td class="label">رقم الهوية الوطنية</td>
-                <td class="value">{{ client.identity_number }}</td>
-            </tr>
-            <tr>
-                <td class="label">اسم الدبلوم</td>
-                <td class="value">{{ diploma.name }}</td>
-            </tr>
-            <tr>
-                <td class="label">مدة الدبلوم</td>
-                <td class="value">{{ diploma.duration }}</td>
-            </tr>
-            <tr>
-                <td class="label">عدد الساعات المعتمدة</td>
-                <td class="value">{{ diploma.hours }}</td>
-            </tr>
-            <tr>
-                <td class="label">تاريخ بداية الالتحاق بالدبلوم</td>
-                <td class="value">{{ diploma.start_date }}</td>
-            </tr>
-            <tr>
-                <td class="label">تاريخ نهاية الدبلوم</td>
-                <td class="value">{{ diploma.end_date }}</td>
-            </tr>
-        </table>
+            <div class="header-logos">
+                <div class="institute-info">
+                    <span class="name">معهد الفاو المتقدم العالي للتدريب</span>
+                    <span class="license">معتمد من المؤسسة العامة للتدريب التقني والمهني</span>
+                    <span class="date">التاريخ: / / /</span>
+                </div>
+                <img src="logoelfawo.jpg" alt="شعار المؤسسة">
+                <img src="visioElfawo.jpg" alt="شعار الرؤية">
+                <img src="trainElfawo.jpeg" alt="شعار المعهد">
+            </div>
+
+            <div class="institute-name">إلى من يهمه الأمر</div>
+            <div class="certificate-title">مشهد لا مانع من الالتحاق بالدراسة</div>
         </div>
 
-        <div class="description"> تفيد إدارة معهد افاق التطور العالي للتدريب بالدمام والمعتمد من المؤسسة العامة للتدريب
-            التقني والمهني برخصة رقم (٢٢٤٥١٢٧٣٣٥٥٩١٨١٢) بأن المذكور بياناته أعلاه تقدم إلينا للالتحاق والدراسة بالمعهد
-            حسب التقويم التدريبي للعام ١٤٤٧-١٤٤٨هـ الصادر من المؤسسة العامة للتدريب التقني والمهني. علماً بأن الدراسة
-            حضوريا خلال الفترة المسائية منتظم وعلى حساب المتدرب الخاص.
+        <div class="table-border">
+            <table class="info-table">
+                <tr>
+                    <td class="label">اسم المتدرب</td>
+                    <td class="value">محمد أحمد العتيبي</td>
+                </tr>
+                <tr>
+                    <td class="label">رقم الهوية الوطنية</td>
+                    <td class="value">1023456789</td>
+                </tr>
+                <tr>
+                    <td class="label">اسم الدبلوم</td>
+                    <td class="value">دبلوم إدارة الموارد البشرية</td>
+                </tr>
+                <tr>
+                    <td class="label">مدة الدبلوم</td>
+                    <td class="value">سنة دراسية واحدة</td>
+                </tr>
+                <tr>
+                    <td class="label">عدد الساعات المعتمدة</td>
+                    <td class="value">36 ساعة تدريبية</td>
+                </tr>
+                <tr>
+                    <td class="label">تاريخ بداية الالتحاق بالدبلوم</td>
+                    <td class="value" style="text-align: center;">
+                        <span style="border-left: 2px solid #000; margin: 0 10px; padding-left: 10px;">01 / 01 / 1447 هـ</span>
+                        <span>07 / 08 / 2025 م</span>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">تاريخ نهاية الدبلوم</td>
+                    <td class="value" style="text-align: center;">
+                        <span style="border-left: 2px solid #000; margin: 0 10px; padding-left: 10px;">30 / 12 / 1447 هـ</span>
+                        <span>15 / 06 / 2026 م</span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="description">
+            تفيد إدارة معهد الفاو المتقدم العالي للتدريب والمعتمد من المؤسسة العامة للتدريب التقني والمهني برخصة رقم
+            (2241117355141812) بأن المذكور بياناته أعلاه تقدم إلينا للالتحاق والدراسة بالمعهد حسب التقويم التدريبي للعام
+            1447-1448هـ الصادر من المؤسسة العامة للتدريب التقني والمهني. علماً بأن الدراسة حضوريا خلال الفترة المسائية
+            وعلى حساب المتدرب الخاص
             <span>
-
-             ونأمل من الراغب بالالتحاق بالدراسة مراجعة قسم
-            القبول والتسجيل بالمعهد قبل بداية تاريخ الدراسة حتى يتسنى للمعهد انهاء اجراءات التسجيل وإلحاق الدارس
-            بالدبلوم بالتاريخ المحدد.
-         
+                ونأمل من الراغب بالالتحاق بالدراسة مراجعة قسم القبول والتسجيل بالمعهد قبل بداية تاريخ الدراسة حتى يتسنى
+                للمعهد انهاء اجراءات التسجيل وإلحاق الدارس بالدبلوم بالتاريخ المحدد.
             </span>
         </div>
-<div class="description">
-   ولقد اعطيت له هذه الافادة بناء على طلبه دون أدني مسؤولية على المعهد.
-</div>
-<div class="description">
-    ولكم تحياتنا 
-</div>
-        <div class="footer">
-            قسم القبول والتسجيل
-             <img src="image2.png" alt="ختم" class="stamp" />
+
+        <div class="description-two">ولقد أعطيت له هذه الإفادة بناء على طلبه دون أدنى مسؤولية على المعهد.</div>
+        <div class="description-two">ولكم تحياتنا</div>
+
+        <div class="footer" style="display: flex; justify-content: space-between; align-items: flex-end;">
+            <div style="text-align: center;">
+                <div style="font-weight: bold; font-size: 16px;">ختم</div>
+                <img src="sigElwafo.jpeg" alt="ختم" class="stamp">
+            </div>
+            <div style="font-weight: bold; color: #2c5aa0; margin-left: 60px; margin-bottom: 100px;">
+                قسم القبول والتسجيل
+            </div>
         </div>
     </div>
-    <div style="page-break-after: always;"></div>
-
 </body>
 
 </html>

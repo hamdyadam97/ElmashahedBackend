@@ -126,25 +126,22 @@ def client_diploma_pdf(request, client_id, diploma_id):
         # 'jazan': {'template': 'Afaq.html', 'bg': 'jazan_bg.jpg'},
         # 'najran': {'template': 'Afaq.html', 'bg': 'najran_bg.jpg'},
         # 'baha': {'template': 'Afaq.html', 'bg': 'baha_bg.jpg'},
-        'jouf': {'template': 'Elfawo.html', 'bg': 'logoelfawo.jpg'},
+        'jouf': {'template': 'Elfawo.html', 'bg': 'Elfawo.png'},
     }
     area_settings = area_templates.get(client.area, {'template': 'Afaq.html', 'bg': 'Afaq.jpg',})
     bg_url = request.build_absolute_uri(static(area_settings['bg']))
 
 
     bg2_url = request.build_absolute_uri(static('image2.png'))
-    bg3_url = request.build_absolute_uri(static('sigElwafo.jpeg'))
-    bg2 = request.build_absolute_uri(static('trainElfawo.jpeg'))
-    bg3 = request.build_absolute_uri(static('visioElfawo.jpg'))
+
 
     context = {
         "client": client,
         "diplomas": [diploma],
         "bg_url": bg_url,
-        "bg2": bg2,
-        "bg3": bg3,
+
         "bg2_url": bg2_url,
-        "bg3_url": bg3_url,
+
     }
 
     html_string = render_to_string(area_settings['template'], context)
