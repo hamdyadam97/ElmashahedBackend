@@ -1,6 +1,6 @@
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
-from .models import User, Client, Diploma, ClientDiploma
+from .models import User, Client, Diploma, ClientDiploma, Institute
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -110,6 +110,8 @@ class ClientDiplomaSerializer(serializers.ModelSerializer):
 
 class ClientSerializer(serializers.ModelSerializer):
     diplomas = ClientDiplomaSerializer(source="client_diplomas",many=True, read_only=True)
+    institute = serializers.IntegerField(write_only=True)
+
     diplomas_ids = serializers.ListField(
         child=serializers.IntegerField(), write_only=True, required=True
     )
@@ -119,12 +121,13 @@ class ClientSerializer(serializers.ModelSerializer):
         model = Client
         fields = [
             "id", "name", "identity_number", "phone_number", "email",
-            "sector", "area", "diplomas", "diplomas_ids",
+            "sector", "area", "diplomas", "diplomas_ids",'institute'
         ]
 
 
     def create(self, validated_data):
         diplomas_ids = validated_data.pop('diplomas_ids', [])
+        institute_id = validated_data.pop('institute')
         if not diplomas_ids:
             raise serializers.ValidationError({"diplomas_ids": "يجب إضافة دبلوم واحد على الأقل."})
 
@@ -152,11 +155,14 @@ class ClientSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {"diplomas_ids": f"العميل موجود بالفعل بالدبلوم/الدبلومات: {', '.join(existing_diplomas)}"}
             )
+        institute_obj = Institute.objects.filter(id=institute_id).first()
+        if not institute_obj:
+            raise serializers.ValidationError({"institute": "المعهد المحدد غير موجود."})
         added_diplomas = []
         for diploma_id in diplomas_ids:
             diploma = Diploma.objects.filter(id=diploma_id).first()
             if(diploma):
-                cd = ClientDiploma.objects.create(client=client, diploma=diploma, added_by=user)
+                cd = ClientDiploma.objects.create(client=client, diploma=diploma, added_by=user,institute=institute_obj,)
                 added_diplomas.append(cd)
             else:
                 raise serializers.ValidationError('هذا دبلوم غير متاح حاليا')
