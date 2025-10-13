@@ -1,6 +1,6 @@
 from django.contrib import admin
 from import_export.admin import ExportMixin, ImportExportModelAdmin
-from User.models import User,Client,Diploma,ClientDiploma
+from User.models import User,Client,Diploma,ClientDiploma,Institute
 
 # Register your models here.
 admin.site.register(User)
@@ -15,3 +15,4 @@ class DiplomaAdmin(ImportExportModelAdmin):
 
 
 admin.site.register(ClientDiploma)
+admin.site.register(Institute)

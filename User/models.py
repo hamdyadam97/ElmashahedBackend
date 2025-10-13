@@ -119,14 +119,7 @@ def default_hijri():
     hijri = Gregorian(today.year, today.month, today.day).to_hijri()
     return f"{hijri.day}/{hijri.month}/{hijri.year}"  # صيغة: يوم/شهر/سنة
 
-class Diploma(models.Model):
-    # ... نفس الحقول السابقة
-    start_date_hijri = models.CharField(
-        max_length=10, default=default_hijri, verbose_name="تاريخ بداية الدبلوم (هجري)"
-    )
-    end_date_hijri = models.CharField(
-        max_length=10, default=default_hijri, verbose_name="تاريخ نهاية الدبلوم (هجري)"
-    )
+
 
 class Diploma(models.Model):
     name = models.CharField(max_length=255, verbose_name="اسم الدبلوم")
@@ -211,10 +204,18 @@ class Client(models.Model):
     def __str__(self):
         return self.name
 
+class Institute(models.Model):
+    name = models.CharField(max_length=255, verbose_name="اسم المعهد")
+    city = models.CharField(max_length=100, verbose_name="المدينة", blank=True, null=True)
+
+    def __str__(self):
+        return self.name
 
 class ClientDiploma(models.Model):
     client = models.ForeignKey(Client, related_name="client_diplomas", on_delete=models.CASCADE)
     diploma = models.ForeignKey(Diploma, on_delete=models.CASCADE,)
+
+    institute = models.ForeignKey(Institute, on_delete=models.CASCADE, verbose_name="المعهد")
     added_at = models.DateTimeField(auto_now_add=True)
     added_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -222,8 +223,9 @@ class ClientDiploma(models.Model):
         related_name="added_clients",
         verbose_name="تم الإضافة بواسطة"
     )
+
     class Meta:
-        unique_together = ('client', 'diploma')
+        unique_together = ('client', 'diploma', 'institute')
 
     def __str__(self):
         return self.client.name + " - " + self.diploma.name

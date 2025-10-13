@@ -7,7 +7,7 @@
     <title>شهادة التحاق</title>
     <style>
         .certificate-container {
-            max-width: 750px;
+            max-width: 1050px;
             margin: 0 auto;
             padding: 40px;
             border: 3px solid #2c5aa0;
@@ -30,24 +30,7 @@
 
 
         }
-
-        .table-border {
-            border: 2px solid;
-            /* الحد الخفيف */
-            padding: 4px;
-            /* الفراغ بين الحد الخفيف والعريض */
-            border-radius: 4px;
-            position: relative;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 10px;
-
-            padding-bottom: 10px;
-        }
-
-        .institute-name {
+         .institute-name {
             font-size: 24px;
             font-weight: bold;
             color: #2c5aa0;
@@ -59,9 +42,8 @@
             color: #444;
         }
 
-
-
         .table-border {
+            margin-top: 10px;
             border: 2px solid;
             /* الحد الخفيف */
             padding: 4px;
@@ -69,6 +51,13 @@
             border-radius: 4px;
             position: relative;
         }
+
+        .header {
+            text-align: center;
+            margin-top: 110px;
+            padding-top: 10px;
+        }
+
 
         .table-border::after {
             content: "";
@@ -159,9 +148,9 @@
 
     <body>
         <div class="certificate-container">
-            <div class="header">
-                <div class="institute-name">معهد آفاق التطور العدالي للتدريب</div>
-                <div class="certificate-title">شهادة التحاق وإفادة</div>
+             <div class="header">
+                <div class="institute-name"> </div>
+                <div class="certificate-title">  مشهد قبول</div>
             </div>
             <div class="table-border">
                 <table class="info-table">
@@ -192,7 +181,7 @@
                                 {{ diploma.start_date_hijri }}
                             </span>
                             <span>{{ diploma.start_date_gregorian }}</span>
-                            
+
                         </td>
                     </tr>
                     <tr>
@@ -202,48 +191,33 @@
                                 {{ diploma.end_date_hijri }}
                             </span>
                             <span>{{ diploma.end_date_gregorian }}</span>
-                           
+
                         </td>
                     </tr>
                 </table>
             </div>
 
-            <div class="description"> تفيد إدارة معهد افاق التطور العالي للتدريب بالدمام والمعتمد من المؤسسة العامة
-                للتدريب
-                التقني والمهني برخصة رقم (٢٢٤٥١٢٧٣٣٥٥٩١٨١٢) بأن المذكور بياناته أعلاه تقدم إلينا للالتحاق والدراسة
-                بالمعهد
-                حسب التقويم التدريبي للعام ١٤٤٧-١٤٤٨هـ الصادر من المؤسسة العامة للتدريب التقني والمهني. علماً بأن
-                الدراسة
-                حضوريا خلال الفترة المسائية منتظم وعلى حساب المتدرب الخاص.
-                <span>
+            <div class="description">
+                تفيد إدارة معهد الفاو التخصصي العالي للتدريب والمعتمد من المؤسسة العامة للتدريب التقني والمهني برخصة رقم (224456345111821) بأن المذكور بياناته أعلاه تقدم الينا للالتحاق والدراسة بالمعهد حسب التقويم التدريبي الصادر من المؤسسة العامة للتدريب التقني والمهني لعام (1447 -1448)هــ ، علما بان الدراسة حضوري منتظم  خلال الفترة المسائية و لا تتعارض مع أوقات العمل الرسمي  ، وعلى حساب المتدرب الخاص ولا تتطلب التفرغ الكلي.
 
-                    ونأمل من الراغب بالالتحاق بالدراسة مراجعة قسم
-                    القبول والتسجيل بالمعهد قبل بداية تاريخ الدراسة حتى يتسنى للمعهد انهاء اجراءات التسجيل وإلحاق الدارس
-                    بالدبلوم بالتاريخ المحدد.
-
-                </span>
             </div>
             <div class="description-two">
                 ولقد اعطيت له هذه الافادة بناء على طلبه دون أدني مسؤولية على المعهد.
             </div>
-            <div class="description-two">
-                ولكم تحياتنا
-            </div>
+
 
 
             <div class="footer"
                 style="display: flex; justify-content: space-between; align-items: flex-end; position: relative; margin-top: 30px; padding-top: 15px;">
 
                 <div style="text-align: center;">
-                    <div style="font-weight: bold; font-size: 16px;">ختم</div>
-                    <img src="{{ bg2_url }}" alt="ختم" class="stamp" />
+
                 </div>
                 <div style="font-weight: bold; color: #2c5aa0;  margin-left: 60px; margin-bottom: 100px;">
                     قسم القبول والتسجيل
                 </div>
             </div>
         </div>
-        <div style="page-break-after: always;"></div>
 
     </body>
     {% endfor %}

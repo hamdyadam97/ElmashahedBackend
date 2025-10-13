@@ -91,7 +91,7 @@ class ClientCreateView(generics.CreateAPIView):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        client_data = serializer.save()  # dict من الـ serializer
+        client_data = serializer.save()
         return Response({
             "data": client_data
         }, status=status.HTTP_201_CREATED)
@@ -103,45 +103,82 @@ class ClientRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ClientSerializer
 
 
+# def client_diploma_pdf(request, client_id, diploma_id):
+#     client = get_object_or_404(Client, id=client_id)
+#     diploma = client.diplomas.filter(id=diploma_id).first()
+#     if not diploma:
+#         return HttpResponse("الدبلوم غير موجود للعميل.", status=404)
+#
+#
+#     # bg_url = request.build_absolute_uri(static('Afaq.jpg'))
+#     # bg2_url = request.build_absolute_uri(static('image2.png'))
+#
+#     area_templates = {
+#         'riyadh': {'template': 'AfaqAl-TataworHigherInstituteforTraining–Dammam.html', 'bg': 'Afaq.jpg'},
+#         'makkah': {'template': 'Al-AhliHigherInstitute–ArarSakakaAl-Qurayyat.html', 'bg': 'Ahley.jpeg'},
+#         # 'madinah': {'template': 'AfaqAl-TataworHigherInstituteforTraining–Dammam.html', 'bg': 'madinah_bg.jpg'},
+#         # 'qassim': {'template': 'AfaqAl-TataworHigherInstituteforTraining–Dammam.html', 'bg': 'qassim_bg.jpg'},
+#         # 'eastern': {'template': 'AfaqAl-TataworHigherInstituteforTraining–Dammam.html', 'bg': 'eastern_bg.jpg'},
+#         # 'asir': {'template': 'AfaqAl-TataworHigherInstituteforTraining–Dammam.html', 'bg': 'asir_bg.jpg'},
+#         # 'tabuk': {'template': 'AfaqAl-TataworHigherInstituteforTraining–Dammam.html', 'bg': 'tabuk_bg.jpg'},
+#         # 'hail': {'template': 'AfaqAl-TataworHigherInstituteforTraining–Dammam.html', 'bg': 'hail_bg.jpg'},
+#         # 'north_border': {'template': 'AfaqAl-TataworHigherInstituteforTraining–Dammam.html', 'bg': 'north_border_bg.jpg'},
+#         # 'jazan': {'template': 'AfaqAl-TataworHigherInstituteforTraining–Dammam.html', 'bg': 'jazan_bg.jpg'},
+#         # 'najran': {'template': 'AfaqAl-TataworHigherInstituteforTraining–Dammam.html', 'bg': 'najran_bg.jpg'},
+#         # 'baha': {'template': 'AfaqAl-TataworHigherInstituteforTraining–Dammam.html', 'bg': 'baha_bg.jpg'},
+#         'jouf': {'template': 'Al-FawSpecializedHigherInstituteforTraining–Qassim.html', 'bg': 'fawo.jpeg'},
+#     }
+#     area_settings = area_templates.get(client.area, {'template': 'AfaqAl-TataworHigherInstituteforTraining–Dammam.html', 'bg': 'Afaq.jpg',})
+#     bg_url = request.build_absolute_uri(static(area_settings['bg']))
+#
+#
+#     bg2_url = request.build_absolute_uri(static('image2.png'))
+#
+#
+#     context = {
+#         "client": client,
+#         "diplomas": [diploma],
+#         "bg_url": bg_url,
+#         "bg2_url": bg2_url,
+#
+#     }
+#
+#     html_string = render_to_string(area_settings['template'], context)
+#     pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
+#
+#     response = HttpResponse(pdf_file, content_type="application/pdf")
+#     response['Content-Disposition'] = f'inline; filename="client_{client.id}_diploma_{diploma.id}.pdf"'
+#     return response
+
+
 def client_diploma_pdf(request, client_id, diploma_id):
     client = get_object_or_404(Client, id=client_id)
-    diploma = client.diplomas.filter(id=diploma_id).first()
-    if not diploma:
+    client_diploma = client.client_diplomas.filter(diploma_id=diploma_id).first()
+    if not client_diploma:
         return HttpResponse("الدبلوم غير موجود للعميل.", status=404)
 
+    diploma = client_diploma.diploma
+    institute = getattr(client_diploma, 'institute', None)
 
-    # bg_url = request.build_absolute_uri(static('Afaq.jpg'))
-    # bg2_url = request.build_absolute_uri(static('image2.png'))
 
-    area_templates = {
-        'riyadh': {'template': 'Afaq.html', 'bg': 'Afaq.jpg'},
-        'makkah': {'template': 'Ahley.html', 'bg': 'Ahley.jpeg'},
-        # 'madinah': {'template': 'Afaq.html', 'bg': 'madinah_bg.jpg'},
-        # 'qassim': {'template': 'Afaq.html', 'bg': 'qassim_bg.jpg'},
-        # 'eastern': {'template': 'Afaq.html', 'bg': 'eastern_bg.jpg'},
-        # 'asir': {'template': 'Afaq.html', 'bg': 'asir_bg.jpg'},
-        # 'tabuk': {'template': 'Afaq.html', 'bg': 'tabuk_bg.jpg'},
-        # 'hail': {'template': 'Afaq.html', 'bg': 'hail_bg.jpg'},
-        # 'north_border': {'template': 'Afaq.html', 'bg': 'north_border_bg.jpg'},
-        # 'jazan': {'template': 'Afaq.html', 'bg': 'jazan_bg.jpg'},
-        # 'najran': {'template': 'Afaq.html', 'bg': 'najran_bg.jpg'},
-        # 'baha': {'template': 'Afaq.html', 'bg': 'baha_bg.jpg'},
-        'jouf': {'template': 'Elfawo.html', 'bg': 'Elfawo.png'},
+    institute_templates = {
+        'Afaq Al-Tatawor Higher Institute for Training': {'template': 'AfaqAl-TataworHigherInstituteforTraining–Dammam.html', 'bg': 'AfaqAl-TataworHigherInstituteforTraining–Dammam.jpg'},
+        'Al-Ahli Higher Institute': {'template': 'Al-AhliHigherInstitute–ArarSakakaAl-Qurayyat.html', 'bg': 'Al-AhliHigherInstitute–ArarSakakaAl-Qurayyat.jpeg'},
+        'Al-Faw Advanced Higher Institute for Training': {'template': 'Al-FawAdvancedHigherInstituteforTraining.html', 'bg': 'Al-FawAdvancedHigherInstituteforTraining.png'},
+        'Al-Faw Specialized Higher Institute for Training': {'template': 'Al-FawSpecializedHigherInstituteforTraining–Qassim.html', 'bg': 'Al-FawSpecializedHigherInstituteforTraining–Qassim.jpeg'},
+
     }
-    area_settings = area_templates.get(client.area, {'template': 'Afaq.html', 'bg': 'Afaq.jpg',})
+
+
+    area_settings = institute_templates.get(institute.name if institute else None,
+                                            {'template': 'AfaqAl-TataworHigherInstituteforTraining–Dammam.html', 'bg': 'Afaq.jpg'})
+
     bg_url = request.build_absolute_uri(static(area_settings['bg']))
-
-
-    bg2_url = request.build_absolute_uri(static('image2.png'))
-
-
     context = {
         "client": client,
         "diplomas": [diploma],
         "bg_url": bg_url,
-
-        "bg2_url": bg2_url,
-
+        "institute_name": institute.name if institute else "",
     }
 
     html_string = render_to_string(area_settings['template'], context)

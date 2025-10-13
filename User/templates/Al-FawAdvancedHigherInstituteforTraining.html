@@ -1,0 +1,192 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <title>شهادة التحاق</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 15mm;
+        }
+
+        body {
+            font-family: "Arial", sans-serif;
+            font-size: 13pt;
+            direction: rtl;
+            margin: 0;
+            padding: 0;
+            background-color: #fff;
+        }
+
+        .certificate-container {
+            max-width: 850px;
+            margin: 0 auto;
+            padding: 40px;
+            border: 3px solid #2c5aa0;
+            border-radius: 20px;
+            background: url("{{ bg_url }}") no-repeat center center;
+            background-size: cover;
+            position: relative;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .header {
+            text-align: center;
+            margin-top: 140px;
+        }
+
+        .institute-name {
+            font-size: 26px;
+            font-weight: bold;
+            color: #2c5aa0;
+        }
+
+        .certificate-title {
+            font-size: 20px;
+            margin-top: 10px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .table-border {
+            margin-top: 10px;
+            border: 3px solid ;
+            border-radius: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-weight: bold;
+        }
+
+        .info-table td {
+            border: 1px solid #333;
+            padding: 10px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .info-table .label {
+            background-color: #f0f4fa;
+            width: 40%;
+        }
+
+        .description,
+        .description-two {
+
+            background: #f8f9fa;
+            line-height: 2;
+            text-align: justify;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .description span {
+            text-decoration: underline;
+        }
+
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            font-weight: bold;
+            color: #2c5aa0;
+        }
+
+        .footer div {
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .footer .stamp {
+            font-size: 18px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    {% for diploma in diplomas %}
+    <div class="certificate-container">
+
+        <!-- العنوان -->
+        <div class="header">
+            <div class="institute-name">إلى من يهمه الأمر</div>
+            <div class="certificate-title">مشهد لا مانع من الالتحاق بالدراسة</div>
+        </div>
+
+        <!-- جدول المعلومات -->
+        <div class="table-border">
+            <table class="info-table">
+                <tr>
+                    <td class="label">اسم المتدرب</td>
+                    <td>{{ client.name }}</td>
+                </tr>
+                <tr>
+                    <td class="label">رقم الهوية الوطنية</td>
+                    <td>{{ client.identity_number }}</td>
+                </tr>
+                <tr>
+                    <td class="label">اسم الدبلوم</td>
+                    <td>{{ diploma.name }}</td>
+                </tr>
+                <tr>
+                    <td class="label">مدة الدبلوم</td>
+                    <td>{{ diploma.duration }}</td>
+                </tr>
+                <tr>
+                    <td class="label">عدد الساعات المعتمدة</td>
+                    <td>{{ diploma.duration_hours }}</td>
+                </tr>
+                <tr>
+                    <td class="label">تاريخ بداية الالتحاق بالدبلوم</td>
+                    <td>
+                        <span style="border-left: 2px solid #000; padding-left: 10px; margin-left: 10px;">
+                            {{ diploma.start_date_hijri }}
+                        </span>
+                        {{ diploma.start_date_gregorian }}
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label">تاريخ نهاية الدبلوم</td>
+                    <td>
+                        <span style="border-left: 2px solid #000; padding-left: 10px; margin-left: 10px;">
+                            {{ diploma.end_date_hijri }}
+                        </span>
+                        {{ diploma.end_date_gregorian }}
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- النص الرئيسي -->
+        <div class="description">
+            تفيد إدارة  معهد الفاو المتقدم العالي   والمعتمد من المؤسسة العامة للتدريب التقني والمهني
+            برخصة رقم (2241117355141812) بأن المذكور بياناته أعلاه تقدم إلينا للالتحاق والدراسة بالمعهد حسب التقويم التدريبي
+            للعام 1447-1448هـ الصادر من المؤسسة العامة للتدريب التقني والمهني. علماً بأن الدراسة حضورياً خلال الفترة
+            المسائية وعلى حساب المتدرب الخاص
+            <span>ونأمل من الراغب بالالتحاق بالدراسة مراجعة قسم القبول والتسجيل بالمعهد قبل بداية تاريخ الدراسة حتى يتسنى
+                للمعهد إنهاء إجراءات التسجيل وإلحاق الدارس بالدبلوم بالتاريخ المحدد.</span>
+        </div>
+
+        <div class="description-two">
+            ولقد أعطيت له هذه الإفادة بناءً على طلبه دون أدنى مسؤولية على المعهد.<br>
+            ولكم تحياتنا
+        </div>
+
+        <!-- التذييل -->
+        <div class="footer">
+            <div class="stamp">ختم</div>
+            <div>قسم القبول والتسجيل</div>
+        </div>
+    </div>
+    {% endfor %}
+</body>
+
+</html>
