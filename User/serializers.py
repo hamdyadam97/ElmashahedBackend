@@ -76,7 +76,7 @@ class LoginSerializer(serializers.Serializer):
 class DiplomaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Diploma
-        fields = ["id", "name", "date"]
+        fields = ["id", "name", "date",'attendance_mode']
 
 
 class ClientDiplomaSerializer(serializers.ModelSerializer):
@@ -105,16 +105,18 @@ class ClientDiplomaSerializer(serializers.ModelSerializer):
 
         return attrs
 
-
+class DiplomaInputSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    selectedType = serializers.CharField(required=False)
 
 
 class ClientSerializer(serializers.ModelSerializer):
     diplomas = ClientDiplomaSerializer(source="client_diplomas",many=True, read_only=True)
     institute = serializers.IntegerField(write_only=True)
-
-    diplomas_ids = serializers.ListField(
-        child=serializers.IntegerField(), write_only=True, required=True
-    )
+    diplomas_ids = DiplomaInputSerializer(many=True)
+   # diplomas_ids = serializers.ListField(
+    #    child=serializers.IntegerField(), write_only=True, required=True
+    #)
 
 
     class Meta:
@@ -145,24 +147,31 @@ class ClientSerializer(serializers.ModelSerializer):
 
             }
         )
+        diploma_ids_list = [d['id'] for d in diplomas_ids]
         existing_diplomas = ClientDiploma.objects.filter(
             client=client,
-            diploma_id__in=diplomas_ids
+            diploma_id__in=diploma_ids_list
         ).values_list('diploma__name', flat=True)
 
         if existing_diplomas:
             # لو فيه دبلومات موجودة مسبقًا، نرجع خطأ
             raise serializers.ValidationError(
-                {"diplomas_ids": f"العميل موجود بالفعل بالدبلوم/الدبلومات: {', '.join(existing_diplomas)}"}
+                {"diploma_ids_list": f"العميل موجود بالفعل بالدبلوم/الدبلومات: {', '.join(existing_diplomas)}"}
             )
         institute_obj = Institute.objects.filter(id=institute_id).first()
         if not institute_obj:
             raise serializers.ValidationError({"institute": "المعهد المحدد غير موجود."})
         added_diplomas = []
-        for diploma_id in diplomas_ids:
-            diploma = Diploma.objects.filter(id=diploma_id).first()
-            if(diploma):
-                cd = ClientDiploma.objects.create(client=client, diploma=diploma, added_by=user,institute=institute_obj,)
+        for diploma_data in diplomas_ids:
+            diploma = Diploma.objects.filter(id=diploma_data['id']).first()
+            if diploma:
+                cd = ClientDiploma.objects.create(
+                    client=client,
+                    diploma=diploma,
+                    added_by=user,
+                    institute=institute_obj,
+                    attendance_type=diploma_data.get('selectedType') or diploma_data.get('type')
+                )
                 added_diplomas.append(cd)
             else:
                 raise serializers.ValidationError('هذا دبلوم غير متاح حاليا')

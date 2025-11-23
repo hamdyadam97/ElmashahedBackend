@@ -1,21 +1,14 @@
-from django.shortcuts import get_object_or_404
-from django.utils.dateparse import parse_date
 
-from django.template.loader import render_to_string
-from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
-from weasyprint import HTML
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 from django.template.loader import render_to_string
 from weasyprint import HTML
 from django.templatetags.static import static  # <--- هذا السطر مهم
-from django.conf import settings
-# views.py
-from rest_framework import generics, serializers
-from rest_framework.permissions import IsAuthenticated
+from datetime import datetime, timedelta
 from django.db.models import Q
-
+from rest_framework import generics
+from rest_framework.permissions import IsAuthenticated
 from .filters import ClientDiplomaFilter
 from .models import User, Diploma, Client, ClientDiploma
 from .serializers import UserSerializer, DiplomaSerializer, ClientSerializer, ClientDiplomaListSerializer, \
@@ -103,52 +96,7 @@ class ClientRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ClientSerializer
 
 
-# def client_diploma_pdf(request, client_id, diploma_id):
-#     client = get_object_or_404(Client, id=client_id)
-#     diploma = client.diplomas.filter(id=diploma_id).first()
-#     if not diploma:
-#         return HttpResponse("الدبلوم غير موجود للعميل.", status=404)
-#
-#
-#     # bg_url = request.build_absolute_uri(static('Afaq.jpg'))
-#     # bg2_url = request.build_absolute_uri(static('image2.png'))
-#
-#     area_templates = {
-#         'riyadh': {'template': 'AfaqAl-TataworHigherInstituteforTraining–Dammam.html', 'bg': 'Afaq.jpg'},
-#         'makkah': {'template': 'Al-AhliHigherInstitute–ArarSakakaAl-Qurayyat.html', 'bg': 'Ahley.jpeg'},
-#         # 'madinah': {'template': 'AfaqAl-TataworHigherInstituteforTraining–Dammam.html', 'bg': 'madinah_bg.jpg'},
-#         # 'qassim': {'template': 'AfaqAl-TataworHigherInstituteforTraining–Dammam.html', 'bg': 'qassim_bg.jpg'},
-#         # 'eastern': {'template': 'AfaqAl-TataworHigherInstituteforTraining–Dammam.html', 'bg': 'eastern_bg.jpg'},
-#         # 'asir': {'template': 'AfaqAl-TataworHigherInstituteforTraining–Dammam.html', 'bg': 'asir_bg.jpg'},
-#         # 'tabuk': {'template': 'AfaqAl-TataworHigherInstituteforTraining–Dammam.html', 'bg': 'tabuk_bg.jpg'},
-#         # 'hail': {'template': 'AfaqAl-TataworHigherInstituteforTraining–Dammam.html', 'bg': 'hail_bg.jpg'},
-#         # 'north_border': {'template': 'AfaqAl-TataworHigherInstituteforTraining–Dammam.html', 'bg': 'north_border_bg.jpg'},
-#         # 'jazan': {'template': 'AfaqAl-TataworHigherInstituteforTraining–Dammam.html', 'bg': 'jazan_bg.jpg'},
-#         # 'najran': {'template': 'AfaqAl-TataworHigherInstituteforTraining–Dammam.html', 'bg': 'najran_bg.jpg'},
-#         # 'baha': {'template': 'AfaqAl-TataworHigherInstituteforTraining–Dammam.html', 'bg': 'baha_bg.jpg'},
-#         'jouf': {'template': 'Al-FawSpecializedHigherInstituteforTraining–Qassim.html', 'bg': 'fawo.jpeg'},
-#     }
-#     area_settings = area_templates.get(client.area, {'template': 'AfaqAl-TataworHigherInstituteforTraining–Dammam.html', 'bg': 'Afaq.jpg',})
-#     bg_url = request.build_absolute_uri(static(area_settings['bg']))
-#
-#
-#     bg2_url = request.build_absolute_uri(static('image2.png'))
-#
-#
-#     context = {
-#         "client": client,
-#         "diplomas": [diploma],
-#         "bg_url": bg_url,
-#         "bg2_url": bg2_url,
-#
-#     }
-#
-#     html_string = render_to_string(area_settings['template'], context)
-#     pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
-#
-#     response = HttpResponse(pdf_file, content_type="application/pdf")
-#     response['Content-Disposition'] = f'inline; filename="client_{client.id}_diploma_{diploma.id}.pdf"'
-#     return response
+
 
 
 def client_diploma_pdf(request, client_id, diploma_id):
@@ -160,27 +108,54 @@ def client_diploma_pdf(request, client_id, diploma_id):
     diploma = client_diploma.diploma
     institute = getattr(client_diploma, 'institute', None)
 
-
+    # إعداد القوالب والخلفيات والختم
     institute_templates = {
-        'Afaq Al-Tatawor Higher Institute for Training': {'template': 'AfaqAl-TataworHigherInstituteforTraining–Dammam.html', 'bg': 'AfaqAl-TataworHigherInstituteforTraining–Dammam.jpg'},
-        'Al-Ahli Higher Institute': {'template': 'Al-AhliHigherInstitute–ArarSakakaAl-Qurayyat.html', 'bg': 'Al-AhliHigherInstitute–ArarSakakaAl-Qurayyat.jpeg'},
-        'Al-Faw Advanced Higher Institute for Training': {'template': 'Al-FawAdvancedHigherInstituteforTraining.html', 'bg': 'Al-FawAdvancedHigherInstituteforTraining.png'},
-        'Al-Faw Specialized Higher Institute for Training': {'template': 'Al-FawSpecializedHigherInstituteforTraining–Qassim.html', 'bg': 'Al-FawSpecializedHigherInstituteforTraining–Qassim.jpeg'},
-
+        'Afaq Al-Tatawor Higher Institute for Training': {
+            'template': 'AfaqAl-TataworHigherInstituteforTraining–Dammam.html',
+            'bg': 'AfaqAl-TataworHigherInstituteforTraining–Dammam.jpg',
+            'seal': 'Afaq-seal.png',
+            'signature': 'Signature-Faw-Advanced.png'
+        },
+        'Al-Ahli Higher Institute': {
+            'template': 'Al-AhliHigherInstitute–ArarSakakaAl-Qurayyat.html',
+            'bg': 'Al-AhliHigherInstitute–ArarSakakaAl-Qurayyat.jpeg',
+            'seal': 'Faw-Advanced-seal.png',
+            'signature': 'Signature-Faw-Advanced.png'
+        },
+        'Al-Faw Advanced Higher Institute for Training': {
+            'template': 'Al-FawAdvancedHigherInstituteforTraining.html',
+            'bg': 'Al-FawAdvancedHigherInstituteforTraining.png',
+            'seal': 'Faw-Advanced-seal.png',
+            'signature': 'Signature-Faw-Advanced.png'
+        },
+        'Al-Faw Specialized Higher Institute for Training': {
+            'template': 'Al-FawSpecializedHigherInstituteforTraining–Qassim.html',
+            'bg': 'Al-FawSpecializedHigherInstituteforTraining–Qassim.jpeg',
+            'seal': 'Specialized-Seal.png',
+            'signature':'Specialized-Signature.png'
+        },
     }
 
-
-    area_settings = institute_templates.get(institute.name if institute else None,
-                                            {'template': 'AfaqAl-TataworHigherInstituteforTraining–Dammam.html', 'bg': 'Afaq.jpg'})
-
+    # لو المعهد مش في القائمة، استخدم الافتراضي
+    area_settings = institute_templates.get(
+        institute.name if institute else None,
+        {'template': 'AfaqAl-TataworHigherInstituteforTraining–Dammam.html', 'bg': 'Afaq.jpg', 'seal': 'default-seal.png'}
+    )
     bg_url = request.build_absolute_uri(static(area_settings['bg']))
+    seal_url = request.build_absolute_uri(static(area_settings['seal']))
+    signature_url = request.build_absolute_uri(static(area_settings['signature']))
+
+    # تمرير البيانات إلى القالب
     context = {
         "client": client,
         "diplomas": [diploma],
         "bg_url": bg_url,
+        "seal_url": seal_url,  # << هنا بنضيف صورة الختم
+        "signature_url": signature_url,  # << هنا بنضيف صورة الختم
         "institute_name": institute.name if institute else "",
     }
 
+    # توليد الـ HTML و PDF
     html_string = render_to_string(area_settings['template'], context)
     pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
 
@@ -190,11 +165,6 @@ def client_diploma_pdf(request, client_id, diploma_id):
 
 
 
-class DetailedClientReportView(generics.ListAPIView):
-    queryset = ClientDiploma.objects.select_related('client', 'diploma', 'added_by').all()
-    serializer_class = ClientDiplomaReportSerializer
-    filter_backends = [DjangoFilterBackend]
-    filterset_class = ClientDiplomaFilter
 
 class ClientDiplomaListView(generics.ListAPIView):
     serializer_class = ClientDiplomaListSerializer
@@ -216,4 +186,59 @@ class ClientDiplomaListView(generics.ListAPIView):
                 Q(client__name__icontains=search) |
                 Q(diploma__name__icontains=search)
             )
+        return queryset
+
+
+class DetailedClientReportView(generics.ListAPIView):
+    queryset = ClientDiploma.objects.select_related('client', 'diploma', 'added_by').all()
+    serializer_class = ClientDiplomaReportSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = ClientDiplomaFilter
+
+
+    def get_queryset(self):
+        queryset = ClientDiploma.objects.select_related('client', 'diploma', 'added_by').all()
+        params = self.request.query_params
+
+        sector = params.get("sector")
+        area = params.get("area")
+        search = params.get("search")
+        from_date = params.get("date_from")
+        to_date = params.get("date_to")
+        added_by = params.get("added_by")
+
+        # 🔹 فلترة القطاع
+        if sector:
+            queryset = queryset.filter(client__sector=sector)
+
+        # 🔹 فلترة المنطقة
+        if area:
+            queryset = queryset.filter(client__area=area)
+
+        # 🔹 البحث باسم العميل أو الدبلوم
+        if search:
+            queryset = queryset.filter(
+                Q(client__name__icontains=search) |
+                Q(diploma__name__icontains=search)
+            )
+
+        # 🔹 فلترة بالتاريخ (من - إلى)
+        if from_date and to_date:
+            try:
+                start_date = datetime.strptime(from_date, "%Y-%m-%d")
+                end_date = datetime.strptime(to_date, "%Y-%m-%d") + timedelta(days=1)
+                queryset = queryset.filter(added_at__gte=start_date, added_at__lt=end_date)
+            except ValueError:
+                pass
+        elif from_date:
+            queryset = queryset.filter(added_at__date__gte=from_date)
+        elif to_date:
+            queryset = queryset.filter(added_at__date__lte=to_date)
+
+        # 🔹 فلترة المستخدم الذي أضاف السجل
+        if added_by:
+            queryset = queryset.filter(
+                Q(added_by__full_name__icontains=added_by)
+            )
+
         return queryset

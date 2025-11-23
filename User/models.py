@@ -124,7 +124,17 @@ def default_hijri():
 class Diploma(models.Model):
     name = models.CharField(max_length=255, verbose_name="اسم الدبلوم")
     date = models.DateField(auto_now_add=True, verbose_name="تاريخ إنشاء الدبلوم")
-
+    ATTENDANCE_CHOICES = [
+        ('online', 'أونلاين فقط'),
+        ('offline', 'حضوري فقط'),
+        ('hybrid', 'هجين (أونلاين أو حضوري)'),
+    ]
+    attendance_mode = models.CharField(
+        max_length=20,
+        choices=ATTENDANCE_CHOICES,
+        default='hybrid',
+        verbose_name="نظام الحضور للدبلوم"
+    )
     duration_hours = models.CharField(max_length=50, blank=True, null=True, verbose_name="عدد الساعات المعتمدة")
     duration = models.CharField(max_length=50, blank=True, null=True, verbose_name="مدة الدبلوم")
 
@@ -143,6 +153,9 @@ class Diploma(models.Model):
         max_length=10, default=default_hijri, verbose_name="تاريخ نهاية الدبلوم (هجري)"
     )
 
+
+    def __str__(self):
+        return f"{self.name} ({self.get_attendance_mode_display()})"
 
 class Client(models.Model):
     SECTOR_CHOICES = [
@@ -212,11 +225,20 @@ class Institute(models.Model):
         return self.name
 
 class ClientDiploma(models.Model):
+    ATTENDANCE_TYPE_CHOICES = [
+        ('online', 'أونلاين'),
+        ('offline', 'حضوري'),
+    ]
+    attendance_type = models.CharField(
+        max_length=20,
+        choices=ATTENDANCE_TYPE_CHOICES,
+        default='offline',
+        verbose_name="نوع حضور الطالب"
+    )
     client = models.ForeignKey(Client, related_name="client_diplomas", on_delete=models.CASCADE)
     diploma = models.ForeignKey(Diploma, on_delete=models.CASCADE,)
-
     institute = models.ForeignKey(Institute, on_delete=models.CASCADE, verbose_name="المعهد")
-    added_at = models.DateTimeField(auto_now_add=True)
+    added_at = models.DateField(auto_now_add=True)
     added_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -224,8 +246,19 @@ class ClientDiploma(models.Model):
         verbose_name="تم الإضافة بواسطة"
     )
 
+    def clean(self):
+        diploma_mode = self.diploma.attendance_mode
+        if diploma_mode == 'online' and self.attendance_type != 'online':
+            raise ValidationError("هذا الدبلوم متاح أونلاين فقط.")
+        elif diploma_mode == 'offline' and self.attendance_type != 'offline':
+            raise ValidationError("هذا الدبلوم متاح حضورياً فقط.")
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
+
     class Meta:
         unique_together = ('client', 'diploma', 'institute')
 
     def __str__(self):
-        return self.client.name + " - " + self.diploma.name
+        return f"{self.client.name} - {self.diploma.name} ({self.get_attendance_type_display()})"

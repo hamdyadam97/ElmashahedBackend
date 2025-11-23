@@ -1,8 +1,8 @@
 # accounts/urls.py
 from django.urls import path
 from .views import UserListCreateAPIView, UserRetrieveUpdateAPIView, UserDeleteAPIView, LoginAPIView, \
-     ClientRetrieveUpdateDestroyView, DiplomaListCreateView, DiplomaRetrieveUpdateDestroyView, \
-    client_diploma_pdf, DetailedClientReportView, ClientCreateView,ClientDiplomaListView
+    ClientRetrieveUpdateDestroyView, DiplomaListCreateView, DiplomaRetrieveUpdateDestroyView, \
+    client_diploma_pdf, DetailedClientReportView, ClientCreateView, DetailedClientReportView, ClientDiplomaListView
 
 app_name = 'User'
 
