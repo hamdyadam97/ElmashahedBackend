@@ -174,21 +174,7 @@ class Client(models.Model):
         ('aramco', 'أرامكو السعودية'),
         ('environmental_security', 'القوات الخاصة للأمن البيئي'),
     ]
-    AREA_CHOICES = [
-        ('riyadh', 'الرياض'),
-        ('makkah', 'مكة المكرمة'),
-        ('madinah', 'المدينة المنورة'),
-        ('qassim', 'القصيم'),
-        ('eastern', 'المنطقة الشرقية'),
-        ('asir', 'عسير'),
-        ('tabuk', 'تبوك'),
-        ('hail', 'حائل'),
-        ('north_border', 'الحدود الشمالية'),
-        ('jazan', 'جازان'),
-        ('najran', 'نجران'),
-        ('baha', 'الباحة'),
-        ('jouf', 'الجوف'),
-    ]
+    
     name = models.CharField(max_length=255, verbose_name="الاسم")
     identity_number = models.CharField(max_length=10, verbose_name="رقم الهوية")
     phone_number = models.CharField(max_length=15, verbose_name="رقم الهاتف")
@@ -201,7 +187,7 @@ class Client(models.Model):
 
     area = models.CharField(
         max_length=50,
-        choices=AREA_CHOICES,
+       
         verbose_name="المنطقة"
     )
     diplomas = models.ManyToManyField(
