@@ -1,36 +1,33 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-
 <head>
     <meta charset="UTF-8">
     <title>شهادة التحاق</title>
     <style>
-        body {
-            font-family: "Arial", sans-serif;
-            font-size: 13pt;
-            direction: rtl;
-            margin: 0;
-            padding: 0;
-            background-color: #fff;
-        }
-        .certificate-container {
-            max-width: 1050px;
-            margin: 0 auto;
-            padding: 10px;
-            border: 3px solid #2c5aa0;
-            border-radius: 20px;
-            background: url("{{ bg_url }}") no-repeat center center;
-            background-size: cover;
-            position: relative;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.15);
-        }
+      body {
+    font-family: "Arial", sans-serif;
+    direction: rtl;
+    background-color: #fff;
+    margin: 0;
+    padding: 0;
+}
 
+.certificate-container {
+    width: 100%;
+    min-height: 100vh;             /* يخلي الصفحة كاملة */
+    border: 3px solid #2c5aa0;
+    border-radius: 20px;
+    background: url("{{ bg_url }}") no-repeat center top;
+    background-size: 100% 100%;    /* يضمن الصورة تمتد على طول الصفحة */
+    position: relative;
+    padding: 40px 50px;            /* بدل margin-top / bottom */
+    box-sizing: border-box;
+}
         .header {
             text-align: center;
-            margin-top: 140px;
+            margin-top: 190px;
         }
-
         .institute-name {
             font-size: 26px;
             font-weight: bold;
@@ -64,14 +61,12 @@
             text-align: center;
             vertical-align: middle;
         }
-
         .info-table .label {
             background-color: #f0f4fa;
             width: 40%;
         }
 
         .description{
-
             background: #f8f9fa;
             line-height: 2;
             text-align: justify;
@@ -79,32 +74,27 @@
             border-radius: 10px;
             font-weight: bold;
         }
-
         .description span {
             text-decoration: underline;
         }
-
         .footer {
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
             font-weight: bold;
             color: #2c5aa0;
-               margin-top: 50px;          /* ترفع الفوتر عن النص */
-    margin-bottom: 140px;
+              margin-top: 50px;          /* ترفع الفوتر عن النص */
+    margin-bottom: 70px;
         }
-
         .footer div {
             text-align: center;
             font-size: 16px;
         }
-
        .footer .stamp {
     width: 90px;
     height: 90px;
     position: relative;
 }
-
 .footer .stamp img {
     width: 100%;
     height: 100%;
@@ -117,14 +107,10 @@
 <body>
     {% for diploma in diplomas %}
     <div class="certificate-container">
-
-
         <div class="header">
             <div class="institute-name">إلى من يهمه الأمر</div>
             <div class="certificate-title">مشهد لا مانع من الالتحاق بالدراسة</div>
         </div>
-
-
         <div class="table-border">
             <table class="info-table">
                 <tr>
