@@ -153,7 +153,7 @@
                         <span style="border-left: 2px solid #000; padding-left: 10px; margin-left: 10px;">
                             {{ diploma.start_date_hijri }}
                         </span>
-                        {{ diploma.start_date_gregorian }}
+                      {{ diploma.start_date_gregorian|date:"d/m/Y" }}
                     </td>
                 </tr>
                 <tr>
@@ -162,7 +162,10 @@
                         <span style="border-left: 2px solid #000; padding-left: 10px; margin-left: 10px;">
                             {{ diploma.end_date_hijri }}
                         </span>
-                        {{ diploma.end_date_gregorian }}
+
+
+                            {{ diploma.start_date_gregorian|date:"d/m/Y" }}
+
                     </td>
                 </tr>
             </table>
