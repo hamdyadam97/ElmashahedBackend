@@ -129,6 +129,12 @@ class Diploma(models.Model):
         ('offline', 'حضوري فقط'),
         ('hybrid', 'هجين (أونلاين أو حضوري)'),
     ]
+    TYPE_CHOICES = [
+        ('diploma', 'دبلوم'),
+        ('cource', ' كورس'),
+
+    ]
+    type = models.CharField(max_length=255,choices=TYPE_CHOICES,  default='cource', verbose_name="نوع ")
     attendance_mode = models.CharField(
         max_length=20,
         choices=ATTENDANCE_CHOICES,

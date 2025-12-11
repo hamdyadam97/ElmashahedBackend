@@ -66,9 +66,22 @@ class LoginAPIView(APIView):
 
 class DiplomaListCreateView(generics.ListCreateAPIView):
     queryset = Diploma.objects.all()
-    # permission_classes = [IsAuthenticated]
     serializer_class = DiplomaSerializer
     pagination_class = None
+
+    def get_queryset(self):
+        print(self.request.query_params.get('type', None))
+        queryset = Diploma.objects.all()
+
+        # جلب باراميتر type من الـ URL
+        diploma_type = self.request.query_params.get('type', None)
+
+        # فلترة حسب النوع إذا تم إرساله
+        if diploma_type:
+            queryset = queryset.filter(type=diploma_type)
+
+        print(queryset)
+        return queryset
 
 class DiplomaRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Diploma.objects.all()

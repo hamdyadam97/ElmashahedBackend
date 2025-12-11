@@ -76,7 +76,7 @@ class LoginSerializer(serializers.Serializer):
 class DiplomaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Diploma
-        fields = ["id", "name", "date",'attendance_mode']
+        fields = ["id", "name", "date",'attendance_mode','type']
 
 
 class ClientDiplomaSerializer(serializers.ModelSerializer):
