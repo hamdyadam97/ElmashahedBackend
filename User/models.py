@@ -11,12 +11,14 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.utils.functional import cached_property
 from django.conf import settings
+
+
 def validate_number_id_user(value):
     if not value.isdigit():
         raise ValidationError(_("ID must contain digits only."))
     if len(value) != 10:
         raise ValidationError(_("ID must be exactly 10 digits."))
-    if not value.startswith('1') and not value.startswith('2'):
+    if not value.startswith('1'):
         raise ValidationError(_("ID must start with 1 (Citizen) or 2 (Resident)."))
     return value
 

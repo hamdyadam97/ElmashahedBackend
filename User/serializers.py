@@ -45,28 +45,30 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class LoginSerializer(serializers.Serializer):
-    identity_number = serializers.CharField()
+    identifier = serializers.CharField()  # يقبل بريد أو هوية
     password = serializers.CharField(write_only=True)
 
     def validate(self, data):
-        identity_number = data.get("identity_number")
+        identifier = data.get("identifier")
         password = data.get("password")
 
-        if identity_number and password:
-            # نبحث عن المستخدم أولاً
-            try:
-                user = User.objects.get(identity_number=identity_number)
-            except User.DoesNotExist:
-                raise serializers.ValidationError("رقم الهوية أو كلمة المرور غير صحيحة")
+        if not identifier or not password:
+            raise serializers.ValidationError("يجب إدخال البيانات كاملة")
 
-            # نتحقق من الباسورد
-            if not user.check_password(password):
-                raise serializers.ValidationError("رقم الهوية أو كلمة المرور غير صحيحة")
+        # البحث بالإيميل أو الهوية
+        try:
+            if '@' in identifier:
+                user = User.objects.get(email=identifier)
+            else:
+                user = User.objects.get(identity_number=identifier)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("بيانات الدخول غير صحيحة")
 
-            if not user.is_active:
-                raise serializers.ValidationError("الحساب غير مفعل")
-        else:
-            raise serializers.ValidationError("يجب إدخال رقم الهوية وكلمة المرور")
+        if not user.check_password(password):
+            raise serializers.ValidationError("بيانات الدخول غير صحيحة")
+
+        if not user.is_active:
+            raise serializers.ValidationError("الحساب غير مفعل")
 
         data["user"] = user
         return data
