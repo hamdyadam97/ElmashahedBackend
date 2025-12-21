@@ -70,7 +70,6 @@ class DiplomaListCreateView(generics.ListCreateAPIView):
     pagination_class = None
 
     def get_queryset(self):
-        print(self.request.query_params.get('type', None))
         queryset = Diploma.objects.all()
 
         # جلب باراميتر type من الـ URL
