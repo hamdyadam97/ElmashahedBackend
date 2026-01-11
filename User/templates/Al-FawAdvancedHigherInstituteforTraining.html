@@ -125,7 +125,14 @@ html, body {
     color: #2c5aa0;
     font-size: 12pt;
 }
-
+.top-date {
+    position: absolute;
+    top: 60mm;
+    left: 10mm;        /* شمال الصفحة */
+    font-size: 11pt;
+    font-weight: 700;
+    color: #2c5aa0;
+}
 .stamp {
     width: 28mm;
     height: 28mm;
@@ -145,7 +152,9 @@ html, body {
 
 {% for diploma in diplomas %}
 <div class="certificate-container">
-
+            <div class="top-date">
+        التاريخ: {{client_diploma.added_at }}
+    </div>
     <div class="header">
         <div class="institute-name">إلى من يهمه الأمر</div>
         <div class="certificate-title">مشهد لا مانع من الالتحاق بالدراسة</div>

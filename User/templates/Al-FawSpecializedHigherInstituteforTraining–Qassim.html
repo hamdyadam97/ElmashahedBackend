@@ -111,7 +111,14 @@
             text-decoration: underline;
         }
 
-
+.top-date {
+    position: absolute;
+    top: 60mm;
+    left: 10mm;        /* شمال الصفحة */
+    font-size: 11pt;
+    font-weight: 700;
+    color: #2c5aa0;
+}
 
         .footer {
             display: flex;
@@ -147,6 +154,9 @@
 
     <body>
         <div class="certificate-container">
+              <div class="top-date">
+        التاريخ: {{client_diploma.added_at }}
+    </div>
              <div class="header">
                 <div class="institute-name"> </div>
                 <div class="certificate-title">  مشهد قبول</div>

@@ -9,7 +9,14 @@
             size: A4;
             margin: 20mm;
         }
-
+.top-date {
+    position: absolute;
+    top: 60mm;
+    left: 10mm;        /* شمال الصفحة */
+    font-size: 11pt;
+    font-weight: 700;
+    color: #2c5aa0;
+}
         body {
             font-family: "Arial", sans-serif;
             font-size: 12pt;
@@ -132,6 +139,9 @@
 <body>
     {% for diploma in diplomas %}
     <div class="certificate-container">
+          <div class="top-date">
+        التاريخ: {{client_diploma.added_at }}
+    </div>
         <div class="header">
             <div class="certificate-title">مشهد قبول</div>
         </div>

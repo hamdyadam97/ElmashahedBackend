@@ -17,7 +17,14 @@
             position: relative;
 
         }
-
+.top-date {
+    position: absolute;
+    top: 60mm;
+    left: 10mm;        /* شمال الصفحة */
+    font-size: 11pt;
+    font-weight: 700;
+    color: #2c5aa0;
+}
         @page {
             size: A4;
             margin: 20mm;
@@ -156,6 +163,9 @@
 
     <body>
         <div class="certificate-container">
+              <div class="top-date">
+        التاريخ: {{client_diploma.added_at }}
+    </div>
             <div class="header">
                 <div class="institute-name">معهد آفاق التطور العدالي للتدريب</div>
                 <div class="certificate-title">شهادة التحاق وإفادة</div>

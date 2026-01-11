@@ -155,6 +155,7 @@ def client_diploma_pdf(request, client_id, diploma_id):
     context = {
         "client": client,
         "diplomas": [diploma],
+        "client_diploma": client_diploma,
         "bg_url": bg_url,
         "seal_url": seal_url,  # << هنا بنضيف صورة الختم
         "signature_url": signature_url,  # << هنا بنضيف صورة الختم

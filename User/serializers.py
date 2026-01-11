@@ -175,7 +175,7 @@ class ClientSerializer(serializers.ModelSerializer):
             "identity_number": client.identity_number,
             "phone_number": client.phone_number,
             "email": client.email,
-            "sector": client.sector,
+            "sector": client.get_sector_display() ,
             "area": client.area,
             "diplomas": [
                 {
@@ -199,7 +199,7 @@ class ClientDiplomaListSerializer(serializers.ModelSerializer):
     identity_number = serializers.CharField(source='client.identity_number', read_only=True)
     phone_number = serializers.CharField(source='client.phone_number', read_only=True)
     email = serializers.CharField(source='client.email', read_only=True)
-    sector = serializers.CharField(source='client.sector', read_only=True)
+    sector = serializers.CharField(source='client.get_sector_display', read_only=True)
     area = serializers.CharField(source='client.area', read_only=True)
     diploma = DiplomaSerializer(read_only=True)
     added_by_name = serializers.CharField(source='added_by.full_name', read_only=True)
@@ -221,7 +221,7 @@ class ClientDiplomaReportSerializer(serializers.ModelSerializer):
     identity_number = serializers.CharField(source="client.identity_number")
     phone_number = serializers.CharField(source="client.phone_number")
     email = serializers.EmailField(source="client.email")
-    sector = serializers.CharField(source="client.sector")
+    sector = serializers.CharField(source='client.get_sector_display',)
     area = serializers.CharField(source="client.area")
     diploma_id = serializers.IntegerField(source="diploma.id")
     diploma_name = serializers.CharField(source="diploma.name")
