@@ -2,195 +2,210 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <title>شهادة التحاق</title>
-    <style>
+<meta charset="UTF-8">
+<title>شهادة التحاق</title>
 
-    @font-face {
-    font-family: "Cairo";
-    src: url("{% static 'Cairo/static/Cairo-Regular.ttf' %}");
+<style>
+
+/* ===== A4 PAGE ===== */
+@page {
+    size: A4;
+    margin: 0;
 }
 
-@font-face {
-    font-family: "Cairo";
-    src: url("{% static 'Cairo/static/Cairo-Bold.ttf' %}");
-    font-weight: bold;
-}
-
-
-      body {
-    direction: rtl;
-    background-color: #fff;
+/* ===== Reset ===== */
+* {
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
 
+/* ===== Fonts ===== */
+@font-face {
+    font-family: "Cairo";
+    src: url("{% static 'Cairo/static/Cairo-Regular.ttf' %}") format("truetype");
+    font-weight: 400;
+}
+
+@font-face {
+    font-family: "Cairo";
+    src: url("{% static 'Cairo/static/Cairo-Bold.ttf' %}") format("truetype");
+    font-weight: 700;
+}
+
+html, body {
+    width: 210mm;
+    height: 297mm;
+    font-family: "Cairo", sans-serif;
+    background: #fff;
+}
+
+/* ===== Certificate ===== */
 .certificate-container {
-    width: 100%;
-    min-height: 100vh;             /* يخلي الصفحة كاملة */
+    width: 210mm;
+    height: 297mm;
+    padding: 25mm 20mm;
     border: 3px solid #2c5aa0;
-    border-radius: 20px;
-    background: url("{{ bg_url }}") no-repeat center top;
-    background-size: 100% 100%;    /* يضمن الصورة تمتد على طول الصفحة */
-    position: relative;
-    padding: 40px 50px;            /* بدل margin-top / bottom */
-    box-sizing: border-box;
-}
-        .header {
-            text-align: center;
-            margin-top: 190px;
-        }
-        .institute-name {
-            font-size: 26px;
-            font-weight: bold;
-            color: #2c5aa0;
-        }
-
-        .certificate-title {
-            font-size: 20px;
-            margin-top: 10px;
-            color: #333;
-            font-weight: bold;
-        }
-
-        .table-border {
-            margin-top: 10px;
-            border: 3px solid ;
-            border-radius: 10px;
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.9);
-        }
-
-        .info-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-weight: bold;
-        }
-
-        .info-table td {
-            border: 1px solid #333;
-            padding: 10px;
-            text-align: center;
-            vertical-align: middle;
-        }
-        .info-table .label {
-            background-color: #f0f4fa;
-            width: 40%;
-        }
-
-        .description{
-            background: #f8f9fa;
-            line-height: 2;
-            text-align: justify;
-            padding: 15px;
-            border-radius: 10px;
-            font-weight: bold;
-        }
-        .description span {
-            text-decoration: underline;
-        }
-        .footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            font-weight: bold;
-            color: #2c5aa0;
-                    /* ترفع الفوتر عن النص */
-
-        }
-        .footer div {
-            text-align: center;
-            font-size: 16px;
-        }
-       .footer .stamp {
-    width: 90px;
-    height: 90px;
+    border-radius: 12mm;
+    background-image: url("{{ bg_url }}");
+    background-repeat: no-repeat;
+    background-position: center top;
+    background-size: cover;
     position: relative;
 }
-.footer .stamp img {
+
+/* ===== Header ===== */
+.header {
+    text-align: center;
+    margin-top: 45mm;
+}
+
+.institute-name {
+    font-size: 20pt;
+    font-weight: 700;
+    color: #2c5aa0;
+}
+
+.certificate-title {
+    font-size: 16pt;
+    margin-top: 4mm;
+    font-weight: 700;
+    color: #333;
+}
+
+/* ===== Table ===== */
+.table-border {
+    margin-top: 8mm;
+    border: 2px solid #2c5aa0;
+    border-radius: 6mm;
+    padding: 4mm;
+    background: rgba(255,255,255,0.96);
+}
+
+.info-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11pt;
+    font-weight: 700;
+}
+
+.info-table td {
+    border: 1px solid #333;
+    padding: 3mm;
+    text-align: center;
+}
+
+.info-table .label {
+    background: #f0f4fa;
+    width: 40%;
+}
+
+/* ===== Description ===== */
+.description {
+    margin-top: 6mm;
+    background: #f8f9fa;
+    padding: 5mm;
+    border-radius: 5mm;
+    font-size: 11pt;
+    line-height: 1.9;
+    text-align: justify;
+    font-weight: 700;
+}
+
+/* ===== Footer ===== */
+.footer {
+    position: absolute;
+    bottom: 20mm;
+    left: 20mm;
+    right: 20mm;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    font-weight: 700;
+    color: #2c5aa0;
+    font-size: 12pt;
+}
+
+.stamp {
+    width: 28mm;
+    height: 28mm;
+    margin-top: 3mm;
+}
+
+.stamp img {
     width: 100%;
     height: 100%;
     object-fit: contain;
-    opacity: 0.9;
 }
-    </style>
+
+</style>
 </head>
 
 <body>
-    {% for diploma in diplomas %}
-    <div class="certificate-container">
-        <div class="header">
-            <div class="institute-name">إلى من يهمه الأمر</div>
-            <div class="certificate-title">مشهد لا مانع من الالتحاق بالدراسة</div>
-        </div>
-        <div class="table-border">
-            <table class="info-table">
-                <tr>
-                    <td class="label">اسم المتدرب</td>
-                    <td>{{ client.name }}</td>
-                </tr>
-                <tr>
-                    <td class="label">رقم الهوية الوطنية</td>
-                    <td>{{ client.identity_number }}</td>
-                </tr>
-                <tr>
-                    <td class="label">اسم الدبلوم</td>
-                    <td>{{ diploma.name }}</td>
-                </tr>
-                <tr>
-                    <td class="label">مدة الدبلوم</td>
-                    <td>{{ diploma.duration }}</td>
-                </tr>
-                <tr>
-                    <td class="label">عدد الساعات المعتمدة</td>
-                    <td>{{ diploma.duration_hours }}</td>
-                </tr>
-                <tr>
-                    <td class="label">تاريخ بداية الالتحاق بالدبلوم</td>
-                    <td>
-                        <span style="border-left: 2px solid #000; padding-left: 10px; margin-left: 10px;">
-                            {{ diploma.start_date_hijri }}
-                        </span>
-                      {{ diploma.start_date_gregorian|date:"d/m/Y" }}
-                    </td>
-                </tr>
-                <tr>
-                    <td class="label">تاريخ نهاية الدبلوم</td>
-                    <td>
-                        <span style="border-left: 2px solid #000; padding-left: 10px; margin-left: 10px;">
-                            {{ diploma.end_date_hijri }}
-                        </span>
 
+{% for diploma in diplomas %}
+<div class="certificate-container">
 
-                            {{ diploma.start_date_gregorian|date:"d/m/Y" }}
+    <div class="header">
+        <div class="institute-name">إلى من يهمه الأمر</div>
+        <div class="certificate-title">مشهد لا مانع من الالتحاق بالدراسة</div>
+    </div>
 
-                    </td>
-                </tr>
-            </table>
-        </div>
+    <div class="table-border">
+        <table class="info-table">
+            <tr>
+                <td class="label">اسم المتدرب</td>
+                <td>{{ client.name }}</td>
+            </tr>
+            <tr>
+                <td class="label">رقم الهوية الوطنية</td>
+                <td>{{ client.identity_number }}</td>
+            </tr>
+            <tr>
+                <td class="label">اسم الدبلوم</td>
+                <td>{{ diploma.name }}</td>
+            </tr>
+            <tr>
+                <td class="label">مدة الدبلوم</td>
+                <td>{{ diploma.duration }}</td>
+            </tr>
+            <tr>
+                <td class="label">عدد الساعات المعتمدة</td>
+                <td>{{ diploma.duration_hours }}</td>
+            </tr>
+            <tr>
+                <td class="label">تاريخ البداية</td>
+                <td>{{ diploma.start_date_hijri }} | {{ diploma.start_date_gregorian|date:"d/m/Y" }}</td>
+            </tr>
+            <tr>
+                <td class="label">تاريخ النهاية</td>
+                <td>{{ diploma.end_date_hijri }} | {{ diploma.end_date_gregorian|date:"d/m/Y" }}</td>
+            </tr>
+        </table>
+    </div>
 
+    <div class="description">
+        تفيد إدارة معهد الفاو التخصصي العالي للتدريب والمعتمد من المؤسسة العامة للتدريب التقني والمهني بأن المذكور بياناته أعلاه تقدم إلينا للالتحاق والدراسة بالمعهد حسب التقويم التدريبي الصادر من المؤسسة العامة للتدريب التقني والمهني، علماً بأن الدراسة حضوري منتظم ولا تتعارض مع أوقات العمل الرسمي.
+    </div>
 
-        <div class="description">
-
-                تفيد إدارة معهد الفاو التخصصي العالي للتدريب والمعتمد من المؤسسة العامة للتدريب التقني والمهني بأن المذكور بياناته أعلاه تقدم الينا للالتحاق والدراسة بالمعهد حسب التقويم التدريبي الصادر من المؤسسة العامة للتدريب التقني والمهني لعام (1447 -1448)هــ ، علما بان الدراسة حضوري منتظم  خلال الفترة المسائية و لا تتعارض مع أوقات العمل الرسمي  ، وعلى حساب المتدرب الخاص ولا تتطلب التفرغ الكلي.
+    <div class="footer">
+        <div>
+            الختم
+            <div class="stamp">
+                <img src="{{ seal_url }}">
+            </div>
         </div>
 
-       <div class="footer">
+        <div>
+            قسم القبول والتسجيل
+            <div class="stamp">
+                <img src="{{ signature_url }}">
+            </div>
+        </div>
+    </div>
 
-    <div class="stamp">
-الختم
-        <img src="{{ seal_url }}" alt="الختم">
-    </div>
-    <div>
-        قسم القبول والتسجيل
-         <div class="stamp">
-        <img src="{{ signature_url }}" alt="الختم">
-    </div>
-    </div>
 </div>
+{% endfor %}
 
-    </div>
-    {% endfor %}
 </body>
-
 </html>
