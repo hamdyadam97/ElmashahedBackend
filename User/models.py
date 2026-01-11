@@ -66,8 +66,11 @@ class UserManager(BaseUserManager):
 class User(AbstractBaseUser, PermissionsMixin):
     BRANCH_CHOICES = [
         ('riyadh', 'فرع الرياض'),
-        ('jeddah', 'فرع جدة'),
         ('dammam', 'فرع الدمام'),
+        ('arar', 'فرع عرعر'),
+        ('hafr_al_batin', 'فرع حفر الباطن'),
+        ('qassim', 'فرع القصيم'),
+        ('khamis_mushait', 'فرع خميس مشيط'),
     ]
 
     full_name = models.CharField(max_length=100)
