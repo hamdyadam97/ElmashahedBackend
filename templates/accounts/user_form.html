@@ -1,0 +1,129 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{% if object %}تعديل مستخدم{% else %}إضافة مستخدم{% endif %} - نظام إدارة المعاهد{% endblock %}
+
+{% block content %}
+<div class="user-form-page">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0">{% if object %}تعديل مستخدم{% else %}إضافة مستخدم جديد{% endif %}</h4>
+        <a href="{% url 'accounts:user_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-right me-2"></i>رجوع
+        </a>
+    </div>
+    
+    <div class="content-card">
+        <div class="content-card-body">
+            <form method="post" novalidate>
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">اسم المستخدم <span class="text-danger">*</span></label>
+                        <input type="text" name="username" class="form-control" value="{{ object.username|default:'' }}" required>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">البريد الإلكتروني</label>
+                        <input type="email" name="email" class="form-control" value="{{ object.email|default:'' }}">
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">الاسم الأول</label>
+                        <input type="text" name="first_name" class="form-control" value="{{ object.first_name|default:'' }}">
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">الاسم الأخير</label>
+                        <input type="text" name="last_name" class="form-control" value="{{ object.last_name|default:'' }}">
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">رقم الهاتف</label>
+                        <input type="text" name="phone" class="form-control" value="{{ object.phone|default:'' }}">
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">الدور <span class="text-danger">*</span></label>
+                        <select name="role" class="form-select" required>
+                            <option value="">اختر الدور</option>
+                            <option value="admin" {% if object.role == 'admin' %}selected{% endif %}>Admin / CEO</option>
+                            <option value="regional_manager" {% if object.role == 'regional_manager' %}selected{% endif %}>مدير إقليمي</option>
+                            <option value="branch_manager" {% if object.role == 'branch_manager' %}selected{% endif %}>مدير فرع</option>
+                            <option value="employee" {% if object.role == 'employee' %}selected{% endif %}>موظف</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">المعهد (للموظف)</label>
+                        <select name="institute" class="form-select">
+                            <option value="">-</option>
+                            {% for institute in institutes %}
+                            <option value="{{ institute.pk }}" {% if object.institute_id == institute.pk %}selected{% endif %}>{{ institute.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">المعهد المدار (للمدير)</label>
+                        <select name="managed_institute" class="form-select">
+                            <option value="">-</option>
+                            {% for institute in institutes %}
+                            <option value="{{ institute.pk }}" {% if object.managed_institute_id == institute.pk %}selected{% endif %}>{{ institute.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">المعاهد المشرف عليها (للمدير الإقليمي)</label>
+                    <select name="managed_institutes" class="form-select" multiple size="4">
+                        {% for institute in institutes %}
+                        <option value="{{ institute.pk }}" {% if institute in object.managed_institutes.all %}selected{% endif %}>{{ institute.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="text-muted">اضغط Ctrl لاختيار多个</small>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">العنوان</label>
+                    <textarea name="address" class="form-control" rows="2">{{ object.address|default:'' }}</textarea>
+                </div>
+                
+                {% if not object %}
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">كلمة المرور <span class="text-danger">*</span></label>
+                        <input type="password" name="password" class="form-control" required>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">تأكيد كلمة المرور <span class="text-danger">*</span></label>
+                        <input type="password" name="password_confirm" class="form-control" required>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="mb-4">
+                    <div class="form-check">
+                        <input type="checkbox" name="is_active" class="form-check-input" id="is_active" {% if object.is_active or not object %}checked{% endif %}>
+                        <label class="form-check-label" for="is_active">نشط</label>
+                    </div>
+                </div>
+                
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>{% if object %}حفظ التغييرات{% else %}إضافة المستخدم{% endif %}
+                    </button>
+                    <a href="{% url 'accounts:user_list' %}" class="btn btn-outline-secondary">إلغاء</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

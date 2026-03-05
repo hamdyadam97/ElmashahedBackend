@@ -1,0 +1,131 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ permission.permission_number }} - نظام إدارة المعاهد{% endblock %}
+
+{% block content %}
+<div class="permission-detail-page">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0">تفاصيل الإذن</h4>
+        <div class="d-flex gap-2">
+            <a href="{% url 'permissions:permission_pdf' permission.pk %}" class="btn btn-danger" target="_blank">
+                <i class="fas fa-file-pdf me-2"></i>عرض PDF
+            </a>
+            <a href="{% url 'permissions:permission_download' permission.pk %}" class="btn btn-success">
+                <i class="fas fa-download me-2"></i>تحميل
+            </a>
+            <a href="{% url 'permissions:permission_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-right me-2"></i>رجوع
+            </a>
+        </div>
+    </div>
+    
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="content-card">
+                <div class="content-card-header">
+                    <h5 class="content-card-title">معلومات الإذن</h5>
+                    <span class="status-badge {{ permission.status }}">{{ permission.get_status_display }}</span>
+                </div>
+                <div class="content-card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <td style="width: 150px;"><strong>رقم الإذن:</strong></td>
+                            <td><span class="fs-5 fw-bold text-primary">{{ permission.permission_number }}</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>تاريخ الإصدار:</strong></td>
+                            <td>{{ permission.issue_date|date:"Y-m-d" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>تاريخ الانتهاء:</strong></td>
+                            <td>{{ permission.expiry_date|date:"Y-m-d" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>نوع البرنامج:</strong></td>
+                            <td>{% if permission.diploma %}دبلومة{% else %}دورة{% endif %}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>اسم البرنامج:</strong></td>
+                            <td>{{ permission.get_program.name|default:"-" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>مدة الدراسة:</strong></td>
+                            <td>{{ permission.get_program.duration_months|default:"-" }} شهر</td>
+                        </tr>
+                        <tr>
+                            <td><strong>المعهد:</strong></td>
+                            <td>{{ permission.institute.name }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>أصدره:</strong></td>
+                            <td>{{ permission.issued_by.get_full_name|default:permission.issued_by.username }}</td>
+                        </tr>
+                        {% if permission.notes %}
+                        <tr>
+                            <td><strong>ملاحظات:</strong></td>
+                            <td>{{ permission.notes|linebreaksbr }}</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="content-card">
+                <div class="content-card-header">
+                    <h5 class="content-card-title">بيانات العميل</h5>
+                </div>
+                <div class="content-card-body">
+                    <div class="text-center mb-3">
+                        <div class="user-avatar mx-auto mb-2" style="width: 80px; height: 80px; font-size: 2rem;">
+                            {{ permission.client.first_name|first }}
+                        </div>
+                        <h6 class="mb-1">{{ permission.client.full_name }}</h6>
+                        <p class="text-muted mb-0">{{ permission.client.national_id }}</p>
+                    </div>
+                    
+                    <hr>
+                    
+                    <table class="table table-borderless table-sm">
+                        <tr>
+                            <td><strong>الهاتف:</strong></td>
+                            <td>{{ permission.client.phone }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>البريد:</strong></td>
+                            <td>{{ permission.client.email|default:"-" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>العنوان:</strong></td>
+                            <td>{{ permission.client.address }}</td>
+                        </tr>
+                    </table>
+                    
+                    <div class="d-grid gap-2 mt-3">
+                        <a href="{% url 'clients:client_detail' permission.client.pk %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-user me-1"></i>عرض بيانات العميل
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            {% if permission.status == 'active' and user.is_branch_manager or user.is_admin %}
+            <div class="content-card mt-4 border-danger">
+                <div class="content-card-header">
+                    <h5 class="content-card-title text-danger">إجراءات</h5>
+                </div>
+                <div class="content-card-body">
+                    <form method="post" action="{% url 'permissions:permission_cancel' permission.pk %}" onsubmit="return confirm('هل أنت متأكد من إلغاء هذا الإذن؟');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-danger w-100">
+                            <i class="fas fa-ban me-2"></i>إلغاء الإذن
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

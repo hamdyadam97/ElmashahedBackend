@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page { size: A4; margin: 1.5cm; }
+        body { font-family: 'Arial', sans-serif; color: #333; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #2980b9; padding-bottom: 15px; margin-bottom: 25px; }
+        .logo { width: 100px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background-color: #2980b9; color: white; padding: 10px; font-size: 13px; }
+        td { border-bottom: 1px solid #eee; padding: 10px; text-align: center; font-size: 12px; }
+        .price { color: #27ae60; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="{{ logo_url }}" class="logo">
+        <div style="text-align: center;">
+            <h1 style="margin: 0;">{{ title }}</h1>
+            <p style="margin: 5px 0;">نظام إدارة التدريب</p>
+        </div>
+        <div style="font-size: 10px; text-align: left;">تاريخ التقرير: {% now "Y-m-d" %}</div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>الكود</th>
+                <th>اسم الدورة</th>
+                <th>المعهد</th>
+                <th>المدة</th>
+                <th>الرسوم</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for course in courses %}
+            <tr>
+                <td>{{ course.code }}</td>
+                <td style="text-align: right;">{{ course.name }}</td>
+                <td>{{ course.institute.name }}</td>
+                <td>{{ course.duration_months }} شهر</td>
+                <td class="price">{{ course.fees }} ج.م</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

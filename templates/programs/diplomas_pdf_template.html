@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: A4;
+            margin: 1.5cm;
+            @bottom-right {
+                content: "صفحة " counter(page) " من " counter(pages);
+                font-family: 'Arial';
+                font-size: 10px;
+            }
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* هيدر يحتوي على اللوجو والعنوان */
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid #2c3e50;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+
+        .logo-box {
+            width: 120px; /* التحكم في حجم اللوجو */
+        }
+
+        .logo-box img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .title-box {
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        .title-box h1 {
+            color: #2c3e50;
+            margin: 0;
+            font-size: 22px;
+        }
+
+        .info-box {
+            text-align: left;
+            font-size: 11px;
+            color: #666;
+            min-width: 120px;
+        }
+
+        /* تنسيق الجدول الاحترافي */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background-color: #2c3e50;
+            color: white;
+            padding: 12px 5px;
+            font-size: 13px;
+        }
+
+        td {
+            padding: 10px 5px;
+            border-bottom: 1px solid #eee;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .fees { color: #27ae60; font-weight: bold; }
+
+        .status-badge {
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+        }
+        .active { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #2e7d32; }
+        .closed { background-color: #ffeeb2; color: #856404; border: 1px solid #856404; }
+
+    </style>
+</head>
+<body>
+
+<div class="header-container">
+    <div class="logo-box">
+        <img src="{{ logo_url }}" alt="Logo">
+    </div>
+
+    <div class="title-box">
+        <h1>تقرير الدبلومات المعتمدة</h1>
+        <p style="margin-top: 5px;">إدارة الشؤون التعليمية</p>
+    </div>
+
+    <div class="info-box">
+        تاريخ التقرير: {% now "Y-m-d" %}<br>
+        المستخدم: {{ user.username }}
+    </div>
+</div>
+    <table>
+        <thead>
+            <tr>
+                <th>الكود</th>
+                <th>اسم الدبلومة</th>
+                <th>المعهد</th>
+                <th>الرسوم</th>
+                <th>الحالة</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for d in diplomas %}
+            <tr>
+                <td><strong>{{ d.code }}</strong></td>
+                <td style="text-align: right;">{{ d.name }}</td>
+                <td>{{ d.institute.name }}</td>
+                <td class="fees">{{ d.fees }} ج.م</td>
+                <td>
+                    <span class="status-badge {% if d.status == 'active' %}active{% else %}closed{% endif %}">
+                        {{ d.get_status_display }}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div style="margin-top: 50px; border-top: 1px solid #eee; padding-top: 10px; text-align: center; font-size: 10px; color: #999;">
+        تم استخراج هذا التقرير آلياً بواسطة نظام "إدارة التعليم الذكي" - جميع الحقوق محفوظة.
+    </div>
+
+</body>
+</html>

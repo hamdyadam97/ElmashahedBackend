@@ -1,0 +1,112 @@
+{% extends 'base/base.html' %}
+{% block title %}فئات البرامج{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0">فئات البرامج (دبلومات / دورات)</h4>
+    <a href="{% url 'programs:category_create' %}" class="btn btn-primary rounded-0">
+        <i class="fas fa-plus"></i> إضافة فئة جديدة
+    </a>
+</div>
+
+<div class="content-card">
+<div class="table-container">
+    <table class="table custom-table mb-0">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>اسم الفئة</th>
+                <th>النوع</th>
+                <th>الوصف</th>
+                <th>عدد البرامج</th> <th>الإجراءات</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cat in categories %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <div class="me-2 d-flex align-items-center justify-content-center" style="width: 35px; height: 35px; background: #eef2ff; border-radius: 8px;">
+                            <i class="fas fa-tags text-primary"></i>
+                        </div>
+                        <span class="fw-semibold">{{ cat.name }}</span>
+                    </div>
+                </td>
+                <td>
+                    {% if cat.type == 'diploma' %}
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3">دبلومة</span>
+                    {% else %}
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-3">دورة</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="text-muted small">{{ cat.description|default:"---"|truncatechars:40 }}</span>
+                </td>
+                <td>
+                    <span class="badge rounded-pill bg-light text-dark border">
+                        {{ cat.diplomas.count|add:cat.courses.count }}
+                    </span>
+                </td>
+                <td>
+                    <div class="d-flex gap-1">
+                        <a href="{% url 'programs:category_update' cat.pk %}" class="btn btn-sm btn-warning" title="تعديل">
+                            <i class="fas fa-edit"></i>
+                        </a>
+
+                        {% if user.is_admin %}
+                        <a href="{% url 'programs:category_delete' cat.pk %}" class="btn btn-sm btn-danger" title="حذف" onclick="return confirm('هل أنت متأكد؟ حذف الفئة قد يؤثر على الدبلومات المرتبطة بها.');">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center py-4 text-muted">لا توجد فئات مسجلة حتى الآن</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div></div>
+
+<script>
+
+document.querySelectorAll('.delete-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const url = this.getAttribute('data-url');
+        const name = this.getAttribute('data-name');
+
+        Swal.fire({
+            title: 'هل أنت متأكد؟',
+            text: `سيتم حذف الدورة "${name}" نهائياً ولا يمكن التراجع عن ذلك!`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'نعم، احذف الآن',
+            cancelButtonText: 'إلغاء',
+            reverseButtons: true // عشان زرار الإلغاء يبقى عاليمين والمسح عالشمال
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // إنشاء فورم وهمي لإرسال طلب الـ POST للحذف (لأنه أمان من الـ GET)
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = url;
+
+                // إضافة توكن الحماية CSRF
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrfmiddlewaretoken';
+                csrfInput.value = '{{ csrf_token }}';
+
+                form.appendChild(csrfInput);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

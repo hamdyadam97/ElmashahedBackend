@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}نظام إدارة المعاهد التعليمية{% endblock %}</title>
+    
+    <!-- Bootstrap 5 RTL -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+    <!-- Google Fonts - Cairo -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --info-color: #3b82f6;
+            --light-bg: #f8fafc;
+            --dark-bg: #1e293b;
+        }
+        
+        * {
+            font-family: 'Cairo', sans-serif;
+        }
+        
+        body {
+            background-color: var(--light-bg);
+            min-height: 100vh;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 280px;
+            height: 100vh;
+            background: linear-gradient(180deg, var(--dark-bg) 0%, #0f172a 100%);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            overflow-y: auto;
+        }
+        
+        .sidebar.collapsed {
+            width: 80px;
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .sidebar-brand {
+            color: white;
+            font-size: 1.3rem;
+            font-weight: 700;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .sidebar-brand i {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+        
+        .sidebar-menu {
+            padding: 15px 0;
+        }
+        
+        .sidebar-item {
+            margin: 5px 0;
+        }
+        
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-right: 3px solid transparent;
+        }
+        
+        .sidebar-link:hover,
+        .sidebar-link.active {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-right-color: var(--primary-color);
+        }
+        
+        .sidebar-link i {
+            width: 25px;
+            margin-left: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .sidebar-submenu {
+            background: rgba(0,0,0,0.2);
+            padding-right: 50px;
+        }
+        
+        .sidebar-submenu .sidebar-link {
+            padding: 8px 20px;
+            font-size: 0.9rem;
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-right: 280px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar.collapsed + .main-content {
+            margin-right: 80px;
+        }
+        
+        /* Top Navbar */
+        .top-navbar {
+            background: white;
+            border-radius: 15px;
+            padding: 15px 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .toggle-sidebar {
+            background: none;
+            border: none;
+            font-size: 1.3rem;
+            color: var(--dark-bg);
+            cursor: pointer;
+        }
+        
+        .user-dropdown {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+        
+        /* Cards */
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            border: none;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+        
+        .stat-icon.primary { background: rgba(37, 99, 235, 0.1); color: var(--primary-color); }
+        .stat-icon.success { background: rgba(16, 185, 129, 0.1); color: var(--success-color); }
+        .stat-icon.warning { background: rgba(245, 158, 11, 0.1); color: var(--warning-color); }
+        .stat-icon.info { background: rgba(59, 130, 246, 0.1); color: var(--info-color); }
+        .stat-icon.danger { background: rgba(239, 68, 68, 0.1); color: var(--danger-color); }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--dark-bg);
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #64748b;
+            font-size: 0.95rem;
+        }
+        
+        /* Content Card */
+        .content-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+        
+        .content-card-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .content-card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--dark-bg);
+            margin: 0;
+        }
+        
+        .content-card-body {
+            padding: 25px;
+        }
+        
+        /* Buttons */
+        .btn-primary {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background: var(--secondary-color);
+            border-color: var(--secondary-color);
+        }
+        
+        /* Tables */
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        .custom-table {
+            width: 100%;
+            margin-bottom: 0;
+        }
+        
+        .custom-table th {
+            background: var(--light-bg);
+            color: var(--dark-bg);
+            font-weight: 600;
+            padding: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .custom-table td {
+            padding: 15px;
+            vertical-align: middle;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .custom-table tr:hover td {
+            background: rgba(37, 99, 235, 0.02);
+        }
+        
+        /* Status Badges */
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .status-badge.active { background: rgba(16, 185, 129, 0.1); color: var(--success-color); }
+        .status-badge.inactive { background: rgba(100, 116, 139, 0.1); color: #64748b; }
+        .status-badge.pending { background: rgba(245, 158, 11, 0.1); color: var(--warning-color); }
+        .status-badge.cancelled { background: rgba(239, 68, 68, 0.1); color: var(--danger-color); }
+        
+        /* Forms */
+        .form-label {
+            font-weight: 500;
+            color: var(--dark-bg);
+            margin-bottom: 8px;
+        }
+        
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            padding: 12px 15px;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        /* Alerts */
+        .alert {
+            border-radius: 10px;
+            border: none;
+        }
+        
+        /* Login Page */
+        .login-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        }
+        
+        .login-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+        
+        .login-logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .login-logo i {
+            font-size: 4rem;
+            color: var(--primary-color);
+        }
+        
+        .login-title {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--dark-bg);
+            margin-bottom: 30px;
+        }
+        
+        /* Responsive */
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 80px;
+            }
+            .sidebar .sidebar-brand span,
+            .sidebar .sidebar-link span {
+                display: none;
+            }
+            .main-content {
+                margin-right: 80px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(100%);
+                width: 280px;
+            }
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            .sidebar .sidebar-brand span,
+            .sidebar .sidebar-link span {
+                display: inline;
+            }
+            .main-content {
+                margin-right: 0;
+            }
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% if user.is_authenticated %}
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a href="{% url 'accounts:dashboard' %}" class="sidebar-brand">
+                <i class="fas fa-graduation-cap"></i>
+                <span>نظام المعاهد</span>
+            </a>
+        </div>
+        
+        <nav class="sidebar-menu">
+            <div class="sidebar-item">
+                <a href="{% url 'accounts:dashboard' %}" class="sidebar-link {% if request.path == '/' or request.path == '/dashboard/' %}active{% endif %}">
+                    <i class="fas fa-home"></i>
+                    <span>الرئيسية</span>
+                </a>
+            </div>
+            
+            {% if user.is_admin or user.is_regional_manager %}
+            <div class="sidebar-item">
+                <a href="{% url 'institutes:institute_list' %}" class="sidebar-link {% if '/institutes/' in request.path %}active{% endif %}">
+                    <i class="fas fa-building"></i>
+                    <span>المعاهد</span>
+                </a>
+            </div>
+            {% endif %}
+            
+            <div class="sidebar-item">
+                <a href="#programs-menu" class="sidebar-link" data-bs-toggle="collapse">
+                    <i class="fas fa-book"></i>
+                    <span>البرامج</span>
+                    <i class="fas fa-chevron-left ms-auto"></i>
+                </a>
+                <div class="collapse sidebar-submenu" id="programs-menu">
+                    <a href="{% url 'programs:diploma_list' %}" class="sidebar-link">الدبلومات</a>
+                    <a href="{% url 'programs:course_list' %}" class="sidebar-link">الدورات</a>
+                    <a href="{% url 'programs:registration_list' %}" class="sidebar-link">التسجيلات</a>
+                    <a href="{% url 'programs:category_list' %}" class="sidebar-link">انواع البرامج</a>
+                </div>
+            </div>
+            
+            <div class="sidebar-item">
+                <a href="{% url 'clients:client_list' %}" class="sidebar-link {% if '/clients/' in request.path %}active{% endif %}">
+                    <i class="fas fa-users"></i>
+                    <span>العملاء</span>
+                </a>
+            </div>
+            
+            <div class="sidebar-item">
+                <a href="{% url 'permissions:permission_list' %}" class="sidebar-link {% if '/permissions/' in request.path %}active{% endif %}">
+                    <i class="fas fa-file-pdf"></i>
+                    <span>الأذونات</span>
+                </a>
+            </div>
+            
+            <div class="sidebar-item">
+                <a href="#reports-menu" class="sidebar-link" data-bs-toggle="collapse">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>التقارير</span>
+                    <i class="fas fa-chevron-left ms-auto"></i>
+                </a>
+                <div class="collapse sidebar-submenu" id="reports-menu">
+                    {% if user.is_employee %}
+                    <a href="{% url 'accounts:employee_report' %}" class="sidebar-link">تقريري</a>
+                    {% endif %}
+                    {% if user.is_branch_manager %}
+                    <a href="{% url 'accounts:branch_report' %}" class="sidebar-link">تقرير الفرع</a>
+                    {% endif %}
+                    {% if user.is_regional_manager %}
+                    <a href="{% url 'accounts:regional_report' %}" class="sidebar-link">التقرير الإقليمي</a>
+                    {% endif %}
+                    {% if user.is_admin %}
+                    <a href="{% url 'accounts:admin_report' %}" class="sidebar-link">التقرير الشامل</a>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if user.is_admin %}
+            <div class="sidebar-item">
+                <a href="{% url 'accounts:user_list' %}" class="sidebar-link {% if '/users/' in request.path %}active{% endif %}">
+                    <i class="fas fa-user-cog"></i>
+                    <span>المستخدمين</span>
+                </a>
+            </div>
+            {% endif %}
+            
+            <div class="sidebar-item mt-4">
+                <a href="{% url 'accounts:profile' %}" class="sidebar-link {% if '/profile/' in request.path %}active{% endif %}">
+                    <i class="fas fa-user"></i>
+                    <span>الملف الشخصي</span>
+                </a>
+            </div>
+            
+            <div class="sidebar-item">
+                <a href="{% url 'accounts:logout' %}" class="sidebar-link">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>تسجيل الخروج</span>
+                </a>
+            </div>
+        </nav>
+    </aside>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Navbar -->
+        <div class="top-navbar">
+            <button class="toggle-sidebar" id="toggleSidebar">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <div class="dropdown">
+                <div class="user-dropdown" data-bs-toggle="dropdown">
+                    <div class="user-avatar">
+                        {{ user.first_name|first|default:user.username|first }}
+                    </div>
+                    <div class="d-none d-md-block">
+                        <div class="fw-semibold">{{ user.get_full_name|default:user.username }}</div>
+                        <small class="text-muted">{{ user.get_role_display }}</small>
+                    </div>
+                    <i class="fas fa-chevron-down text-muted"></i>
+                </div>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item" href="{% url 'accounts:profile' %}"><i class="fas fa-user me-2"></i>الملف الشخصي</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}"><i class="fas fa-sign-out-alt me-2"></i>تسجيل الخروج</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Messages -->
+        {% if messages %}
+        <div class="messages mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <!-- Page Content -->
+        {% block content %}{% endblock %}
+    </main>
+    
+    {% else %}
+    <!-- Login Page Content -->
+    {% block login_content %}{% endblock %}
+    {% endif %}
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Toggle Sidebar
+        document.getElementById('toggleSidebar')?.addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('collapsed');
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

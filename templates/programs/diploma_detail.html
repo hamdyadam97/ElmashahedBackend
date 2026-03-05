@@ -1,0 +1,142 @@
+{% extends 'base/base.html' %}
+
+{% block title %}تفاصيل الدبلومة: {{ diploma.name }}{% endblock %}
+
+{% block content %}
+<div class="diploma-detail-page">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="{% url 'programs:diploma_list' %}">الدبلومات</a></li>
+                    <li class="breadcrumb-item active">{{ diploma.code }}</li>
+                </ol>
+            </nav>
+            <h4 class="mb-0">{{ diploma.name }}</h4>
+        </div>
+        <div class="d-flex gap-2">
+            {% if user.is_admin or user.is_branch_manager %}
+            <a href="{% url 'programs:diploma_update' diploma.pk %}" class="btn btn-warning">
+                <i class="fas fa-edit me-1"></i> تعديل
+            </a>
+            {% endif %}
+            <a href="{% url 'programs:diploma_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-right me-1"></i> رجوع
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="content-card mb-4">
+                <div class="content-card-header">
+                    <h5 class="content-card-title">معلومات الدبلومة</h5>
+                    <span class="status-badge {{ diploma.status }}">{{ diploma.get_status_display }}</span>
+                </div>
+                <div class="content-card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="text-muted small d-block">المعهد</label>
+                            <span class="fw-bold"><i class="fas fa-building text-primary me-2"></i>{{ diploma.institute.name }}</span>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small d-block">الفئة</label>
+                            <span class="fw-bold"><i class="fas fa-tag text-info me-2"></i>{{ diploma.category.name|default:"غير مصنف" }}</span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="text-muted small d-block">مدة الدراسة</label>
+                            <span class="fw-bold"><i class="fas fa-clock text-warning me-2"></i>{{ diploma.duration_months }} شهراً</span>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small d-block">الرسوم الدراسية</label>
+                            <span class="fw-bold text-success"><i class="fas fa-money-bill-wave me-2"></i>{{ diploma.fees }}</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="text-muted small d-block">وصف الدبلومة</label>
+                        <p class="mt-1 text-secondary" style="line-height: 1.6;">
+                            {{ diploma.description|default:"لا يوجد وصف متوفر لهذه الدبلومة حالياً." }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <div class="content-card-header d-flex justify-content-between align-items-center">
+                    <h5 class="content-card-title">الطلاب المسجلين</h5>
+                </div>
+                <div class="table-container">
+                    <table class="table custom-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>الطالب</th>
+                                <th>تاريخ التسجيل</th>
+                                <th>بواسطة</th>
+                                <th>الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for reg in registrations %}
+                            <tr>
+                                <td><span class="fw-semibold">{{ reg.client.name }}</span></td>
+                                <td>{{ reg.registration_date|date:"Y-m-d" }}</td>
+                                <td>{{ reg.registered_by.username }}</td>
+                                <td>
+                                    <span class="badge {% if reg.status == 'confirmed' %}bg-success{% elif reg.status == 'pending' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                        {{ reg.get_status_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">لا يوجد طلاب مسجلين في هذه الدبلومة بعد.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="content-card mb-4 bg-primary text-white text-center py-4">
+                <div class="content-card-body">
+                    <i class="fas fa-users fa-2x mb-2"></i>
+                    <div class="display-5 fw-bold">{{ registrations_count }}</div>
+                    <div class="small opacity-75">إجمالي الطلاب المسجلين</div>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <div class="content-card-header">
+                    <h5 class="content-card-title"><i class="fas fa-calendar-alt me-2"></i>الجدول الزمني</h5>
+                </div>
+                <div class="content-card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center p-3">
+                            <span class="small text-muted">بداية الدبلومة</span>
+                            <span class="fw-bold">{{ diploma.start_date|date:"Y-m-d" }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center p-3">
+                            <span class="small text-muted">نهاية الدبلومة</span>
+                            <span class="fw-bold">{{ diploma.end_date|date:"Y-m-d" }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center p-3">
+                            <span class="small text-muted">فتح باب التسجيل</span>
+                            <span class="fw-bold text-success">{{ diploma.registration_start_date|date:"Y-m-d" }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center p-3">
+                            <span class="small text-muted">إغلاق باب التسجيل</span>
+                            <span class="fw-bold text-danger">{{ diploma.registration_end_date|date:"Y-m-d" }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

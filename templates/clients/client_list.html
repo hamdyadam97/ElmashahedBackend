@@ -1,0 +1,196 @@
+{% extends 'base/base.html' %}
+
+{% block title %}العملاء - نظام إدارة المعاهد{% endblock %}
+
+{% block content %}
+<div class="clients-page">
+     <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0">المعاهد</h4>
+        {% if user.is_admin %}
+        <div class="d-flex gap-2">
+
+        <a href="{% url 'clients:client_create' %}" class="btn btn-primary rounded-0">
+            <i class="fas fa-plus"></i> إضافة عميل
+        </a>
+
+    <!-- الزرار -->
+<button id="uploadFileBtn" class="btn btn-primary rounded-0">
+    <i class="fas fa-plus"></i> توريد ملف
+</button>
+
+<!-- الفورم المخفي -->
+<form id="uploadForm" method="post" action="{% url 'clients:upload_clients' %}" enctype="multipart/form-data" style="display:none;"
+>
+    {% csrf_token %}
+    <input type="file" name="file" id="fileInput">
+</form>
+
+
+<button id="exportExcelBtn" class="btn btn-success">
+    <i class="fas fa-file-excel me-2"></i> تصدير Excel
+</button>
+
+<button id="exportPdfBtn" class="btn btn-success">
+    <i class="fas fa-file-excel me-2"></i> تصدير PDF
+</button>
+    </div>
+        {% endif %}
+
+    </div>
+
+    
+    <div class="content-card">
+        <div class="content-card-header">
+            <h5 class="content-card-title">قائمة العملاء</h5>
+            <form method="get" class="d-flex gap-2">
+                <select name="status" class="form-select form-select-sm" style="width: 120px;" onchange="this.form.submit()">
+                    <option value="">كل الحالات</option>
+                    {% for status_value, status_label in statuses %}
+                    <option value="{{ status_value }}" {% if request.GET.status == status_value %}selected{% endif %}>{{ status_label }}</option>
+                    {% endfor %}
+                </select>
+                <input type="text" name="search" class="form-control form-select-sm" placeholder="بحث بالاسم أو الهوية..." value="{{ request.GET.search }}">
+                <button type="submit" class="btn btn-sm btn-primary">
+                    <i class="fas fa-search"></i>
+                </button>
+            </form>
+        </div>
+        <div class="content-card-body p-0">
+            <div class="table-container">
+                <table class="table custom-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>الاسم</th>
+                            <th>رقم الهوية</th>
+                            <th>الهاتف</th>
+                            <th>المعهد</th>
+                            <th>الحالة</th>
+                            <th>تاريخ التسجيل</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for client in clients %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="user-avatar me-2" style="width: 35px; height: 35px; font-size: 0.9rem;">
+                                        {{ client.first_name|first }}
+                                    </div>
+                                    <span class="fw-semibold">{{ client.full_name }}</span>
+                                </div>
+                            </td>
+                            <td>{{ client.national_id }}</td>
+                            <td>{{ client.phone }}</td>
+                            <td>{{ client.institute.name }}</td>
+                            <td>
+                                <span class="status-badge {{ client.status }}">{{ client.get_status_display }}</span>
+                            </td>
+                            <td>{{ client.registration_date|date:"Y-m-d" }}</td>
+                            <td>
+                                <a href="{% url 'clients:client_detail' client.pk %}" class="btn btn-sm btn-info" title="عرض">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'clients:client_update' client.pk %}" class="btn btn-sm btn-warning" title="تعديل">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                {% if user.is_branch_manager or user.is_admin %}
+                                <a href="{% url 'clients:client_delete' client.pk %}" class="btn btn-sm btn-danger" title="حذف" onclick="return confirm('هل أنت متأكد؟');">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4 text-muted">لا يوجد عملاء</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    {% if is_paginated %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">السابق</a>
+            </li>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">{{ num }}</a>
+            </li>
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">التالي</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+<script>
+    document.getElementById('uploadFileBtn').addEventListener('click', function() {
+    document.getElementById('fileInput').click();
+});
+
+document.getElementById('fileInput').addEventListener('change', function() {
+    if(this.files.length > 0) {
+        document.getElementById('uploadForm').submit();
+    }
+});
+
+// تصدير Excel
+document.getElementById('exportExcelBtn').addEventListener('click', function() {
+    // تأكد من وجود الـ URL الصحيح في ملف الـ urls.py لديك
+    fetch("{% url 'clients:export_clients_excel' %}", {
+        method: 'GET',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.blob())
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'clients_list.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+    });
+});
+
+
+document.getElementById('exportPdfBtn').addEventListener('click', function() {
+    // تأكد من وجود الـ URL الصحيح في ملف الـ urls.py لديك
+    fetch("{% url 'clients:export_clients_pdf' %}", {
+        method: 'GET',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.blob())
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'clients_list.pdf';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+    });
+});
+</script>
+{% endblock %}

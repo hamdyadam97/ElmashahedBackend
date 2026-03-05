@@ -1,0 +1,129 @@
+{% extends 'base/base.html' %}
+
+{% block title %}المستخدمين - نظام إدارة المعاهد{% endblock %}
+
+{% block content %}
+<div class="users-page">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0">إدارة المستخدمين</h4>
+        <a href="{% url 'accounts:user_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>إضافة مستخدم
+        </a>
+    </div>
+    
+    <div class="content-card">
+        <div class="content-card-header">
+            <h5 class="content-card-title">قائمة المستخدمين</h5>
+            <form method="get" class="d-flex gap-2">
+                <select name="role" class="form-select form-select-sm" style="width: 150px;" onchange="this.form.submit()">
+                    <option value="">كل الأدوار</option>
+                    {% for role_value, role_label in roles %}
+                    <option value="{{ role_value }}" {% if request.GET.role == role_value %}selected{% endif %}>{{ role_label }}</option>
+                    {% endfor %}
+                </select>
+                <input type="text" name="search" class="form-control form-control-sm" placeholder="بحث..." value="{{ request.GET.search }}">
+                <button type="submit" class="btn btn-sm btn-primary">
+                    <i class="fas fa-search"></i>
+                </button>
+            </form>
+        </div>
+        <div class="content-card-body p-0">
+            <div class="table-container">
+                <table class="table custom-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>الاسم</th>
+                            <th>اسم المستخدم</th>
+                            <th>البريد الإلكتروني</th>
+                            <th>الدور</th>
+                            <th>المعهد</th>
+                            <th>الحالة</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user_obj in users %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="user-avatar me-2" style="width: 35px; height: 35px; font-size: 0.9rem;">
+                                        {{ user_obj.first_name|first|default:user_obj.username|first }}
+                                    </div>
+                                    <span>{{ user_obj.get_full_name|default:user_obj.username }}</span>
+                                </div>
+                            </td>
+                            <td>{{ user_obj.username }}</td>
+                            <td>{{ user_obj.email|default:"-" }}</td>
+                            <td>
+                                <span class="badge bg-{% if user_obj.role == 'admin' %}danger{% elif user_obj.role == 'regional_manager' %}warning{% elif user_obj.role == 'branch_manager' %}info{% else %}success{% endif %}">
+                                    {{ user_obj.get_role_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if user_obj.is_admin %}
+                                <span class="text-muted">كل المعاهد</span>
+                                {% elif user_obj.managed_institute %}
+                                {{ user_obj.managed_institute.name }}
+                                {% elif user_obj.institute %}
+                                {{ user_obj.institute.name }}
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user_obj.is_active %}
+                                <span class="status-badge active">نشط</span>
+                                {% else %}
+                                <span class="status-badge inactive">غير نشط</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'accounts:user_detail' user_obj.pk %}" class="btn btn-sm btn-info" title="عرض">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'accounts:user_update' user_obj.pk %}" class="btn btn-sm btn-warning" title="تعديل">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'accounts:user_delete' user_obj.pk %}" class="btn btn-sm btn-danger" title="حذف" onclick="return confirm('هل أنت متأكد من حذف هذا المستخدم؟');">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4 text-muted">لا يوجد مستخدمين</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    {% if is_paginated %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.role %}&role={{ request.GET.role }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">السابق</a>
+            </li>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}{% if request.GET.role %}&role={{ request.GET.role }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">{{ num }}</a>
+            </li>
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.role %}&role={{ request.GET.role }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">التالي</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

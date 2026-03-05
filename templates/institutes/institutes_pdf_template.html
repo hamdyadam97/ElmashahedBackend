@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page { size: A4; margin: 1.5cm; }
+        body { font-family: 'Arial', sans-serif; }
+        .header { border-bottom: 3px solid #8e44ad; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; }
+        th { background-color: #8e44ad; color: white; padding: 10px; }
+        td { border-bottom: 1px solid #eee; padding: 10px; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="{{ logo_url }}" style="width: 100px;">
+        <h1>{{ title }}</h1>
+        <div style="font-size: 10px;">بواسطة: {{ user.username }}</div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>اسم المعهد</th>
+                <th>العنوان</th>
+                <th>رقم الهاتف</th>
+                <th>عدد البرامج</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for inst in institutes %}
+            <tr>
+                <td style="text-align: right;">{{ inst.name }}</td>
+                <td>{{ inst.address|default:"-" }}</td>
+                <td>{{ inst.phone|default:"-" }}</td>
+                <td>{{ inst.diploma_set.count }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

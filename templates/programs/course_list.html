@@ -1,0 +1,155 @@
+{% extends 'base/base.html' %}
+
+{% block title %}الدورات التدريبية - نظام إدارة البرامج{% endblock %}
+
+{% block content %}
+<div class="courses-page">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0">الدورات التدريبية</h4>
+        {% if user.is_admin or user.is_branch_manager %}
+        <div class="d-flex gap-2">
+            <a href="{% url 'programs:course_create' %}" class="btn btn-success rounded-0">
+                <i class="fas fa-plus"></i> إضافة دورة جديدة
+            </a>
+
+
+             <button id="exportPdfBtn" class="btn btn-success">
+                <i class="fas fa-file-excel me-2"></i> تصدير Pdf
+            </button>
+            <button id="exportExcelBtn" class="btn btn-outline-success">
+                <i class="fas fa-file-excel me-2"></i> تصدير Excel
+            </button>
+            <div class="d-flex gap-2">
+    <a href="{% url 'programs:course_create' %}" class="btn btn-primary rounded-0">
+        <i class="fas fa-plus"></i> إضافة دورة
+    </a>
+
+    <button type="button" class="btn btn-success rounded-0" onclick="document.getElementById('courseFileInput').click()">
+        <i class="fas fa-file-import"></i> استيراد من Excel
+    </button>
+
+    <form id="courseUploadForm" action="{% url 'programs:upload_courses' %}" method="post" enctype="multipart/form-data" style="display:none;">
+        {% csrf_token %}
+        <input type="file" name="file" id="courseFileInput" onchange="document.getElementById('courseUploadForm').submit()" accept=".xlsx, .xls, .csv">
+    </form>
+</div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="content-card">
+        <div class="content-card-header">
+            <h5 class="content-card-title">قائمة الدورات</h5>
+            <form method="get" class="d-flex gap-2">
+                <input type="text" name="search" class="form-control form-select-sm" placeholder="بحث بالاسم أو الكود..." value="{{ request.GET.search }}">
+                <button type="submit" class="btn btn-sm btn-success">
+                    <i class="fas fa-search"></i>
+                </button>
+            </form>
+        </div>
+        <div class="content-card-body p-0">
+            <div class="table-container">
+                <table class="table custom-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>الدورة</th>
+                            <th>الكود</th>
+                            <th>المعهد</th>
+                            <th>المدة</th>
+                            <th>الرسوم</th>
+                            <th>الحالة</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for course in courses %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="me-2 d-flex align-items-center justify-content-center" style="width: 35px; height: 35px; background: #fff7ed; border-radius: 8px;">
+                                        <i class="fas fa-book-open text-warning"></i>
+                                    </div>
+                                    <span class="fw-semibold">{{ course.name }}</span>
+                                </div>
+                            </td>
+                            <td><span class="badge bg-light text-dark">{{ course.code }}</span></td>
+                            <td>{{ course.institute.name }}</td>
+                            <td>{{ course.duration_months }} شهر</td>
+                            <td>{{ course.fees }}</td>
+                            <td>
+                                <span class="status-badge {{ course.status }}">{{ course.get_status_display }}</span>
+                            </td>
+                            <td>
+                                <div class="d-flex gap-1">
+                                    <a href="{% url 'programs:course_detail' course.pk %}" class="btn btn-sm btn-info" title="عرض">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if user.is_admin or user.is_branch_manager %}
+                                    <a href="{% url 'programs:course_update' course.pk %}" class="btn btn-sm btn-warning" title="تعديل">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+
+                                    <button type="button"
+        class="btn btn-sm btn-danger delete-btn"
+        data-url="{% url 'programs:course_delete' course.pk %}"
+        data-name="{{ course.name }}"
+        title="حذف">
+    <i class="fas fa-trash"></i>
+</button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="8" class="text-center py-4 text-muted">لا توجد دورات مسجلة</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+
+
+document.querySelectorAll('.delete-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const url = this.getAttribute('data-url');
+        const name = this.getAttribute('data-name');
+
+        Swal.fire({
+            title: 'هل أنت متأكد؟',
+            text: `سيتم حذف الدورة "${name}" نهائياً ولا يمكن التراجع عن ذلك!`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'نعم، احذف الآن',
+            cancelButtonText: 'إلغاء',
+            reverseButtons: true // عشان زرار الإلغاء يبقى عاليمين والمسح عالشمال
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // إنشاء فورم وهمي لإرسال طلب الـ POST للحذف (لأنه أمان من الـ GET)
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = url;
+
+                // إضافة توكن الحماية CSRF
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrfmiddlewaretoken';
+                csrfInput.value = '{{ csrf_token }}';
+
+                form.appendChild(csrfInput);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

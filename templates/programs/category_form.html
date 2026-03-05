@@ -1,0 +1,38 @@
+{% extends 'base/base.html' %}
+{% block title %}{% if object %}تعديل فئة{% else %}إضافة فئة{% endif %}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0">{% if object %}تعديل فئة{% else %}إضافة فئة برامج جديدة{% endif %}</h4>
+    <a href="{% url 'programs:category_list' %}" class="btn btn-outline-secondary">رجوع</a>
+</div>
+
+<div class="content-card">
+    <div class="content-card-body">
+        <form method="post" novalidate>
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-8 mb-3">
+                    <label class="form-label">اسم الفئة <span class="text-danger">*</span></label>
+                    <input type="text" name="name" class="form-control" value="{{ object.name|default:'' }}" required>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">النوع <span class="text-danger">*</span></label>
+                    <select name="type" class="form-select" required>
+                        {% for val, label in form.fields.type.choices %}
+                            <option value="{{ val }}" {% if object.type == val %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">الوصف</label>
+                <textarea name="description" class="form-control" rows="4">{{ object.description|default:'' }}</textarea>
+            </div>
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary px-5">حفظ الفئة</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

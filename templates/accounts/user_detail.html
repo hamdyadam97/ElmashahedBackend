@@ -1,0 +1,131 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ user_obj.get_full_name|default:user_obj.username }} - نظام إدارة المعاهد{% endblock %}
+
+{% block content %}
+<div class="user-detail-page">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0">تفاصيل المستخدم</h4>
+        <div class="d-flex gap-2">
+            <a href="{% url 'accounts:user_update' user_obj.pk %}" class="btn btn-warning">
+                <i class="fas fa-edit me-2"></i>تعديل
+            </a>
+            <a href="{% url 'accounts:user_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-right me-2"></i>رجوع
+            </a>
+        </div>
+    </div>
+    
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="content-card">
+                <div class="content-card-body text-center">
+                    <div class="user-avatar mx-auto mb-3" style="width: 100px; height: 100px; font-size: 2.5rem;">
+                        {{ user_obj.first_name|first|default:user_obj.username|first }}
+                    </div>
+                    <h5 class="mb-1">{{ user_obj.get_full_name|default:user_obj.username }}</h5>
+                    <p class="text-muted mb-3">{{ user_obj.get_role_display }}</p>
+                    
+                    <div class="d-flex justify-content-center gap-2 mb-3">
+                        {% if user_obj.is_active %}
+                        <span class="badge bg-success">نشط</span>
+                        {% else %}
+                        <span class="badge bg-secondary">غير نشط</span>
+                        {% endif %}
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="text-start">
+                        <p class="mb-2">
+                            <i class="fas fa-user me-2 text-muted"></i>
+                            <strong>اسم المستخدم:</strong> {{ user_obj.username }}
+                        </p>
+                        <p class="mb-2">
+                            <i class="fas fa-envelope me-2 text-muted"></i>
+                            <strong>البريد:</strong> {{ user_obj.email|default:"-" }}
+                        </p>
+                        <p class="mb-2">
+                            <i class="fas fa-phone me-2 text-muted"></i>
+                            <strong>الهاتف:</strong> {{ user_obj.phone|default:"-" }}
+                        </p>
+                        <p class="mb-0">
+                            <i class="fas fa-calendar me-2 text-muted"></i>
+                            <strong>تاريخ الإنشاء:</strong> {{ user_obj.created_at|date:"Y-m-d" }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-8">
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <div class="stat-card">
+                        <div class="stat-icon info">
+                            <i class="fas fa-file-pdf"></i>
+                        </div>
+                        <div class="stat-value">{{ permissions_count }}</div>
+                        <div class="stat-label">الأذونات المستخرجة</div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="stat-card">
+                        <div class="stat-icon warning">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                        <div class="stat-value">{{ clients_count }}</div>
+                        <div class="stat-label">العملاء المسجلين</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="content-card">
+                <div class="content-card-header">
+                    <h5 class="content-card-title">معلومات إضافية</h5>
+                </div>
+                <div class="content-card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <td style="width: 150px;"><strong>الدور:</strong></td>
+                            <td>
+                                <span class="badge bg-{% if user_obj.role == 'admin' %}danger{% elif user_obj.role == 'regional_manager' %}warning{% elif user_obj.role == 'branch_manager' %}info{% else %}success{% endif %}">
+                                    {{ user_obj.get_role_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>المعهد:</strong></td>
+                            <td>
+                                {% if user_obj.is_admin %}
+                                <span class="text-muted">كل المعاهد</span>
+                                {% elif user_obj.managed_institute %}
+                                <a href="{% url 'institutes:institute_detail' user_obj.managed_institute.pk %}">{{ user_obj.managed_institute.name }}</a>
+                                {% elif user_obj.institute %}
+                                <a href="{% url 'institutes:institute_detail' user_obj.institute.pk %}">{{ user_obj.institute.name }}</a>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% if user_obj.managed_institutes.exists %}
+                        <tr>
+                            <td><strong>المعاهد المشرف عليها:</strong></td>
+                            <td>
+                                {% for institute in user_obj.managed_institutes.all %}
+                                <span class="badge bg-light text-dark me-1">{{ institute.name }}</span>
+                                {% endfor %}
+                            </td>
+                        </tr>
+                        {% endif %}
+                        <tr>
+                            <td><strong>العنوان:</strong></td>
+                            <td>{{ user_obj.address|default:"-"|linebreaksbr }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

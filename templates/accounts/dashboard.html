@@ -1,0 +1,359 @@
+{% extends 'base/base.html' %}
+
+{% block title %}الرئيسية - نظام إدارة المعاهد{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <h4 class="mb-4">مرحباً، {{ user.get_full_name|default:user.username }}! 👋</h4>
+    
+    {% if user.is_admin %}
+    <!-- Admin Dashboard -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon primary">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="stat-value">{{ total_institutes }}</div>
+                <div class="stat-label">إجمالي المعاهد</div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon success">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-value">{{ total_users }}</div>
+                <div class="stat-label">المستخدمين النشطين</div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon warning">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <div class="stat-value">{{ total_clients }}</div>
+                <div class="stat-label">إجمالي العملاء</div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon info">
+                    <i class="fas fa-file-pdf"></i>
+                </div>
+                <div class="stat-value">{{ total_permissions }}</div>
+                <div class="stat-label">إجمالي الأذونات</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="content-card">
+        <div class="content-card-header">
+            <h5 class="content-card-title">آخر الأذونات المستخرجة</h5>
+            <a href="{% url 'permissions:permission_list' %}" class="btn btn-sm btn-primary">
+                <i class="fas fa-eye me-1"></i>عرض الكل
+            </a>
+        </div>
+        <div class="content-card-body">
+            <div class="table-container">
+                <table class="table custom-table">
+                    <thead>
+                        <tr>
+                            <th>رقم الإذن</th>
+                            <th>العميل</th>
+                            <th>المعهد</th>
+                            <th>البرنامج</th>
+                            <th>تاريخ الإصدار</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for perm in recent_permissions %}
+                        <tr>
+                            <td><span class="fw-semibold">{{ perm.permission_number }}</span></td>
+                            <td>{{ perm.client.full_name }}</td>
+                            <td>{{ perm.institute.name }}</td>
+                            <td>{{ perm.get_program.name|default:"-" }}</td>
+                            <td>{{ perm.issue_date|date:"Y-m-d" }}</td>
+                            <td>
+                                <a href="{% url 'permissions:permission_detail' perm.pk %}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'permissions:permission_pdf' perm.pk %}" class="btn btn-sm btn-danger" target="_blank">
+                                    <i class="fas fa-file-pdf"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">لا توجد أذونات حتى الآن</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    {% elif user.is_regional_manager %}
+    <!-- Regional Manager Dashboard -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon primary">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="stat-value">{{ managed_institutes|length }}</div>
+                <div class="stat-label">المعاهد المشرف عليها</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon warning">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <div class="stat-value">{{ total_clients }}</div>
+                <div class="stat-label">إجمالي العملاء</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon info">
+                    <i class="fas fa-file-pdf"></i>
+                </div>
+                <div class="stat-value">{{ total_permissions }}</div>
+                <div class="stat-label">إجمالي الأذونات</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="content-card">
+        <div class="content-card-header">
+            <h5 class="content-card-title">المعاهد المشرف عليها</h5>
+        </div>
+        <div class="content-card-body">
+            <div class="row g-3">
+                {% for institute in managed_institutes %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        <div class="card-body">
+                            <h6 class="card-title">{{ institute.name }}</h6>
+                            <p class="text-muted mb-2"><i class="fas fa-map-marker-alt me-2"></i>{{ institute.city }}</p>
+                            <p class="text-muted mb-0"><i class="fas fa-phone me-2"></i>{{ institute.phone }}</p>
+                        </div>
+                        <div class="card-footer bg-transparent border-0">
+                            <a href="{% url 'institutes:institute_detail' institute.pk %}" class="btn btn-sm btn-outline-primary w-100">
+                                <i class="fas fa-eye me-1"></i>عرض التفاصيل
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    {% elif user.is_branch_manager %}
+    <!-- Branch Manager Dashboard -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon primary">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="stat-value">1</div>
+                <div class="stat-label">المعهد</div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon success">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-value">{{ employees|length }}</div>
+                <div class="stat-label">الموظفين</div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon warning">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <div class="stat-value">{{ total_clients }}</div>
+                <div class="stat-label">العملاء</div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card">
+                <div class="stat-icon info">
+                    <i class="fas fa-file-pdf"></i>
+                </div>
+                <div class="stat-value">{{ total_permissions }}</div>
+                <div class="stat-label">الأذونات</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="content-card">
+                <div class="content-card-header">
+                    <h5 class="content-card-title">آخر الأذونات</h5>
+                    <a href="{% url 'permissions:permission_list' %}" class="btn btn-sm btn-primary">عرض الكل</a>
+                </div>
+                <div class="content-card-body">
+                    <div class="table-container">
+                        <table class="table custom-table">
+                            <thead>
+                                <tr>
+                                    <th>رقم الإذن</th>
+                                    <th>العميل</th>
+                                    <th>البرنامج</th>
+                                    <th>التاريخ</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for perm in recent_permissions %}
+                                <tr>
+                                    <td>{{ perm.permission_number }}</td>
+                                    <td>{{ perm.client.full_name }}</td>
+                                    <td>{{ perm.get_program.name|default:"-" }}</td>
+                                    <td>{{ perm.issue_date|date:"Y-m-d" }}</td>
+                                    <td>
+                                        <a href="{% url 'permissions:permission_pdf' perm.pk %}" class="btn btn-sm btn-danger" target="_blank">
+                                            <i class="fas fa-file-pdf"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">لا توجد أذونات</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="content-card">
+                <div class="content-card-header">
+                    <h5 class="content-card-title">الموظفين</h5>
+                </div>
+                <div class="content-card-body">
+                    {% for emp in employees %}
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="user-avatar me-3" style="width: 35px; height: 35px; font-size: 0.9rem;">
+                            {{ emp.first_name|first|default:emp.username|first }}
+                        </div>
+                        <div>
+                            <div class="fw-semibold">{{ emp.get_full_name|default:emp.username }}</div>
+                            <small class="text-muted">{{ emp.email|default:"-" }}</small>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted text-center py-3">لا يوجد موظفين</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% elif user.is_employee %}
+    <!-- Employee Dashboard -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon primary">
+                    <i class="fas fa-building"></i>
+                </div>
+                <div class="stat-value">-</div>
+                <div class="stat-label">{{ institute.name|default:"-" }}</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon warning">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <div class="stat-value">{{ my_clients }}</div>
+                <div class="stat-label">عملائي المسجلين</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon info">
+                    <i class="fas fa-file-pdf"></i>
+                </div>
+                <div class="stat-value">{{ my_permissions }}</div>
+                <div class="stat-label">أذوناتي المستخرجة</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="content-card">
+                <div class="content-card-header">
+                    <h5 class="content-card-title">آخر أذوناتي</h5>
+                </div>
+                <div class="content-card-body">
+                    <div class="table-container">
+                        <table class="table custom-table">
+                            <thead>
+                                <tr>
+                                    <th>رقم الإذن</th>
+                                    <th>العميل</th>
+                                    <th>البرنامج</th>
+                                    <th>التاريخ</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for perm in recent_permissions %}
+                                <tr>
+                                    <td>{{ perm.permission_number }}</td>
+                                    <td>{{ perm.client.full_name }}</td>
+                                    <td>{{ perm.get_program.name|default:"-" }}</td>
+                                    <td>{{ perm.issue_date|date:"Y-m-d" }}</td>
+                                    <td>
+                                        <a href="{% url 'permissions:permission_pdf' perm.pk %}" class="btn btn-sm btn-danger" target="_blank">
+                                            <i class="fas fa-file-pdf"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">لا توجد أذونات</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="content-card">
+                <div class="content-card-header">
+                    <h5 class="content-card-title">إجراءات سريعة</h5>
+                </div>
+                <div class="content-card-body">
+                    <a href="{% url 'clients:client_create' %}" class="btn btn-primary w-100 mb-3">
+                        <i class="fas fa-user-plus me-2"></i>تسجيل عميل جديد
+                    </a>
+                    <a href="{% url 'permissions:permission_create' %}" class="btn btn-success w-100 mb-3">
+                        <i class="fas fa-file-pdf me-2"></i>إصدار إذن جديد
+                    </a>
+                    <a href="{% url 'accounts:employee_report' %}" class="btn btn-info w-100">
+                        <i class="fas fa-chart-bar me-2"></i>تقريري الشخصي
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

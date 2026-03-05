@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page { size: A4; margin: 1.5cm; }
+        body { font-family: 'Arial', sans-serif; color: #333; line-height: 1.6; }
+        .border-box { border: 2px solid #1e3a8a; padding: 20px; height: 90%; position: relative; }
+        .header { text-align: center; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+        .logo { width: 80px; margin-bottom: 10px; }
+        .permission-title { font-size: 22px; color: #1e3a8a; margin: 20px 0; font-weight: bold; }
+        .info-section { margin-top: 30px; }
+        .info-row { display: flex; margin-bottom: 10px; border-bottom: 1px solid #f0f0f0; padding-bottom: 5px; }
+        .label { width: 150px; font-weight: bold; color: #555; }
+        .footer { margin-top: 60px; display: flex; justify-content: space-between; }
+        .stamp { width: 120px; height: 120px; border: 1px dashed #ccc; text-align: center; line-height: 120px; color: #ccc; }
+    </style>
+</head>
+<body>
+    <div class="border-box">
+        <div class="header">
+            {% if institute.logo %}
+                <img src="file://{{ institute.logo.path }}" class="logo">
+            {% endif %}
+            <h2>{{ institute.name }}</h2>
+            <p>رقم الترخيص: {{ institute.license_number }}</p>
+            <div class="permission-title">إذن دراسة رسمي</div>
+        </div>
+
+        <div class="info-section">
+            <div class="info-row"><div class="label">رقم الإذن:</div><div>{{ permission.permission_number }}</div></div>
+            <div class="info-row"><div class="label">اسم الطالب:</div><div>{{ client.full_name }}</div></div>
+            <div class="info-row"><div class="label">رقم الهوية:</div><div>{{ client.national_id }}</div></div>
+            <div class="info-row"><div class="label">البرنامج:</div><div>{{ permission.get_program_name }}</div></div>
+            <div class="info-row"><div class="label">تاريخ الانتهاء:</div><div>{{ permission.expiry_date }}</div></div>
+        </div>
+
+        <div class="footer">
+            <div style="text-align: center;">
+                <p>توقيع الموظف</p>
+                <p style="margin-top: 30px;">{{ issued_by.get_full_name }}</p>
+            </div>
+            <div class="stamp">ختم المعهد</div>
+        </div>
+    </div>
+</body>
+</html>

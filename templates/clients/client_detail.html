@@ -1,0 +1,161 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ client.full_name }} - نظام إدارة المعاهد{% endblock %}
+
+{% block content %}
+<div class="client-detail-page">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0">تفاصيل العميل</h4>
+        <div class="d-flex gap-2">
+            <a href="{% url 'permissions:permission_create' %}?client={{ client.pk }}" class="btn btn-success">
+                <i class="fas fa-file-pdf me-2"></i>إصدار إذن
+            </a>
+            <a href="{% url 'clients:client_update' client.pk %}" class="btn btn-warning">
+                <i class="fas fa-edit me-2"></i>تعديل
+            </a>
+            <a href="{% url 'clients:client_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-right me-2"></i>رجوع
+            </a>
+        </div>
+    </div>
+    
+    <div class="row g-4">
+        <div class="col-lg-4">
+            <div class="content-card">
+                <div class="content-card-body">
+                    <div class="text-center mb-4">
+                        <div class="user-avatar mx-auto mb-3" style="width: 100px; height: 100px; font-size: 2.5rem;">
+                            {{ client.first_name|first }}
+                        </div>
+                        <h5 class="mb-1">{{ client.full_name }}</h5>
+                        <p class="text-muted">{{ client.national_id }}</p>
+                        <span class="status-badge {{ client.status }}">{{ client.get_status_display }}</span>
+                    </div>
+                    
+                    <hr>
+                    
+                    <table class="table table-borderless">
+                        <tr>
+                            <td style="width: 120px;"><strong>الجنس:</strong></td>
+                            <td>{{ client.get_gender_display }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>تاريخ الميلاد:</strong></td>
+                            <td>{{ client.birth_date|date:"Y-m-d" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>الهاتف:</strong></td>
+                            <td>{{ client.phone }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>البريد:</strong></td>
+                            <td>{{ client.email|default:"-" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>المعهد:</strong></td>
+                            <td>{{ client.institute.name }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>تاريخ التسجيل:</strong></td>
+                            <td>{{ client.registration_date|date:"Y-m-d" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>العنوان:</strong></td>
+                            <td>{{ client.address }}</td>
+                        </tr>
+                    </table>
+                    
+                    {% if client.notes %}
+                    <hr>
+                    <h6>ملاحظات</h6>
+                    <p class="text-muted">{{ client.notes|linebreaksbr }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-8">
+            <!-- التسجيلات -->
+            <div class="content-card mb-4">
+                <div class="content-card-header">
+                    <h5 class="content-card-title">التسجيلات</h5>
+                    <a href="{% url 'programs:registration_create' %}?client={{ client.pk }}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus me-1"></i>تسجيل في برنامج
+                    </a>
+                </div>
+                <div class="content-card-body">
+                    <div class="table-container">
+                        <table class="table custom-table">
+                            <thead>
+                                <tr>
+                                    <th>البرنامج</th>
+                                    <th>النوع</th>
+                                    <th>تاريخ التسجيل</th>
+                                    <th>الحالة</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for reg in registrations %}
+                                <tr>
+                                    <td>{{ reg.get_program.name|default:"-" }}</td>
+                                    <td>{% if reg.diploma %}دبلومة{% else %}دورة{% endif %}</td>
+                                    <td>{{ reg.registration_date|date:"Y-m-d" }}</td>
+                                    <td><span class="status-badge {{ reg.status }}">{{ reg.get_status_display }}</span></td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">لا توجد تسجيلات</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- الأذونات -->
+            <div class="content-card">
+                <div class="content-card-header">
+                    <h5 class="content-card-title">الأذونات المستخرجة</h5>
+                </div>
+                <div class="content-card-body">
+                    <div class="table-container">
+                        <table class="table custom-table">
+                            <thead>
+                                <tr>
+                                    <th>رقم الإذن</th>
+                                    <th>البرنامج</th>
+                                    <th>تاريخ الإصدار</th>
+                                    <th>تاريخ الانتهاء</th>
+                                    <th>الحالة</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for perm in permissions %}
+                                <tr>
+                                    <td>{{ perm.permission_number }}</td>
+                                    <td>{{ perm.get_program.name|default:"-" }}</td>
+                                    <td>{{ perm.issue_date|date:"Y-m-d" }}</td>
+                                    <td>{{ perm.expiry_date|date:"Y-m-d" }}</td>
+                                    <td><span class="status-badge {{ perm.status }}">{{ perm.get_status_display }}</span></td>
+                                    <td>
+                                        <a href="{% url 'permissions:permission_pdf' perm.pk %}" class="btn btn-sm btn-danger" target="_blank">
+                                            <i class="fas fa-file-pdf"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-4 text-muted">لا توجد أذونات</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

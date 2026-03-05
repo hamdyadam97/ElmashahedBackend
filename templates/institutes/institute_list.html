@@ -1,0 +1,229 @@
+{% extends 'base/base.html' %}
+
+{% block title %}المعاهد - نظام إدارة المعاهد{% endblock %}
+
+{% block content %}
+<div class="institutes-page">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0">المعاهد</h4>
+        {% if user.is_admin %}
+        <div class="d-flex gap-2">
+
+        <a href="{% url 'institutes:institute_create' %}" class="btn btn-primary rounded-0">
+            <i class="fas fa-plus"></i> إضافة معهد
+        </a>
+
+    <!-- الزرار -->
+<button id="uploadFileBtn" class="btn btn-primary rounded-0">
+    <i class="fas fa-plus"></i> توريد ملف
+</button>
+
+<!-- الفورم المخفي -->
+<form id="uploadForm" method="post" action="{% url 'institutes:upload_data' %}" enctype="multipart/form-data" style="display:none;"
+>
+    {% csrf_token %}
+    <input type="file" name="file" id="fileInput">
+</form>
+
+
+<button id="exportExcelBtn" class="btn btn-success">
+    <i class="fas fa-file-excel me-2"></i> تصدير Excel
+</button>
+
+
+<a href="{% url 'institutes:export_pdf' %}" class="btn btn-primary rounded-0">
+    <i class="fas fa-plus"></i> استيراد ملف PDF
+</a>
+
+
+
+    </div>
+        {% endif %}
+
+    </div>
+
+    
+    <div class="content-card">
+        <div class="content-card-header">
+            <h5 class="content-card-title">قائمة المعاهد</h5>
+            <form method="get" class="d-flex gap-2">
+                <select name="status" class="form-select form-select-sm" style="width: 120px;" onchange="this.form.submit()">
+                    <option value="">كل الحالات</option>
+                    {% for status_value, status_label in statuses %}
+                    <option value="{{ status_value }}" {% if request.GET.status == status_value %}selected{% endif %}>{{ status_label }}</option>
+                    {% endfor %}
+                </select>
+                <input type="text" name="search" class="form-control form-select-sm" placeholder="بحث..." value="{{ request.GET.search }}">
+                <button type="submit" class="btn btn-sm btn-primary">
+                    <i class="fas fa-search"></i>
+                </button>
+            </form>
+        </div>
+        <div class="content-card-body p-0">
+            <div class="table-container">
+                <table class="table custom-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>المعهد</th>
+                            <th>الكود</th>
+                            <th>المدينة</th>
+                            <th>المنطقة</th>
+                            <th>الهاتف</th>
+                            <th>الحالة</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for institute in institutes %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if institute.logo %}
+                                    <img src="{{ institute.logo.url }}" alt="" class="me-2" style="width: 40px; height: 40px; object-fit: cover; border-radius: 8px;">
+                                    {% else %}
+                                    <div class="me-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; background: #e0e7ff; border-radius: 8px;">
+                                        <i class="fas fa-building text-primary"></i>
+                                    </div>
+                                    {% endif %}
+                                    <span class="fw-semibold">{{ institute.name }}</span>
+                                </div>
+                            </td>
+                            <td>{{ institute.code }}</td>
+                            <td>{{ institute.city }}</td>
+                            <td>{{ institute.region }}</td>
+                            <td>{{ institute.phone }}</td>
+                            <td>
+                                <span class="status-badge {{ institute.status }}">{{ institute.get_status_display }}</span>
+                            </td>
+                            <td>
+                                <a href="{% url 'institutes:institute_detail' institute.pk %}" class="btn btn-sm btn-info" title="عرض">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                {% if user.is_admin %}
+                                <a href="{% url 'institutes:institute_update' institute.pk %}" class="btn btn-sm btn-warning" title="تعديل">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+
+                                <button type="button"
+        class="btn btn-sm btn-danger delete-btn"
+        data-url="{% url 'institutes:institute_delete' institute.pk %}"
+        data-name="{{ institute.name }}"
+        title="حذف">
+    <i class="fas fa-trash"></i>
+</button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4 text-muted">لا توجد معاهد</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    {% if is_paginated %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">السابق</a>
+            </li>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">{{ num }}</a>
+            </li>
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">التالي</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+<script>
+document.getElementById('uploadFileBtn').addEventListener('click', function() {
+    // فتح نافذة اختيار الملف
+    document.getElementById('fileInput').click();
+});
+
+document.getElementById('fileInput').addEventListener('change', function() {
+    // بمجرد اختيار الملف، الفورم تتبعت
+    if(this.files.length > 0) {
+        document.getElementById('uploadForm').submit();
+    }
+});
+</script>
+
+<script>
+document.getElementById('exportExcelBtn').addEventListener('click', function() {
+    fetch("{% url 'institutes:export_excel' %}", {
+        method: 'GET',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.blob())
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'institutes.xlsx';  // اسم الملف
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+    });
+});
+
+document.querySelectorAll('.delete-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const url = this.getAttribute('data-url');
+        const name = this.getAttribute('data-name');
+
+        Swal.fire({
+            title: 'هل أنت متأكد؟',
+            text: `سيتم حذف معهد "${name}" نهائياً ولا يمكن التراجع عن ذلك!`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'نعم، احذف الآن',
+            cancelButtonText: 'إلغاء',
+            reverseButtons: true // عشان زرار الإلغاء يبقى عاليمين والمسح عالشمال
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // إنشاء فورم وهمي لإرسال طلب الـ POST للحذف (لأنه أمان من الـ GET)
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = url;
+
+                // إضافة توكن الحماية CSRF
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrfmiddlewaretoken';
+                csrfInput.value = '{{ csrf_token }}';
+
+                form.appendChild(csrfInput);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+
+
+
+

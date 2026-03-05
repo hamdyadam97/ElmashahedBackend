@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page { size: A4; margin: 1cm; }
+        body { font-family: 'Arial', sans-serif; color: #333; line-height: 1.6; }
+        .header { border-bottom: 2px solid #1e3a8a; padding-bottom: 20px; margin-bottom: 30px; text-align: center; }
+        .logo { width: 100px; height: 100px; object-fit: contain; }
+        .title { color: #1e3a8a; font-size: 24px; margin: 10px 0; }
+        .section { margin-bottom: 25px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; }
+        .section-title { background: #e0e7ff; padding: 10px; font-weight: bold; color: #1e3a8a; border-bottom: 1px solid #ddd; }
+        .data-row { display: flex; padding: 8px 15px; border-bottom: 1px solid #eee; }
+        .label { width: 30%; font-weight: bold; color: #555; }
+        .value { width: 70%; }
+        .footer { margin-top: 50px; display: flex; justify-content: space-around; text-align: center; }
+        .stamp-box { width: 150px; height: 150px; border: 1px dashed #ccc; display: flex; align-items: center; justify-content: center; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        {% if logo_url %}<img src="file://{{ logo_url }}" class="logo">{% endif %}
+        <div class="title">{{ institute.name }}</div>
+        <div>إذن دراسة رسمى - Study Permission Slip</div>
+        <div style="font-weight: bold; color: red;">رقم: {{ permission.permission_number }}</div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">بيانات الطالب</div>
+        <div class="data-row"><div class="label">الاسم الكامل:</div><div class="value">{{ client.full_name }}</div></div>
+        <div class="data-row"><div class="label">رقم الهوية:</div><div class="value">{{ client.national_id }}</div></div>
+        <div class="data-row"><div class="label">رقم الهاتف:</div><div class="value">{{ client.phone }}</div></div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">بيانات البرنامج التدريبي</div>
+        <div class="data-row"><div class="label">اسم البرنامج:</div><div class="value">{{ program.name }}</div></div>
+        <div class="data-row"><div class="label">نوعه:</div><div class="value">{% if permission.diploma %}دبلومة{% else %}دورة تدريبية{% endif %}</div></div>
+        <div class="data-row"><div class="label">تاريخ الصلاحية:</div><div class="value">من {{ permission.issue_date }} إلى {{ permission.expiry_date }}</div></div>
+    </div>
+
+    <div class="footer">
+        <div>
+            <p>توقيع الموظف المختص</p>
+            <p style="margin-top: 40px;">________________</p>
+            <p>{{ permission.issued_by.get_full_name }}</p>
+        </div>
+        <div>
+            <p>ختم المعهد</p>
+            <div class="stamp-box">
+                {% if institute.stamp_image %}
+                <img src="file://{{ institute.stamp_image.path }}" style="width: 120px;">
+                {% else %}
+                الختم الرسمي
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>
