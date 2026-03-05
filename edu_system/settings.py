@@ -25,8 +25,13 @@ SECRET_KEY = 'django-insecure-(-1f+&xi^w^ru+rq3acl*((v3((h(r*$q-%=6t_2x2icbv780#
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# settings.py
 
+ALLOWED_HOSTS = [
+    'mashahed.m3had-system.cloud',
+    'localhost',
+    '127.0.0.1',
+]
 
 # Application definition
 
