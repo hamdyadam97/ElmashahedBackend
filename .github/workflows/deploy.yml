@@ -1,4 +1,4 @@
-name: Deploy m3had-system
+name: Deploy Elmashahed Backend
 
 on:
   push:
@@ -19,12 +19,23 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           password: ${{ secrets.SSH_PASSWORD }}
           script: |
+            # 1. الدخول لمجلد المشروع الجديد
             cd /var/www/ElmashahedBackend
+            
+            # 2. تحديث الكود من Git
             git fetch origin main
-            git reset --hard origin/main  # <--- هذا السطر هو "المنقذ"
+            git reset --hard origin/main
+            
+            # 3. تفعيل البيئة الافتراضية وتحديث المكتبات
             source venv/bin/activate
             pip install -r requirements.txt
+            
+            # 4. تحديث قاعدة البيانات والملفات الثابتة
             python manage.py migrate
             python manage.py collectstatic --noinput
-            sudo systemctl restart gunicorn
+            
+            # 5. إعادة تشغيل الخدمة الخاصة بهذا المشروع فقط (مهم جداً)
+            sudo systemctl restart gunicorn_mashahed
+            
+            # 6. إعادة تشغيل Nginx (اختياري، لكن يفضل لضمان تحديث الـ Headers)
             sudo systemctl restart nginx
