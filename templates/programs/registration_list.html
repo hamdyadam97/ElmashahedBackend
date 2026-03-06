@@ -1,0 +1,129 @@
+{% extends 'base/base.html' %}
+
+{% block title %}التسجيلات - نظام إدارة المعاهد{% endblock %}
+
+{% block content %}
+<div class="registrations-page">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0">إدارة التسجيلات</h4>
+        {% if user.is_employee or user.is_admin %}
+        <div class="d-flex gap-2">
+            <a href="{% url 'programs:registration_create' %}" class="btn btn-primary rounded-0">
+                <i class="fas fa-plus-circle me-1"></i> تسجيل جديد
+            </a>
+
+            <button id="exportExcelBtn" class="btn btn-success rounded-0">
+                <i class="fas fa-file-excel me-1"></i> تصدير Excel
+            </button>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="content-card">
+        <div class="content-card-header">
+            <h5 class="content-card-title">قائمة المسجلين في البرامج</h5>
+            <form method="get" class="d-flex gap-2">
+                <select name="status" class="form-select form-select-sm" style="width: 150px;" onchange="this.form.submit()">
+                    <option value="">كل الحالات</option>
+                    <option value="confirmed" {% if request.GET.status == 'confirmed' %}selected{% endif %}>مؤكد</option>
+                    <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>قيد الانتظار</option>
+                    <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>مكتمل</option>
+                    <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>ملغي</option>
+                </select>
+
+                <input type="text" name="search" class="form-control form-control-sm" placeholder="بحث عن عميل..." value="{{ request.GET.search }}">
+
+                <button type="submit" class="btn btn-sm btn-primary">
+                    <i class="fas fa-search"></i>
+                </button>
+            </form>
+        </div>
+
+        <div class="content-card-body p-0">
+            <div class="table-container">
+                <table class="table custom-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>العميل</th>
+                            <th>البرنامج (دبلوم/دورة)</th>
+                            <th>المعهد</th>
+                            <th>بواسطة</th>
+                            <th>الحالة</th>
+                            <th>تاريخ التسجيل</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for reg in registrations %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="user-avatar me-2" style="width: 35px; height: 35px; font-size: 0.9rem; background-color: #e9ecef; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
+                                        {{ reg.client.full_name|slice:":1" }}
+                                    </div>
+                                    <span class="fw-semibold">{{ reg.client.full_name }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                {% if reg.diploma %}
+                                    <span class="badge bg-soft-primary text-primary">دبلوم: {{ reg.diploma.name }}</span>
+                                {% elif reg.course %}
+                                    <span class="badge bg-soft-info text-info">دورة: {{ reg.course.name }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small class="text-muted">
+                                    {{ reg.diploma.institute.name }}{{ reg.course.institute.name }}
+                                </small>
+                            </td>
+                            <td>{{ reg.registered_by.get_full_name|default:reg.registered_by.username }}</td>
+                            <td>
+                                <span class="status-badge {{ reg.status }}">
+                                    {{ reg.get_status_display }}
+                                </span>
+                            </td>
+                            <td>{{ reg.registration_date|date:"Y-m-d" }}</td>
+                            <td>
+                                <a href="{% url 'programs:registration_detail' reg.pk %}" class="btn btn-sm btn-info" title="عرض التفاصيل">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4 text-muted">لا توجد عمليات تسجيل مطابقة للبحث</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {% if is_paginated %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">السابق</a>
+            </li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">{{ num }}</a>
+            </li>
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">التالي</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}
