@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -158,10 +158,12 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
 # البريد الإلكتروني المسجل في حساب Brevo (الذي قمتِ بتفعيله كـ Sender)
-EMAIL_HOST_USER = 'a100f3001@smtp-brevo.com'
 
 # مفتاح الـ API (Master Password) الذي تحصلين عليه من إعدادات SMTP & API في Brevo
-EMAIL_HOST_PASSWORD = 'xsmtpsib-086a77af9d09f9b17c1296e909e8db0aeff757c80c617f4b68625b9d710c226d-d4rbKUWaDu7NKlR2'
 
 # الاسم والبريد الذي سيظهر للمستلم
-DEFAULT_FROM_EMAIL = 'hamdy.adam@ararhni.com'
+
+
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
