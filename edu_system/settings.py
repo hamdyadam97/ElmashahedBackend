@@ -161,7 +161,6 @@ EMAIL_USE_TLS = True
 
 # مفتاح الـ API (Master Password) الذي تحصلين عليه من إعدادات SMTP & API في Brevo
 
-# الاسم والبريد الذي سيظهر للمستلم
 
 
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
