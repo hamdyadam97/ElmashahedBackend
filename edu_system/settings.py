@@ -149,3 +149,19 @@ LOGOUT_REDIRECT_URL = '/accounts/login/'
 
 
 CSRF_TRUSTED_ORIGINS = ['https://mashahed.m3had-system.cloud']
+
+
+# إعدادات البريد الإلكتروني باستخدام Brevo (Sendinblue)
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp-relay.brevo.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+# البريد الإلكتروني المسجل في حساب Brevo (الذي قمتِ بتفعيله كـ Sender)
+EMAIL_HOST_USER = 'a100f3001@smtp-brevo.com'
+
+# مفتاح الـ API (Master Password) الذي تحصلين عليه من إعدادات SMTP & API في Brevo
+EMAIL_HOST_PASSWORD = 'xsmtpsib-086a77af9d09f9b17c1296e909e8db0aeff757c80c617f4b68625b9d710c226d-d4rbKUWaDu7NKlR2'
+
+# الاسم والبريد الذي سيظهر للمستلم
+DEFAULT_FROM_EMAIL = 'hamdy.adam@ararhni.com'

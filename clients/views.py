@@ -59,7 +59,6 @@ class ClientListView(LoginRequiredMixin, ListView):
 
 
 class ClientCreateView(EmployeeRequiredMixin, CreateView):
-    """إنشاء عميل جديد"""
     model = Client
     template_name = 'clients/client_form.html'
     fields = [
@@ -67,24 +66,37 @@ class ClientCreateView(EmployeeRequiredMixin, CreateView):
         'phone', 'email', 'address', 'notes'
     ]
     success_url = reverse_lazy('clients:client_list')
-    
-    def get_form(self, form_class=None):
-        form = super().get_form(form_class)
-        user = self.request.user
-        
-        # تحديد المعهد حسب المستخدم
-        if user.is_employee():
-            form.instance.institute = user.institute
-        elif user.is_branch_manager():
-            form.instance.institute = user.managed_institute
-        
-        return form
-    
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # تمرير قائمة المعاهد فقط إذا كان المستخدم Admin ليختار منها
+        if self.request.user.is_admin():
+            from institutes.models import Institute
+            context['institutes_list'] = Institute.objects.all()
+        return context
+
     def form_valid(self, form):
-        form.instance.registered_by = self.request.user
+        user = self.request.user
+
+        if user.is_admin():
+            # إذا كان أدمن، نأخذ المعهد من القيمة المختارة في الفورم
+            selected_institute_id = self.request.POST.get('institute')
+            if selected_institute_id:
+                form.instance.institute_id = selected_institute_id
+            else:
+                # إذا لم يختر الأدمن معهداً، نعرض خطأ بدلاً من كراش النظام
+                form.add_error(None, "يجب اختيار المعهد التابع له العميل")
+                return self.form_invalid(form)
+        else:
+            # للموظفين، نحدد المعهد تلقائياً من بياناتهم
+            if user.is_employee():
+                form.instance.institute = user.institute
+            elif user.is_branch_manager():
+                form.instance.institute = user.managed_institute
+
+        form.instance.registered_by = user
         messages.success(self.request, f'تم إضافة العميل {form.instance.full_name} بنجاح')
         return super().form_valid(form)
-
 
 class ClientDetailView(LoginRequiredMixin, DetailView):
     """تفاصيل العميل"""

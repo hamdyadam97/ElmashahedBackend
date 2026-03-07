@@ -39,7 +39,24 @@
                         <input type="date" name="birth_date" class="form-control" value="{{ object.birth_date|date:'Y-m-d'|default:'' }}" required>
                     </div>
                 </div>
-                
+                {% if user.is_admin %}
+<div class="mb-3">
+    <label class="form-label">المعهد التابع له العميل <span class="text-danger">*</span></label>
+    <select name="institute" class="form-select" required>
+        <option value="">-- اختر المعهد --</option>
+        {% for inst in institutes_list %}
+            <option value="{{ inst.id }}">{{ inst.name }}</option>
+        {% endfor %}
+    </select>
+</div>
+{% endif %}
+
+{% if form.errors or form.non_field_errors %}
+    <div class="alert alert-danger">
+        {{ form.errors }}
+        {{ form.non_field_errors }}
+    </div>
+{% endif %}
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label">الجنس <span class="text-danger">*</span></label>

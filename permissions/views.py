@@ -310,3 +310,28 @@ class TemplateUpdateView(AdminRequiredMixin, UpdateView):
     def form_valid(self, form):
         messages.success(self.request, 'تم تحديث القالب بنجاح')
         return super().form_valid(form)
+
+
+
+
+
+def client_respond_view(request, pk, response_status):
+    """دالة تستقبل رد العميل من الإيميل (موافق/مرفوض)"""
+    permission = get_object_or_404(PermissionSlip, pk=pk)
+
+    if response_status == 'confirmed':
+        permission.status = 'active'  # أو الحالة التي ترغبين بها عند القبول
+        message = "شكراً لك! تم تأكيد استلامك للإذن بنجاح."
+    elif response_status == 'cancelled':
+        permission.status = 'cancelled'
+        message = "تم تسجيل رفضك للإذن. سيتم التواصل معك من قبل الإدارة."
+    else:
+        message = "حدث خطأ في معالجة طلبك."
+
+    permission.save()
+
+    # سنحتاج لإنشاء صفحة بسيطة تظهر للعميل بعد الضغط
+    return render(request, 'programs/response_thank_you.html', {
+        'message': message,
+        'permission': permission
+    })

@@ -15,4 +15,5 @@ urlpatterns = [
     path('templates/', views.TemplateListView.as_view(), name='template_list'),
     path('templates/create/', views.TemplateCreateView.as_view(), name='template_create'),
     path('templates/<int:pk>/edit/', views.TemplateUpdateView.as_view(), name='template_update'),
+    path('respond/<int:pk>/<str:response_status>/', views.client_respond_view, name='client_respond'),
 ]

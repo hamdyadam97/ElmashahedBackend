@@ -32,4 +32,5 @@ urlpatterns = [
     path('registrations/', views.RegistrationListView.as_view(), name='registration_list'),
     path('registrations/create/', views.RegistrationCreateView.as_view(), name='registration_create'),
     path('registrations/<int:pk>/', views.RegistrationDetailView.as_view(), name='registration_detail'),
+
 ]
