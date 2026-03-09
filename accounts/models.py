@@ -113,6 +113,10 @@ class UserPermission(models.Model):
         verbose_name = _('User Permission')
         verbose_name_plural = _('User Permissions')
         unique_together = ['user', 'permission']
+        indexes = [
+            models.Index(fields=['user', 'permission']),
+            models.Index(fields=['granted']),
+        ]
     
     def __str__(self):
         return f"{self.user} - {self.get_permission_display()}"

@@ -1,0 +1,201 @@
+{% extends 'base/base.html' %}
+
+{% block title %}تعديل الملف الشخصي{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-user-edit text-primary me-2"></i>
+                تعديل الملف الشخصي
+            </h2>
+            <p class="text-muted mb-0">تحديث بياناتك الشخصية</p>
+        </div>
+        <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-right me-2"></i>
+            رجوع
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-bottom-0 pt-4">
+                    <div class="d-flex align-items-center">
+                        <div class="avatar-circle me-3" style="width: 70px; height: 70px; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.8rem; font-weight: 700;">
+                            {{ user.first_name|first|default:user.username|first }}
+                        </div>
+                        <div>
+                            <h5 class="mb-1">{{ user.get_full_name|default:user.username }}</h5>
+                            <span class="badge bg-primary">{{ user.get_role_display }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body p-4">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Personal Info Section -->
+                        <h6 class="text-muted mb-3 text-uppercase" style="font-size: 0.8rem; letter-spacing: 1px;">
+                            <i class="fas fa-user me-2"></i>البيانات الشخصية
+                        </h6>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label for="id_first_name" class="form-label">
+                                    <i class="fas fa-id-card text-muted me-1"></i>الاسم الأول
+                                </label>
+                                <input type="text" name="first_name" id="id_first_name" 
+                                       class="form-control {% if form.first_name.errors %}is-invalid{% endif %}"
+                                       value="{{ form.first_name.value|default:'' }}" required>
+                                {% if form.first_name.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.first_name.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="id_last_name" class="form-label">
+                                    <i class="fas fa-id-card text-muted me-1"></i>الاسم الأخير
+                                </label>
+                                <input type="text" name="last_name" id="id_last_name" 
+                                       class="form-control {% if form.last_name.errors %}is-invalid{% endif %}"
+                                       value="{{ form.last_name.value|default:'' }}" required>
+                                {% if form.last_name.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.last_name.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Contact Info Section -->
+                        <h6 class="text-muted mb-3 text-uppercase" style="font-size: 0.8rem; letter-spacing: 1px;">
+                            <i class="fas fa-address-book me-2"></i>بيانات التواصل
+                        </h6>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label for="id_email" class="form-label">
+                                    <i class="fas fa-envelope text-muted me-1"></i>البريد الإلكتروني
+                                </label>
+                                <input type="email" name="email" id="id_email" 
+                                       class="form-control {% if form.email.errors %}is-invalid{% endif %}"
+                                       value="{{ form.email.value|default:'' }}" 
+                                       dir="ltr" required>
+                                {% if form.email.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.email.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="id_phone" class="form-label">
+                                    <i class="fas fa-phone text-muted me-1"></i>رقم الهاتف
+                                </label>
+                                <input type="text" name="phone" id="id_phone" 
+                                       class="form-control {% if form.phone.errors %}is-invalid{% endif %}"
+                                       value="{{ form.phone.value|default:'' }}" 
+                                       dir="ltr" placeholder="05xxxxxxxx">
+                                {% if form.phone.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.phone.errors.0 }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="id_address" class="form-label">
+                                <i class="fas fa-map-marker-alt text-muted me-1"></i>العنوان
+                            </label>
+                            <textarea name="address" id="id_address" rows="3"
+                                      class="form-control {% if form.address.errors %}is-invalid{% endif %}"
+                                      placeholder="أدخل عنوانك بالتفصيل">{{ form.address.value|default:'' }}</textarea>
+                            {% if form.address.errors %}
+                            <div class="invalid-feedback">
+                                {{ form.address.errors.0 }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Account Info (Read Only) -->
+                        <h6 class="text-muted mb-3 text-uppercase" style="font-size: 0.8rem; letter-spacing: 1px;">
+                            <i class="fas fa-info-circle me-2"></i>معلومات الحساب
+                        </h6>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label text-muted">اسم المستخدم</label>
+                                <input type="text" class="form-control" value="{{ user.username }}" disabled>
+                                <small class="form-text text-muted">لا يمكن تغيير اسم المستخدم</small>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label text-muted">الدور</label>
+                                <input type="text" class="form-control" value="{{ user.get_role_display }}" disabled>
+                                <small class="form-text text-muted">يتم تحديد الدور من قبل الإدارة</small>
+                            </div>
+                        </div>
+                        
+                        {% if user.institute or user.managed_institute %}
+                        <div class="mb-4">
+                            <label class="form-label text-muted">المعهد</label>
+                            <input type="text" class="form-control" 
+                                   value="{% if user.institute %}{{ user.institute.name }}{% else %}{{ user.managed_institute.name }}{% endif %}" 
+                                   disabled>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                            <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary">
+                                إلغاء
+                            </a>
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="fas fa-save me-2"></i>
+                                حفظ التغييرات
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Form Validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    let isValid = true;
+    const requiredFields = ['first_name', 'last_name', 'email'];
+    
+    requiredFields.forEach(fieldName => {
+        const field = document.getElementById('id_' + fieldName);
+        if (!field.value.trim()) {
+            field.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            field.classList.remove('is-invalid');
+        }
+    });
+    
+    if (!isValid) {
+        e.preventDefault();
+    }
+});
+
+// Phone number validation
+document.getElementById('id_phone').addEventListener('input', function(e) {
+    // Remove non-numeric characters
+    this.value = this.value.replace(/[^0-9]/g, '');
+});
+</script>
+{% endblock %}

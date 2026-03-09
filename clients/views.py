@@ -2,55 +2,31 @@ from django.views.generic import View, ListView, DetailView, CreateView, UpdateV
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.db.models import Q
-from django.http import JsonResponse
-from django.contrib import messages
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import redirect
-from institutes.models import Institute
-from accounts.views import EmployeeRequiredMixin, BranchManagerRequiredMixin
+from django.contrib import messages
 import pandas as pd
-from django.http import HttpResponse
+import logging
+
+from core.mixins import (
+    EmployeeRequiredMixin, BranchManagerRequiredMixin,
+    InstituteScopedMixin, SearchMixin, FilterMixin, SoftDeleteMixin
+)
+from core.utils import get_pdf_response
+from institutes.models import Institute
 from .models import Client
-from core.utils import get_pdf_response  # الدالة المساعدة التي أنشأناها سابقاً
+
+logger = logging.getLogger('edu_system')
 
 
-
-class ClientListView(LoginRequiredMixin, ListView):
+class ClientListView(LoginRequiredMixin, InstituteScopedMixin, SearchMixin, FilterMixin, ListView):
     """قائمة العملاء"""
     model = Client
     template_name = 'clients/client_list.html'
     context_object_name = 'clients'
     paginate_by = 20
-    
-    def get_queryset(self):
-        user = self.request.user
-        
-        if user.is_admin():
-            queryset = Client.objects.all()
-        elif user.is_regional_manager():
-            institutes = user.managed_institutes.all()
-            queryset = Client.objects.filter(institute__in=institutes)
-        elif user.is_branch_manager():
-            queryset = Client.objects.filter(institute=user.managed_institute) if user.managed_institute else Client.objects.none()
-        elif user.is_employee():
-            queryset = Client.objects.filter(institute=user.institute) if user.institute else Client.objects.none()
-        else:
-            queryset = Client.objects.none()
-        
-        # البحث
-        search = self.request.GET.get('search')
-        if search:
-            queryset = queryset.filter(
-                Q(full_name__icontains=search) |
-                Q(national_id__icontains=search) |
-                Q(phone__icontains=search)
-            )
-        
-        # تصفية حسب الحالة
-        status = self.request.GET.get('status')
-        if status:
-            queryset = queryset.filter(status=status)
-        
-        return queryset.select_related('institute', 'registered_by').order_by('-created_at')
+    search_fields = ['full_name', 'national_id', 'phone']
+    filter_fields = {'status': 'status'}
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -59,6 +35,7 @@ class ClientListView(LoginRequiredMixin, ListView):
 
 
 class ClientCreateView(EmployeeRequiredMixin, CreateView):
+    """إنشاء عميل جديد"""
     model = Client
     template_name = 'clients/client_form.html'
     fields = [
@@ -66,37 +43,34 @@ class ClientCreateView(EmployeeRequiredMixin, CreateView):
         'phone', 'email', 'address', 'notes'
     ]
     success_url = reverse_lazy('clients:client_list')
-
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # تمرير قائمة المعاهد فقط إذا كان المستخدم Admin ليختار منها
         if self.request.user.is_admin():
-            from institutes.models import Institute
             context['institutes_list'] = Institute.objects.all()
         return context
-
+    
     def form_valid(self, form):
         user = self.request.user
-
+        
         if user.is_admin():
-            # إذا كان أدمن، نأخذ المعهد من القيمة المختارة في الفورم
             selected_institute_id = self.request.POST.get('institute')
             if selected_institute_id:
                 form.instance.institute_id = selected_institute_id
             else:
-                # إذا لم يختر الأدمن معهداً، نعرض خطأ بدلاً من كراش النظام
                 form.add_error(None, "يجب اختيار المعهد التابع له العميل")
                 return self.form_invalid(form)
         else:
-            # للموظفين، نحدد المعهد تلقائياً من بياناتهم
             if user.is_employee():
                 form.instance.institute = user.institute
             elif user.is_branch_manager():
                 form.instance.institute = user.managed_institute
-
+        
         form.instance.registered_by = user
         messages.success(self.request, f'تم إضافة العميل {form.instance.full_name} بنجاح')
+        logger.info(f'Client {form.instance.full_name} created by {user.username}')
         return super().form_valid(form)
+
 
 class ClientDetailView(LoginRequiredMixin, DetailView):
     """تفاصيل العميل"""
@@ -108,7 +82,6 @@ class ClientDetailView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         client = self.get_object()
         
-        # إحصائيات العميل
         context['registrations'] = client.registrations.select_related(
             'diploma', 'course'
         ).order_by('-created_at')
@@ -133,36 +106,35 @@ class ClientUpdateView(EmployeeRequiredMixin, UpdateView):
     
     def form_valid(self, form):
         messages.success(self.request, 'تم تحديث بيانات العميل بنجاح')
+        logger.info(f'Client {form.instance.full_name} updated by {self.request.user.username}')
         return super().form_valid(form)
 
 
-class ClientDeleteView(BranchManagerRequiredMixin, DeleteView):
+class ClientDeleteView(BranchManagerRequiredMixin, SoftDeleteMixin, DeleteView):
     """حذف ناعم للعميل"""
     model = Client
     template_name = 'clients/client_confirm_delete.html'
     success_url = reverse_lazy('clients:client_list')
-
-    def post(self, request, *args, **kwargs):
-        # جلب العميل
-        self.object = self.get_object()
-        # تنفيذ الحذف الناعم (الدالة التي وضعناها في الـ BaseModel)
-        self.object.soft_delete()
-
-        messages.success(request, f'تم نقل العميل "{self.object.full_name}" إلى الأرشيف بنجاح')
-        return redirect(self.get_success_url())
-
-    # إلغاء دالة delete الأصلية لضمان عدم المسح الفعلي أبداً
+    
     def delete(self, request, *args, **kwargs):
-        return self.post(request, *args, **kwargs)
+        self.object = self.get_object()
+        client_name = self.object.full_name
+        self.object.soft_delete()
+        logger.warning(f'Client {client_name} archived by {request.user.username}')
+        messages.success(request, f'تم نقل العميل "{client_name}" إلى الأرشيف بنجاح')
+        return redirect(self.success_url)
 
+
+# ==================== AJAX Views ====================
 
 class ClientSearchView(LoginRequiredMixin, View):
-    """البحث عن العملاء"""
+    """البحث عن العملاء (AJAX)"""
     
     def get(self, request):
         query = request.GET.get('q', '')
         user = request.user
         
+        # فلترة حسب صلاحيات المستخدم
         if user.is_admin():
             queryset = Client.objects.all()
         elif user.is_regional_manager():
@@ -196,7 +168,7 @@ class ClientSearchView(LoginRequiredMixin, View):
 
 
 class GetClientByNationalIdView(LoginRequiredMixin, View):
-    """الحصول على عميل برقم الهوية"""
+    """الحصول على عميل برقم الهوية (AJAX)"""
     
     def get(self, request):
         national_id = request.GET.get('national_id', '')
@@ -205,6 +177,7 @@ class GetClientByNationalIdView(LoginRequiredMixin, View):
         if not national_id:
             return JsonResponse({'found': False})
         
+        # فلترة حسب صلاحيات المستخدم
         if user.is_admin():
             queryset = Client.objects.all()
         elif user.is_regional_manager():
@@ -237,81 +210,87 @@ class GetClientByNationalIdView(LoginRequiredMixin, View):
             return JsonResponse({'found': False})
 
 
-
-
+# ==================== Import/Export Views ====================
 
 def upload_clients(request):
-    """دالة استيراد العملاء من ملف Excel/CSV"""
-    if request.method == "POST" and request.FILES.get('file'):
-        uploaded_file = request.FILES['file']
-        user = request.user
-
-        try:
-            # 1. قراءة الملف وتنظيف أسماء الأعمدة
-            df = pd.read_csv(uploaded_file) if uploaded_file.name.endswith('.csv') else pd.read_excel(uploaded_file)
-            df.columns = [str(col).strip().lower() for col in df.columns]
-
-            # 2. تحويل أعمدة التاريخ (تاريخ الميلاد)
-            if 'birth_date' in df.columns:
-                df['birth_date'] = pd.to_datetime(df['birth_date'], errors='coerce')
-
-            items_created = 0
-            for index, row in df.iterrows():
-                national_id = str(row.get('national_id', '')).strip()
-
-                # تخطي الصف لو رقم الهوية فارغ
-                if not national_id or national_id == 'nan':
-                    continue
-
-                # تحديد المعهد (إما من الإكسيل أو من معهد الموظف الحالي)
-                inst_id = row.get('institute')
-                if not inst_id:
-                    if user.is_employee():
-                        inst_id = user.institute_id
-                    elif user.is_branch_manager():
-                        inst_id = user.managed_institute_id
-
-                # التأكد من وجود المعهد
-                if not inst_id or not Institute.objects.filter(id=inst_id).exists():
-                    continue
-
-                def clean_date(val):
-                    return val.date() if pd.notnull(val) and str(val) != 'NaT' else None
-
-                # 3. الحفظ أو التحديث بناءً على رقم الهوية (National ID)
-                Client.objects.update_or_create(
-                    national_id=national_id,
-                    defaults={
-                        'first_name': row.get('first_name', ''),
-                        'last_name': row.get('last_name', ''),
-                        'gender': row.get('gender', 'male'),
-                        'birth_date': clean_date(row.get('birth_date')),
-                        'phone': str(row.get('phone', '')).strip(),
-                        'email': row.get('email', ''),
-                        'address': row.get('address', ''),
-                        'notes': row.get('notes', ''),
-                        'status': row.get('status', 'active'),
-                        'institute_id': inst_id,
-                        'registered_by': user,  # الموظف اللي بيرفع الملف حالياً
-                    }
-                )
-                items_created += 1
-
-            messages.success(request, f"تم بنجاح معالجة {items_created} سجل للعملاء.")
-
-        except Exception as e:
-            messages.error(request, f"حدث خطأ أثناء رفع العملاء: {str(e)}")
-
+    """استيراد العملاء من Excel/CSV"""
+    if request.method != "POST" or not request.FILES.get('file'):
+        return redirect('clients:client_list')
+    
+    uploaded_file = request.FILES['file']
+    user = request.user
+    
+    try:
+        df = pd.read_csv(uploaded_file) if uploaded_file.name.endswith('.csv') else pd.read_excel(uploaded_file)
+        df.columns = [str(col).strip().lower() for col in df.columns]
+        
+        if 'birth_date' in df.columns:
+            df['birth_date'] = pd.to_datetime(df['birth_date'], errors='coerce')
+        
+        items_created = 0
+        for _, row in df.iterrows():
+            national_id = str(row.get('national_id', '')).strip()
+            
+            if not national_id or national_id == 'nan':
+                continue
+            
+            # تحديد المعهد
+            inst_id = row.get('institute')
+            if not inst_id:
+                if user.is_employee():
+                    inst_id = user.institute_id
+                elif user.is_branch_manager():
+                    inst_id = user.managed_institute_id
+            
+            if not inst_id or not Institute.objects.filter(id=inst_id).exists():
+                continue
+            
+            def clean_date(val):
+                return val.date() if pd.notnull(val) and str(val) != 'NaT' else None
+            
+            Client.objects.update_or_create(
+                national_id=national_id,
+                defaults={
+                    'first_name': row.get('first_name', ''),
+                    'last_name': row.get('last_name', ''),
+                    'gender': row.get('gender', 'male'),
+                    'birth_date': clean_date(row.get('birth_date')),
+                    'phone': str(row.get('phone', '')).strip(),
+                    'email': row.get('email', ''),
+                    'address': row.get('address', ''),
+                    'notes': row.get('notes', ''),
+                    'status': row.get('status', 'active'),
+                    'institute_id': inst_id,
+                    'registered_by': user,
+                }
+            )
+            items_created += 1
+        
+        logger.info(f'{items_created} clients imported by {user.username}')
+        messages.success(request, f"تم بنجاح معالجة {items_created} سجل للعملاء.")
+    except Exception as e:
+        logger.error(f'Error importing clients: {str(e)}')
+        messages.error(request, f"حدث خطأ أثناء رفع العملاء: {str(e)}")
+    
     return redirect('clients:client_list')
 
 
-
-# --- تصدير العملاء PDF ---
 def export_clients_pdf(request):
-    # جلب نفس الداتا اللي الموظف مسموح له يشوفها (حسب الـ Queryset في ListView)
-    # هنا مثال عام ويمكنك تخصيصه حسب صلاحيات المستخدم
-    clients = Client.objects.all()
-
+    """تصدير العملاء PDF"""
+    user = request.user
+    
+    if user.is_admin():
+        clients = Client.objects.all()
+    elif user.is_regional_manager():
+        institutes = user.managed_institutes.all()
+        clients = Client.objects.filter(institute__in=institutes)
+    elif user.is_branch_manager():
+        clients = Client.objects.filter(institute=user.managed_institute) if user.managed_institute else Client.objects.none()
+    elif user.is_employee():
+        clients = Client.objects.filter(institute=user.institute) if user.institute else Client.objects.none()
+    else:
+        clients = Client.objects.none()
+    
     context = {
         'clients': clients,
         'title': 'سجل العملاء المسجلين',
@@ -319,24 +298,34 @@ def export_clients_pdf(request):
     return get_pdf_response(request, 'clients/clients_pdf_template.html', context, 'clients_report')
 
 
-# --- تصدير العملاء Excel ---
 def export_clients_excel(request):
-    clients = Client.objects.all().values(
+    """تصدير العملاء Excel"""
+    user = request.user
+    
+    if user.is_admin():
+        clients = Client.objects.all()
+    elif user.is_regional_manager():
+        institutes = user.managed_institutes.all()
+        clients = Client.objects.filter(institute__in=institutes)
+    elif user.is_branch_manager():
+        clients = Client.objects.filter(institute=user.managed_institute) if user.managed_institute else Client.objects.none()
+    elif user.is_employee():
+        clients = Client.objects.filter(institute=user.institute) if user.institute else Client.objects.none()
+    else:
+        clients = Client.objects.none()
+    
+    df = pd.DataFrame(list(clients.values(
         'full_name', 'national_id', 'phone', 'email', 'status', 'institute__name', 'created_at'
-    )
-
-    df = pd.DataFrame(list(clients))
-
-    # تحسين أسماء الأعمدة في ملف الإكسيل
+    )))
+    
     df.columns = ['الاسم الكامل', 'رقم الهوية', 'الهاتف', 'الإيميل', 'الحالة', 'المعهد', 'تاريخ التسجيل']
-
-    # إزالة التوقيت من تاريخ التسجيل ليظهر التاريخ فقط
     df['تاريخ التسجيل'] = df['تاريخ التسجيل'].dt.date
-
+    
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = 'attachment; filename="clients_list.xlsx"'
-
+    
     with pd.ExcelWriter(response, engine='openpyxl') as writer:
         df.to_excel(writer, index=False, sheet_name='العملاء')
-
+    
+    logger.info(f'Clients exported by {user.username}')
     return response

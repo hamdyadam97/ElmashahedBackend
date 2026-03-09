@@ -78,6 +78,13 @@ class Client(BaseModel):
         verbose_name = _('Client')
         verbose_name_plural = _('Clients')
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['national_id']),
+            models.Index(fields=['institute', 'status']),
+            models.Index(fields=['registered_by']),
+            models.Index(fields=['registration_date']),
+            models.Index(fields=['is_deleted']),
+        ]
     
     def __str__(self):
         return f"{self.full_name} - {self.national_id}"

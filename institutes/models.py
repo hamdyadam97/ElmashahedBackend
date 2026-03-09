@@ -53,6 +53,11 @@ class Institute(BaseModel):
         verbose_name = _('Institute')
         verbose_name_plural = _('Institutes')
         ordering = ['name']
+        indexes = [
+            models.Index(fields=['code']),
+            models.Index(fields=['status']),
+            models.Index(fields=['city', 'status']),
+        ]
     
     def __str__(self):
         return f"{self.name} ({self.code})"

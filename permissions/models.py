@@ -102,6 +102,15 @@ class PermissionSlip(BaseModel):
         verbose_name = _('Permission Slip')
         verbose_name_plural = _('Permission Slips')
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['permission_number']),
+            models.Index(fields=['client', 'status']),
+            models.Index(fields=['institute', 'status']),
+            models.Index(fields=['issued_by']),
+            models.Index(fields=['issue_date']),
+            models.Index(fields=['expiry_date']),
+            models.Index(fields=['is_deleted']),
+        ]
     
     def __str__(self):
         program = self.diploma or self.course
@@ -213,6 +222,9 @@ class PermissionTemplate(BaseModel):
     class Meta:
         verbose_name = _('Permission Template')
         verbose_name_plural = _('Permission Templates')
+        indexes = [
+            models.Index(fields=['institute']),
+        ]
     
     def __str__(self):
         return f"Template for {self.institute.name}"

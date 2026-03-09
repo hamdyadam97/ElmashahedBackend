@@ -458,6 +458,14 @@
                 </div>
             </div>
             
+            <!-- Archive (البوقايل) -->
+            <div class="sidebar-item">
+                <a href="{% url 'core:archive' %}" class="sidebar-link {% if '/archive/' in request.path %}active{% endif %}">
+                    <i class="fas fa-trash-alt"></i>
+                    <span>الأرشيف (البوقايل)</span>
+                </a>
+            </div>
+            
             {% if user.is_admin %}
             <div class="sidebar-item">
                 <a href="{% url 'accounts:user_list' %}" class="sidebar-link {% if '/users/' in request.path %}active{% endif %}">

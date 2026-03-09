@@ -20,6 +20,9 @@ class ProgramCategory(BaseModel):
         verbose_name = _('Program Category')
         verbose_name_plural = _('Program Categories')
         ordering = ['name']
+        indexes = [
+            models.Index(fields=['type']),
+        ]
     
     def __str__(self):
         return f"{self.name} ({self.get_type_display()})"
@@ -90,6 +93,12 @@ class Diploma(BaseModel):
         verbose_name = _('Diploma')
         verbose_name_plural = _('Diplomas')
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['code']),
+            models.Index(fields=['institute', 'status']),
+            models.Index(fields=['start_date', 'end_date']),
+            models.Index(fields=['is_deleted']),
+        ]
     
     def __str__(self):
         return f"{self.name} - {self.institute.name}"
@@ -163,6 +172,12 @@ class Course(BaseModel):
         verbose_name = _('Course')
         verbose_name_plural = _('Courses')
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['code']),
+            models.Index(fields=['institute', 'status']),
+            models.Index(fields=['start_date', 'end_date']),
+            models.Index(fields=['is_deleted']),
+        ]
     
     def __str__(self):
         return f"{self.name} - {self.institute.name}"
@@ -235,6 +250,13 @@ class ProgramRegistration(BaseModel):
         verbose_name = _('Program Registration')
         verbose_name_plural = _('Program Registrations')
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['client', 'status']),
+            models.Index(fields=['diploma']),
+            models.Index(fields=['course']),
+            models.Index(fields=['registered_by']),
+            models.Index(fields=['registration_date']),
+        ]
     
     def __str__(self):
         program = self.diploma or self.course

@@ -13,6 +13,7 @@ urlpatterns = [
     path('programs/', include('programs.urls')),
     path('clients/', include('clients.urls')),
     path('permissions/', include('permissions.urls')),
+    path('core/', include('core.urls')),
 ]
 
 if settings.DEBUG:

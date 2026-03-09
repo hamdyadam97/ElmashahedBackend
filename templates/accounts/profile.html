@@ -1,0 +1,290 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}الملف الشخصي - {{ user.get_full_name|default:user.username }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="fas fa-user-circle text-primary me-2"></i>
+                الملف الشخصي
+            </h2>
+            <p class="text-muted mb-0">إدارة بياناتك الشخصية وإحصائيات نشاطك</p>
+        </div>
+        <a href="{% url 'accounts:profile_edit' %}" class="btn btn-primary">
+            <i class="fas fa-edit me-2"></i>
+            تعديل البيانات
+        </a>
+    </div>
+
+    <div class="row">
+        <!-- Profile Card -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center p-4">
+                    <!-- Avatar -->
+                    <div class="mb-3">
+                        <div class="avatar-circle mx-auto" style="width: 120px; height: 120px; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem; font-weight: 700;">
+                            {{ user.first_name|first|default:user.username|first }}
+                        </div>
+                    </div>
+                    
+                    <!-- User Info -->
+                    <h4 class="mb-1">{{ user.get_full_name|default:user.username }}</h4>
+                    <span class="badge bg-primary mb-3">{{ user.get_role_display }}</span>
+                    
+                    <hr>
+                    
+                    <!-- Contact Info -->
+                    <div class="text-start">
+                        <div class="mb-3">
+                            <small class="text-muted d-block mb-1">
+                                <i class="fas fa-envelope me-2"></i>البريد الإلكتروني
+                            </small>
+                            <span class="fw-medium">{{ user.email|default:"غير محدد" }}</span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <small class="text-muted d-block mb-1">
+                                <i class="fas fa-phone me-2"></i>رقم الهاتف
+                            </small>
+                            <span class="fw-medium">{{ user.phone|default:"غير محدد" }}</span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <small class="text-muted d-block mb-1">
+                                <i class="fas fa-map-marker-alt me-2"></i>العنوان
+                            </small>
+                            <span class="fw-medium">{{ user.address|default:"غير محدد" }}</span>
+                        </div>
+                        
+                        <div class="mb-0">
+                            <small class="text-muted d-block mb-1">
+                                <i class="fas fa-calendar me-2"></i>تاريخ الانضمام
+                            </small>
+                            <span class="fw-medium">{{ user.date_joined|date:"Y/m/d" }}</span>
+                        </div>
+                    </div>
+                    
+                    {% if user_institute %}
+                    <hr>
+                    <div class="alert alert-light border mb-0">
+                        <small class="text-muted d-block mb-1">
+                            <i class="fas fa-building me-2"></i>المعهد
+                        </small>
+                        <span class="fw-bold">{{ user_institute.name }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Section -->
+        <div class="col-lg-8">
+            <!-- Quick Stats Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3 col-6">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body text-center">
+                            <div class="stat-icon primary mx-auto mb-2" style="width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-file-pdf fa-lg"></i>
+                            </div>
+                            <h3 class="mb-0">{{ permissions_count }}</h3>
+                            <small class="text-muted">إجمالي الأذونات</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 col-6">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body text-center">
+                            <div class="stat-icon success mx-auto mb-2" style="width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-users fa-lg"></i>
+                            </div>
+                            <h3 class="mb-0">{{ clients_count }}</h3>
+                            <small class="text-muted">إجمالي العملاء</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 col-6">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body text-center">
+                            <div class="stat-icon warning mx-auto mb-2" style="width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-calendar-check fa-lg"></i>
+                            </div>
+                            <h3 class="mb-0">{{ monthly_permissions }}</h3>
+                            <small class="text-muted">أذونات هذا الشهر</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-3 col-6">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body text-center">
+                            <div class="stat-icon info mx-auto mb-2" style="width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-user-plus fa-lg"></i>
+                            </div>
+                            <h3 class="mb-0">{{ monthly_clients }}</h3>
+                            <small class="text-muted">عملاء هذا الشهر</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Yearly Chart -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white border-0 pt-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar text-primary me-2"></i>
+                        إحصائيات السنة الحالية
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="yearlyChart" height="100"></canvas>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="row">
+                <!-- Recent Permissions -->
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-file-pdf text-primary me-2"></i>
+                                آخر الأذونات
+                            </h5>
+                            <a href="{% url 'permissions:permission_list' %}" class="btn btn-sm btn-outline-primary">
+                                عرض الكل
+                            </a>
+                        </div>
+                        <div class="card-body p-0">
+                            {% if recent_permissions %}
+                            <div class="list-group list-group-flush">
+                                {% for perm in recent_permissions %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <small class="text-muted d-block">{{ perm.permission_number }}</small>
+                                        <span class="fw-medium">{{ perm.client.full_name }}</span>
+                                    </div>
+                                    <small class="text-muted">{{ perm.created_at|timesince }}</small>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-inbox text-muted fa-2x mb-2"></i>
+                                <p class="text-muted mb-0">لا يوجد أذونات</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Clients -->
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-users text-success me-2"></i>
+                                آخر العملاء
+                            </h5>
+                            <a href="{% url 'clients:client_list' %}" class="btn btn-sm btn-outline-success">
+                                عرض الكل
+                            </a>
+                        </div>
+                        <div class="card-body p-0">
+                            {% if recent_clients %}
+                            <div class="list-group list-group-flush">
+                                {% for client in recent_clients %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="fw-medium">{{ client.full_name }}</span>
+                                        <small class="text-muted d-block">{{ client.national_id }}</small>
+                                    </div>
+                                    <small class="text-muted">{{ client.created_at|timesince }}</small>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-inbox text-muted fa-2x mb-2"></i>
+                                <p class="text-muted mb-0">لا يوجد عملاء</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Yearly Stats Chart
+const ctx = document.getElementById('yearlyChart').getContext('2d');
+const yearlyChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'],
+        datasets: [
+            {
+                label: 'الأذونات',
+                data: [{% for stat in yearly_stats %}{{ stat.permissions }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+                backgroundColor: 'rgba(37, 99, 235, 0.8)',
+                borderColor: 'rgba(37, 99, 235, 1)',
+                borderWidth: 1,
+                borderRadius: 4
+            },
+            {
+                label: 'العملاء',
+                data: [{% for stat in yearly_stats %}{{ stat.clients }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+                backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                borderColor: 'rgba(16, 185, 129, 1)',
+                borderWidth: 1,
+                borderRadius: 4
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'top',
+                labels: {
+                    font: {
+                        family: 'Cairo'
+                    }
+                }
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    stepSize: 1,
+                    font: {
+                        family: 'Cairo'
+                    }
+                }
+            },
+            x: {
+                ticks: {
+                    font: {
+                        family: 'Cairo'
+                    }
+                }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}
