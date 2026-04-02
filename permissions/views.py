@@ -211,9 +211,11 @@ def generate_permission_pdf(permission):
                 </style>
             </head>
             <body>
+            <div class="page-container">
                 <header>{template_obj.header_content}</header>
                 <main>{template_obj.body_content}</main>
                 <footer>{template_obj.footer_content}</footer>
+                </div>
             </body>
         </html>
         """
@@ -227,7 +229,8 @@ def generate_permission_pdf(permission):
     vision_path = os.path.join(settings.BASE_DIR, 'static', 'images', 'vision2030.png')
     tvtc_path = os.path.join(settings.BASE_DIR, 'static', 'images', 'TVTC.jpg')
     bg_path = os.path.join(settings.BASE_DIR, 'static', 'images', 'ahley_bg.jpg')
-    
+    bg_path1 = os.path.join(settings.BASE_DIR, 'static', 'images', 'Afaq.jpg')
+
     context = Context({
         'permission': permission,
         'client': permission.client,

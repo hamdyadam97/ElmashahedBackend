@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import View, ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView
-from django.contrib.auth import views as auth_views
+from django.contrib.auth import views as auth_views, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.urls import reverse_lazy
@@ -31,6 +31,22 @@ class CustomLoginView(auth_views.LoginView):
     def form_valid(self, form):
         logger.info(f'User {form.get_user().username} logged in')
         return super().form_valid(form)
+
+
+class CustomLogoutView(View):
+    """تسجيل الخروج - يعمل مع GET و POST"""
+    def get(self, request, *args, **kwargs):
+        return self._logout(request)
+    
+    def post(self, request, *args, **kwargs):
+        return self._logout(request)
+    
+    def _logout(self, request):
+        if request.user.is_authenticated:
+            logger.info(f'User {request.user.username} logged out')
+        logout(request)
+        messages.success(request, 'تم تسجيل الخروج بنجاح')
+        return redirect('accounts:login')
 
 
 class DashboardView(LoginRequiredMixin, TemplateView):
