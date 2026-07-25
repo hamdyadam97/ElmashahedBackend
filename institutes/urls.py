@@ -16,4 +16,5 @@ urlpatterns = [
     path('upload_data/', views.upload_data, name='upload_data'),
     path('export_excel/', views.export_excel, name='export_excel'),
     path('export_pdf/', views.export_institutes_pdf, name='export_pdf'),
+    path('generate-templates/', views.GenerateTemplatesView.as_view(), name='generate_templates'),
 ]

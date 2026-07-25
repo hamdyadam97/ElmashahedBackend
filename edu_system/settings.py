@@ -245,6 +245,13 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5 MB
 
 # Pagination Settings
 PAGINATE_BY = 20
-
+import warnings
+import logging
 # Default Auto Field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+logging.getLogger('weasyprint').setLevel(logging.ERROR)
+logging.getLogger('fontTools').setLevel(logging.ERROR)
+
+# أو في نهاية الملف
+warnings.filterwarnings('ignore', category=UserWarning, module='weasyprint')
+warnings.filterwarnings('ignore', message='.*Unexpectedly.*')

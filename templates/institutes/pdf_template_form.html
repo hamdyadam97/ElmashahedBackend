@@ -1,0 +1,173 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}تعديل قالب PDF - {{ institute.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-1"><i class="fas fa-file-pdf text-danger me-2"></i>تعديل قالب الإذن</h4>
+            <p class="text-muted mb-0">{{ institute.name }}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'institutes:pdf_template' institute.pk %}" class="btn btn-outline-info">
+                <i class="fas fa-eye me-1"></i>معاينة
+            </a>
+            <a href="{% url 'institutes:institute_detail' institute.pk %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-right me-1"></i>رجوع للمعهد
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="content-card">
+                <div class="content-card-header">
+                    <h5 class="content-card-title">محتوى القالب</h5>
+                </div>
+                <div class="content-card-body">
+                    <!-- Preset Buttons -->
+                    <div class="alert alert-warning mb-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>تنبيه:</strong> كل معهد ليه <u>قالب واحد فقط</u>. الزراير دي بس "اختصارات" بتملى الحقول بشكل جاهز. 
+                        اختار <strong>زرار واحد</strong> بس (مثلاً TVTC)، بعدين عدل الألوان والشعار حسب معهدك، واضغط <strong>حفظ</strong>.
+                    </div>
+                    <div id="preset-buttons"></div>
+
+                    <form method="post" id="template-form">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-heading text-primary me-1"></i>Header (الهيدر / رأس الصفحة)
+                            </label>
+                            <textarea name="header_content" id="id_header_content" rows="8" class="form-control font-monospace" dir="ltr">{{ template.header_content|default:'' }}</textarea>
+                            <small class="text-muted">HTML لرأس الإذن (شعار المعهد، الاسم، العنوان)</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-align-right text-success me-1"></i>Body (المحتوى / بيانات الطالب والبرنامج)
+                            </label>
+                            <textarea name="body_content" id="id_body_content" rows="12" class="form-control font-monospace" dir="ltr">{{ template.body_content|default:'' }}</textarea>
+                            <small class="text-muted">HTML لمحتوى الإذن (بيانات الطالب، بيانات البرنامج)</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-shoe-prints text-warning me-1"></i>Footer (الفوتر / توقيع + ختم)
+                            </label>
+                            <textarea name="footer_content" id="id_footer_content" rows="8" class="form-control font-monospace" dir="ltr">{{ template.footer_content|default:'' }}</textarea>
+                            <small class="text-muted">HTML لفوتر الإذن (التوقيع، الختم، معلومات الاتصال)</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-paint-brush text-info me-1"></i>CSS مخصص
+                            </label>
+                            <textarea name="custom_css" id="id_custom_css" rows="6" class="form-control font-monospace" dir="ltr">{{ template.custom_css|default:'' }}</textarea>
+                            <small class="text-muted">أنماط CSS إضافية للتنسيق</small>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label">حجم الورقة</label>
+                                <select name="page_size" id="id_page_size" class="form-select">
+                                    <option value="A4" {% if template.page_size == 'A4' %}selected{% endif %}>A4</option>
+                                    <option value="A5" {% if template.page_size == 'A5' %}selected{% endif %}>A5</option>
+                                    <option value="letter" {% if template.page_size == 'letter' %}selected{% endif %}>Letter</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">الاتجاه</label>
+                                <select name="orientation" id="id_orientation" class="form-select">
+                                    <option value="portrait" {% if template.orientation == 'portrait' %}selected{% endif %}>عمودي (Portrait)</option>
+                                    <option value="landscape" {% if template.orientation == 'landscape' %}selected{% endif %}>أفقي (Landscape)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>حفظ القالب
+                            </button>
+                            <button type="button" class="btn btn-outline-danger" onclick="clearAll()">
+                                <i class="fas fa-trash me-1"></i>مسح الكل
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Variables Reference -->
+            <div class="content-card mb-4">
+                <div class="content-card-header">
+                    <h5 class="content-card-title"><i class="fas fa-code me-2"></i>المتغيرات المتاحة</h5>
+                </div>
+                <div class="content-card-body" style="font-size: 0.9rem;">
+                    <p class="text-muted mb-2">انسخ والصق في HTML:</p>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-borderless">
+                            {% verbatim %}
+                            <tr><td><code>{{ permission.permission_number }}</code></td><td>رقم الإذن</td></tr>
+                            <tr><td><code>{{ client.full_name }}</code></td><td>اسم الطالب</td></tr>
+                            <tr><td><code>{{ client.national_id }}</code></td><td>رقم الهوية</td></tr>
+                            <tr><td><code>{{ client.phone }}</code></td><td>التليفون</td></tr>
+                            <tr><td><code>{{ client.address }}</code></td><td>العنوان</td></tr>
+                            <tr><td><code>{{ client.birth_date }}</code></td><td>تاريخ الميلاد</td></tr>
+                            <tr><td><code>{{ program.name }}</code></td><td>اسم البرنامج</td></tr>
+                            <tr><td><code>{{ program.start_date }}</code></td><td>تاريخ البداية</td></tr>
+                            <tr><td><code>{{ program.end_date }}</code></td><td>تاريخ الانتهاء</td></tr>
+                            <tr><td><code>{{ program.duration_months }}</code></td><td>المدة (شهور)</td></tr>
+                            <tr><td><code>{{ institute.name }}</code></td><td>اسم المعهد</td></tr>
+                            <tr><td><code>{{ institute.license_number }}</code></td><td>رقم الترخيص</td></tr>
+                            <tr><td><code>{{ institute.phone }}</code></td><td>هاتف المعهد</td></tr>
+                            <tr><td><code>{{ institute.address }}</code></td><td>عنوان المعهد</td></tr>
+                            <tr><td><code>{{ institute.city }}</code></td><td>المدينة</td></tr>
+                            <tr><td><code>{{ issued_by.get_full_name }}</code></td><td>اسم الموظف</td></tr>
+                            <tr><td><code>{{ today }}</code></td><td>تاريخ اليوم</td></tr>
+                            <tr><td><code>{% if institute.logo %}...{% endif %}</code></td><td>شعار المعهد</td></tr>
+                            <tr><td><code>{% if institute.stamp_image %}...{% endif %}</code></td><td>ختم المعهد</td></tr>
+                            <tr><td><code>{% if institute.signature_image %}...{% endif %}</code></td><td>التوقيع</td></tr>
+                            {% endverbatim %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tips -->
+            <div class="content-card">
+                <div class="content-card-header">
+                    <h5 class="content-card-title"><i class="fas fa-lightbulb me-2 text-warning"></i>نصائح</h5>
+                </div>
+                <div class="content-card-body" style="font-size: 0.9rem;">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>استخدم inline styles عشان PDF يشتغل صح</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>الصور: <code>file://&#123;&#123; institute.logo.path &#125;&#125;</code></li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>اتجاه RTL: اكتب <code>direction: rtl;</code> في CSS</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>الخلفيات: <code>data:image/png;base64,&#123;&#123; bg_b64 &#125;&#125;</code></li>
+                        <li><i class="fas fa-check text-success me-2"></i>اختبر القالب بإصدار إذن تجريبي</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/template_presets.js' %}"></script>
+<script>
+function clearAll() {
+    if (confirm('هل أنت متأكد من مسح كل المحتوى؟')) {
+        document.getElementById('id_header_content').value = '';
+        document.getElementById('id_body_content').value = '';
+        document.getElementById('id_footer_content').value = '';
+        document.getElementById('id_custom_css').value = '';
+    }
+}
+</script>
+{% endblock %}

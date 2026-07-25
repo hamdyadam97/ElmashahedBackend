@@ -468,6 +468,12 @@
             
             {% if user.is_admin %}
             <div class="sidebar-item">
+                <a href="{% url 'institutes:generate_templates' %}" class="sidebar-link {% if '/generate-templates/' in request.path %}active{% endif %}">
+                    <i class="fas fa-magic"></i>
+                    <span>توليد قوالب PDF</span>
+                </a>
+            </div>
+            <div class="sidebar-item">
                 <a href="{% url 'accounts:user_list' %}" class="sidebar-link {% if '/users/' in request.path %}active{% endif %}">
                     <i class="fas fa-user-cog"></i>
                     <span>المستخدمين</span>

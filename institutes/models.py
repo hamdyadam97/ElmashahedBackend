@@ -26,8 +26,9 @@ class Institute(BaseModel):
     # الشعار والتصميم
     logo = models.ImageField(upload_to='institutes/logos/', blank=True, verbose_name=_('Logo'))
     header_image = models.ImageField(upload_to='institutes/headers/', blank=True, verbose_name=_('Header Image'))
+    background_img = models.ImageField(upload_to='institutes/background/', blank=True, verbose_name=_('background Image'))
     footer_text = models.TextField(blank=True, verbose_name=_('Footer Text'))
-    
+
     # إعدادات PDF
     pdf_template = models.TextField(
         blank=True,

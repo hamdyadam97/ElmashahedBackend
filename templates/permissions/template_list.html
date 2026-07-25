@@ -1,0 +1,76 @@
+{% extends 'base/base.html' %}
+
+{% block title %}قوالب PDF - نظام إدارة المعاهد{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0"><i class="fas fa-file-pdf text-danger me-2"></i>قوالب PDF للأذونات</h4>
+        <a href="{% url 'permissions:template_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>قالب جديد
+        </a>
+    </div>
+
+    <div class="content-card">
+        <div class="content-card-body p-0">
+            <div class="table-container">
+                <table class="table custom-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>المعهد</th>
+                            <th>حجم الورقة</th>
+                            <th>الاتجاه</th>
+                            <th>تاريخ الإنشاء</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for template in templates %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if template.institute.logo %}
+                                    <img src="{{ template.institute.logo.url }}" style="width: 40px; height: 40px; object-fit: contain; margin-left: 10px;" class="rounded">
+                                    {% endif %}
+                                    <div>
+                                        <div class="fw-semibold">{{ template.institute.name }}</div>
+                                        <small class="text-muted">{{ template.institute.code }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ template.page_size }}</td>
+                            <td>
+                                {% if template.orientation == 'portrait' %}
+                                <span class="badge bg-info">عمودي</span>
+                                {% else %}
+                                <span class="badge bg-secondary">أفقي</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ template.created_at|date:"Y-m-d" }}</td>
+                            <td>
+                                <a href="{% url 'institutes:pdf_template' template.institute.pk %}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'institutes:pdf_template_edit' template.institute.pk %}" class="btn btn-sm btn-warning">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5 text-muted">
+                                <i class="fas fa-file-pdf fa-3x mb-3 text-muted"></i>
+                                <p>لا توجد قوالب مسجلة</p>
+                                <a href="{% url 'permissions:template_create' %}" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-plus me-1"></i>إنشاء قالب
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

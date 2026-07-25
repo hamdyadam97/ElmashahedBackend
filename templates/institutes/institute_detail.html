@@ -117,9 +117,22 @@
                     <hr>
                     
                     <div class="d-grid gap-2">
+                        {% if institute.permission_template %}
                         <a href="{% url 'institutes:pdf_template' institute.pk %}" class="btn btn-outline-primary">
-                            <i class="fas fa-file-pdf me-2"></i>قالب PDF
+                            <i class="fas fa-eye me-2"></i>معاينة القالب
                         </a>
+                        <a href="{% url 'institutes:pdf_template_edit' institute.pk %}" class="btn btn-outline-warning">
+                            <i class="fas fa-edit me-2"></i>تعديل القالب
+                        </a>
+                        {% else %}
+                        <div class="alert alert-warning py-2 mb-2">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            <small>لا يوجد قالب PDF لهذا المعهد</small>
+                        </div>
+                        <a href="{% url 'institutes:pdf_template_edit' institute.pk %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>إنشاء قالب جديد
+                        </a>
+                        {% endif %}
                     </div>
                 </div>
             </div>

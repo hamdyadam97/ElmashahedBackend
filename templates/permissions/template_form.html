@@ -1,0 +1,126 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{% if object %}تعديل{% else %}إنشاء{% endif %} قالب PDF{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0"><i class="fas fa-file-pdf text-danger me-2"></i>{% if object %}تعديل{% else %}إنشاء{% endif %} قالب PDF</h4>
+        <a href="{% url 'permissions:template_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-right me-1"></i>رجوع
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="content-card">
+                <div class="content-card-header">
+                    <h5 class="content-card-title">بيانات القالب</h5>
+                </div>
+                <div class="content-card-body">
+                    <!-- Preset Buttons -->
+                    <div id="preset-buttons"></div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        {% if not object %}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">المعهد</label>
+                            {{ form.institute }}
+                        </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-heading text-primary me-1"></i>Header (الهيدر)
+                            </label>
+                            <textarea name="header_content" id="id_header_content" rows="8" class="form-control font-monospace" dir="ltr">{{ form.header_content.value|default:'' }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-align-right text-success me-1"></i>Body (المحتوى)
+                            </label>
+                            <textarea name="body_content" id="id_body_content" rows="12" class="form-control font-monospace" dir="ltr">{{ form.body_content.value|default:'' }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-shoe-prints text-warning me-1"></i>Footer (الفوتر)
+                            </label>
+                            <textarea name="footer_content" id="id_footer_content" rows="8" class="form-control font-monospace" dir="ltr">{{ form.footer_content.value|default:'' }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-paint-brush text-info me-1"></i>CSS مخصص
+                            </label>
+                            <textarea name="custom_css" id="id_custom_css" rows="6" class="form-control font-monospace" dir="ltr">{{ form.custom_css.value|default:'' }}</textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label">حجم الورقة</label>
+                                <select name="page_size" id="id_page_size" class="form-select">
+                                    <option value="A4" {% if object and object.page_size == 'A4' or not object and form.page_size.value == 'A4' %}selected{% endif %}>A4</option>
+                                    <option value="A5" {% if object and object.page_size == 'A5' or not object and form.page_size.value == 'A5' %}selected{% endif %}>A5</option>
+                                    <option value="letter" {% if object and object.page_size == 'letter' or not object and form.page_size.value == 'letter' %}selected{% endif %}>Letter</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">الاتجاه</label>
+                                <select name="orientation" id="id_orientation" class="form-select">
+                                    <option value="portrait" {% if object and object.orientation == 'portrait' or not object and form.orientation.value == 'portrait' %}selected{% endif %}>عمودي</option>
+                                    <option value="landscape" {% if object and object.orientation == 'landscape' or not object and form.orientation.value == 'landscape' %}selected{% endif %}>أفقي</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>حفظ
+                            </button>
+                            <a href="{% url 'permissions:template_list' %}" class="btn btn-outline-secondary">إلغاء</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="content-card">
+                <div class="content-card-header">
+                    <h5 class="content-card-title"><i class="fas fa-code me-2"></i>المتغيرات المتاحة</h5>
+                </div>
+                <div class="content-card-body" style="font-size: 0.9rem;">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-borderless">
+                            {% verbatim %}
+                            <tr><td><code>{{ permission.permission_number }}</code></td><td>رقم الإذن</td></tr>
+                            <tr><td><code>{{ client.full_name }}</code></td><td>اسم الطالب</td></tr>
+                            <tr><td><code>{{ client.national_id }}</code></td><td>رقم الهوية</td></tr>
+                            <tr><td><code>{{ client.phone }}</code></td><td>التليفون</td></tr>
+                            <tr><td><code>{{ program.name }}</code></td><td>اسم البرنامج</td></tr>
+                            <tr><td><code>{{ program.start_date }}</code></td><td>تاريخ البداية</td></tr>
+                            <tr><td><code>{{ program.end_date }}</code></td><td>تاريخ الانتهاء</td></tr>
+                            <tr><td><code>{{ program.duration_months }}</code></td><td>المدة</td></tr>
+                            <tr><td><code>{{ institute.name }}</code></td><td>اسم المعهد</td></tr>
+                            <tr><td><code>{{ institute.license_number }}</code></td><td>رقم الترخيص</td></tr>
+                            <tr><td><code>{{ institute.phone }}</code></td><td>هاتف المعهد</td></tr>
+                            <tr><td><code>{{ issued_by.get_full_name }}</code></td><td>الموظف</td></tr>
+                            <tr><td><code>{{ today }}</code></td><td>تاريخ اليوم</td></tr>
+                            {% endverbatim %}
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% load static %}
+{% block extra_js %}
+<script src="{% static 'js/template_presets.js' %}"></script>
+{% endblock %}

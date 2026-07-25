@@ -44,9 +44,53 @@
 - تقارير المديرين الإقليميين
 - تقارير شاملة للأدمن
 
-## التثبيت
+## النشر باستخدام Docker (موصى به)
 
-1.克隆 المستودع
+### متطلبات سريعة
+- Docker
+- Docker Compose
+
+### خطوات النشر
+
+1. استنساخ المستودع:
+```bash
+git clone <repository-url>
+cd django_edu_system
+```
+
+2. إعداد ملف البيئة:
+```bash
+cp .env.example .env  # أو أنشئ ملف .env يدوياً
+nano .env             # عدل الإعدادات
+```
+
+3. تشغيل السكريبت التلقائي:
+```bash
+bash deploy.sh
+```
+
+أو يدوياً:
+```bash
+docker compose build
+docker compose up -d
+```
+
+4. إنشاء superuser:
+```bash
+docker compose exec web python manage.py createsuperuser
+```
+
+### الولوج للموقع
+- الموقع: `https://localhost` (أو دومينك)
+- لوحة التحكم: `https://localhost/admin`
+
+للمزيد من التفاصيل، راجع [DEPLOY.md](DEPLOY.md)
+
+---
+
+## التثبيت المحلي (بدون Docker)
+
+1. استنساخ المستودع
 ```bash
 git clone <repository-url>
 cd django_edu_system

@@ -1,0 +1,92 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}معاينة قالب PDF - {{ institute.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-1"><i class="fas fa-file-pdf text-danger me-2"></i>معاينة قالب الإذن</h4>
+            <p class="text-muted mb-0">{{ institute.name }}</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'institutes:pdf_template_edit' institute.pk %}" class="btn btn-primary">
+                <i class="fas fa-pen me-1"></i>تعديل القالب
+            </a>
+            <a href="{% url 'institutes:institute_detail' institute.pk %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-right me-1"></i>رجوع للمعهد
+            </a>
+        </div>
+    </div>
+
+    {% if not template %}
+    <div class="alert alert-warning text-center py-5">
+        <i class="fas fa-exclamation-triangle fa-3x mb-3 text-warning"></i>
+        <h5>لا يوجد قالب محفوظ لهذا المعهد</h5>
+        <p class="text-muted">اضغط "تعديل القالب" لإنشاء قالب جديد.</p>
+        <a href="{% url 'institutes:pdf_template_edit' institute.pk %}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>إنشاء قالب
+        </a>
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-12">
+            <div class="content-card">
+                <div class="content-card-header d-flex justify-content-between align-items-center">
+                    <h5 class="content-card-title mb-0">
+                        <i class="fas fa-eye me-2"></i>معاينة القالب
+                    </h5>
+                    <span class="badge bg-secondary">{{ template.page_size|default:'A4' }} | {{ template.orientation|default:'عمودي' }}</span>
+                </div>
+                <div class="content-card-body p-0">
+                    <!-- Preview Frame -->
+                    <div style="background: #f5f5f5; padding: 20px; overflow: auto;">
+                        <div id="template-preview" style="background: white; margin: 0 auto; box-shadow: 0 0 10px rgba(0,0,0,0.1); min-height: 600px;">
+                            {% if template.header_content %}
+                            <div class="preview-header">
+                                {{ template.header_content|safe }}
+                            </div>
+                            {% endif %}
+                            {% if template.body_content %}
+                            <div class="preview-body">
+                                {{ template.body_content|safe }}
+                            </div>
+                            {% endif %}
+                            {% if template.footer_content %}
+                            <div class="preview-footer">
+                                {{ template.footer_content|safe }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Custom CSS -->
+                    {% if template.custom_css %}
+                    <style>
+                        {{ template.custom_css|safe }}
+                    </style>
+                    {% endif %}
+
+                    <!-- Default Preview Styling -->
+                    <style>
+                        #template-preview {
+                            width: 210mm;
+                            max-width: 100%;
+                            padding: 20mm;
+                            direction: rtl;
+                        }
+                        .preview-header { margin-bottom: 20px; }
+                        .preview-body { margin-bottom: 20px; }
+                        .preview-footer { margin-top: 20px; border-top: 1px solid #ddd; padding-top: 15px; }
+                        @media (max-width: 768px) {
+                            #template-preview { padding: 10mm; }
+                        }
+                    </style>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,9 +1,9 @@
 from django.http import HttpResponse
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.db.models import Q
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.contrib import messages
 import pandas as pd
 import logging
@@ -13,6 +13,7 @@ from core.mixins import (
     SearchMixin, FilterMixin, SoftDeleteMixin
 )
 from core.utils import get_pdf_response
+from core.pdf_presets import PDF_PRESETS
 from permissions.models import PermissionTemplate
 from .models import Institute
 
@@ -134,7 +135,7 @@ class InstituteDeleteView(AdminRequiredMixin, SoftDeleteMixin, DeleteView):
 class PDFTemplateView(LoginRequiredMixin, DetailView):
     """عرض قالب PDF"""
     model = Institute
-    template_name = 'institutes/institutes_pdf_template.html'
+    template_name = 'institutes/pdf_template_preview.html'
     context_object_name = 'institute'
     
     def get_context_data(self, **kwargs):
@@ -261,3 +262,68 @@ def export_institutes_pdf(request):
         {'institutes': institutes, 'title': 'تقرير المعاهد المسجلة'},
         'institutes_report'
     )
+
+
+# ==================== Generate Templates for All Institutes ====================
+
+class GenerateTemplatesView(AdminRequiredMixin, View):
+    """
+    صفحة توليد قوالب PDF لكل المعاهد دفعة واحدة
+    """
+    template_name = 'institutes/generate_templates.html'
+    
+    def get(self, request):
+        institutes = Institute.objects.all().order_by('name')
+        return render(request, self.template_name, {
+            'institutes': institutes,
+            'presets': PDF_PRESETS,
+        })
+    
+    def post(self, request):
+        created_count = 0
+        updated_count = 0
+        
+        for key, preset_key in request.POST.items():
+            if not key.startswith('preset_'):
+                continue
+            
+            institute_id = key.replace('preset_', '')
+            preset = PDF_PRESETS.get(preset_key)
+            
+            if not preset:
+                continue
+            
+            try:
+                institute = Institute.objects.get(id=institute_id)
+                template, created = PermissionTemplate.objects.update_or_create(
+                    institute=institute,
+                    defaults={
+                        'header_content': preset['header_content'],
+                        'body_content': preset['body_content'],
+                        'footer_content': preset['footer_content'],
+                        'custom_css': preset['custom_css'],
+                        'page_size': preset['page_size'],
+                        'orientation': preset['orientation'],
+                    }
+                )
+                if created:
+                    created_count += 1
+                else:
+                    updated_count += 1
+                    
+                logger.info(f'Template {"created" if created else "updated"} for {institute.name} using preset {preset_key}')
+            except Institute.DoesNotExist:
+                continue
+            except Exception as e:
+                logger.error(f'Error creating template for institute {institute_id}: {str(e)}')
+                messages.error(request, f'خطأ في المعهد {institute_id}: {str(e)}')
+        
+        if created_count or updated_count:
+            messages.success(
+                request, 
+                f'تم إنشاء {created_count} قالب جديد وتحديث {updated_count} قالب موجود.'
+            )
+        else:
+            messages.warning(request, 'لم يتم اختيار أي قوالب. اختر قالب واحد على الأقل.')
+        
+        return redirect('institutes:generate_templates')

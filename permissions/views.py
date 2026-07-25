@@ -200,6 +200,19 @@ def generate_permission_pdf(permission):
     
     try:
         template_obj = institute.permission_template
+
+        background_css = ""
+        if institute.background_img and os.path.exists(institute.background_img.path):
+            institute_bg_b64 = get_b64(institute.background_img.path)
+            background_css = f"""
+                    .page-container {{
+                        background-image: url('data:image/png;base64,{institute_bg_b64}');
+                        background-size: cover;
+                        background-repeat: no-repeat;
+                        background-position: center;
+                    }}
+            """
+
         custom_html = f"""
         <html>
             <head>
@@ -208,6 +221,7 @@ def generate_permission_pdf(permission):
                     @page {{ size: {template_obj.page_size} {template_obj.orientation}; margin: 1cm; }}
                     body {{ font-family: 'Arial', sans-serif; direction: rtl; }}
                     {template_obj.custom_css}
+                    {background_css}
                 </style>
             </head>
             <body>

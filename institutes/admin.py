@@ -24,7 +24,7 @@ class InstituteAdmin(admin.ModelAdmin):
             'fields': ('logo', 'header_image', 'footer_text')
         }),
         (_('PDF Settings'), {
-            'fields': ('pdf_template', 'signature_image', 'stamp_image'),
+            'fields': ('pdf_template', 'signature_image', 'stamp_image','background_img'),
             'classes': ('collapse',)
         }),
         (_('Dates'), {
