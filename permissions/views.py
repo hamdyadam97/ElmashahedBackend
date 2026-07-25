@@ -205,23 +205,20 @@ def generate_permission_pdf(permission):
         background_html = ""
         if institute.background_img and os.path.exists(institute.background_img.path):
             institute_bg_b64 = get_b64(institute.background_img.path)
-            background_css = """
-                    .page-container { position: relative; }
-                    .bg-watermark {
+            background_css = f"""
+                    .page-container {{ position: relative; }}
+                    .bg-watermark {{
                         position: fixed;
                         top: 0; left: 0; right: 0; bottom: 0;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        z-index: -1;
-                    }
-                    .bg-watermark img {
-                        width: 55%;
-                        max-width: 400px;
+                        background-image: url('data:image/png;base64,{institute_bg_b64}');
+                        background-size: cover;
+                        background-position: center;
+                        background-repeat: no-repeat;
                         opacity: 0.15;
-                    }
+                        z-index: -1;
+                    }}
             """
-            background_html = f'<div class="bg-watermark"><img src="data:image/png;base64,{institute_bg_b64}"></div>'
+            background_html = '<div class="bg-watermark"></div>'
 
         custom_html = f"""
         <html>
