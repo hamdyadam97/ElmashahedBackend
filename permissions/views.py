@@ -249,7 +249,6 @@ def generate_permission_pdf(permission):
     django_template = Template(custom_html)
     
     # تحميل الصور
-    vision_path = os.path.join(settings.BASE_DIR, 'static', 'images', 'vision2030.png')
     tvtc_path = os.path.join(settings.BASE_DIR, 'static', 'images', 'TVTC.jpg')
     bg_path = os.path.join(settings.BASE_DIR, 'static', 'images', 'ahley_bg.jpg')
     bg_path1 = os.path.join(settings.BASE_DIR, 'static', 'images', 'Afaq.jpg')
@@ -261,7 +260,6 @@ def generate_permission_pdf(permission):
         'program': permission.get_program(),
         'issued_by': permission.issued_by,
         'today': timezone.now().date(),
-        'vision_logo': get_b64(vision_path),
         'tvtc_logo': get_b64(tvtc_path),
         'bg_b64': get_b64(bg_path),
     })
