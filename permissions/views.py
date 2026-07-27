@@ -260,8 +260,7 @@ def generate_permission_pdf(permission):
         'program': permission.get_program(),
         'issued_by': permission.issued_by,
         'today': timezone.now().date(),
-        'tvtc_logo': get_b64(tvtc_path),
-        'bg_b64': get_b64(bg_path),
+        
     })
     
     try:
