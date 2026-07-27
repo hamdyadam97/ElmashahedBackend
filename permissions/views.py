@@ -206,7 +206,6 @@ def generate_permission_pdf(permission):
         if institute.background_img and os.path.exists(institute.background_img.path):
             institute_bg_b64 = get_b64(institute.background_img.path)
             background_css = f"""
-                    .page-container {{ position: relative; }}
                     .bg-watermark {{
                         position: fixed;
                         top: 0; left: 0; right: 0; bottom: 0;
@@ -226,18 +225,19 @@ def generate_permission_pdf(permission):
             <head>
                 <meta charset="UTF-8">
                 <style>
-                    @page {{ size: {template_obj.page_size} {template_obj.orientation}; margin: 1cm; }}
-                    body {{ font-family: 'Arial', sans-serif; direction: rtl; }}
+                    @page {{ size: {template_obj.page_size} {template_obj.orientation}; margin: 0; }}
+                    body {{ font-family: 'Arial', sans-serif; direction: rtl; margin: 0; }}
+                    .page-container {{ padding: 1.5cm; box-sizing: border-box; }}
                     {template_obj.custom_css}
                     {background_css}
                 </style>
             </head>
             <body>
-            <div class="page-container">
                 {background_html}
-                <header>{template_obj.header_content}</header>
-                <main>{template_obj.body_content}</main>
-                <footer>{template_obj.footer_content}</footer>
+                <div class="page-container">
+                    <header>{template_obj.header_content}</header>
+                    <main>{template_obj.body_content}</main>
+                    <footer>{template_obj.footer_content}</footer>
                 </div>
             </body>
         </html>
