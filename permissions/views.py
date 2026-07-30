@@ -180,7 +180,10 @@ def generate_default_pdf(permission):
     html_content = render_to_string('permissions/default_permission.html', context)
     
     buffer = BytesIO()
-    HTML(string=html_content, base_url=settings.MEDIA_ROOT).write_pdf(buffer)
+    HTML(
+        string=html_content,
+        base_url=settings.BASE_DIR
+    ).write_pdf(buffer)
     buffer.seek(0)
     return buffer
 
@@ -267,7 +270,10 @@ def generate_permission_pdf(permission):
         final_html = django_template.render(context)
 
         buffer = BytesIO()
-        HTML(string=final_html, base_url=settings.MEDIA_ROOT).write_pdf(buffer)
+        HTML(
+            string=final_html,
+            base_url=settings.BASE_DIR
+        ).write_pdf(buffer)
     except Exception as e:
         logger.error(f"Custom PDF template failed for institute {institute.code}: {e}")
         return generate_default_pdf(permission)
