@@ -249,9 +249,13 @@
                         <label class="form-label">البريد الإلكتروني (اختياري)</label>
                         <input type="email" id="regEmail" class="form-control form-control-sm">
                     </div>
-                    <div class="col-12">
-                        <label class="form-label">العنوان</label>
-                        <input type="text" id="regAddress" class="form-control form-control-sm">
+                    <div class="col-6">
+                        <label class="form-label">المدينة</label>
+                        <input type="text" id="regCity" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">القطاع</label>
+                        <input type="text" id="regSector" class="form-control form-control-sm">
                     </div>
                 </div>
 
@@ -399,7 +403,8 @@
                 birth_date: document.getElementById('regBirthDate').value,
                 phone: document.getElementById('regPhone').value.trim(),
                 email: document.getElementById('regEmail').value.trim(),
-                address: document.getElementById('regAddress').value.trim(),
+                city: document.getElementById('regCity').value.trim(),
+                sector: document.getElementById('regSector').value.trim(),
             });
 
             registerSubmitBtn.disabled = true;

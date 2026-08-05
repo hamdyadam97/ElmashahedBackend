@@ -93,7 +93,7 @@ def api_search_client(request):
     })
 
 
-REQUIRED_REGISTER_FIELDS = ['first_name', 'last_name', 'gender', 'birth_date', 'phone', 'address']
+REQUIRED_REGISTER_FIELDS = ['first_name', 'last_name', 'gender', 'birth_date', 'phone']
 
 
 @require_POST
@@ -137,7 +137,8 @@ def api_register_client(request):
             birth_date=request.POST.get('birth_date'),
             phone=request.POST.get('phone').strip(),
             email=(request.POST.get('email') or '').strip(),
-            address=request.POST.get('address').strip(),
+            city=(request.POST.get('city') or '').strip(),
+            sector=(request.POST.get('sector') or '').strip(),
             registered_by=employee,
         )
     except IntegrityError:
