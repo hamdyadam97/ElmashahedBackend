@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'programs',
     'clients',
     'permissions',
+    'portal',
 ]
 
 MIDDLEWARE = [

@@ -12,8 +12,8 @@ class UserPermissionInline(admin.TabularInline):
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
     list_display = [
-        'username', 'get_full_name', 'email', 'role', 
-        'get_institute', 'is_active', 'created_at'
+        'username', 'get_full_name', 'email', 'role',
+        'get_institute', 'referral_code', 'is_active', 'created_at'
     ]
     list_filter = ['role', 'is_active', 'created_at']
     search_fields = ['username', 'first_name', 'last_name', 'email', 'phone']
@@ -26,6 +26,10 @@ class UserAdmin(BaseUserAdmin):
         }),
         (_('Role & Institute'), {
             'fields': ('role', 'institute', 'managed_institute', 'managed_institutes')
+        }),
+        (_('Referral'), {
+            'fields': ('referral_code',),
+            'description': _('Share this code with the employee as /certificate/<code>/ for public permission issuance.')
         }),
         (_('Permissions'), {
             'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions'),

@@ -1,3 +1,4 @@
+import logging
 
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -5,6 +6,8 @@ from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 # استيراد الموديل الصحيح للأذونات
 from .models import PermissionSlip
+
+logger = logging.getLogger('edu_system')
 
 
 @receiver(post_save, sender=PermissionSlip)
@@ -18,7 +21,7 @@ def send_auto_email(sender, instance, created, **kwargs):
             to = instance.client.email
 
             if not to:
-                print("فشل الإرسال: العميل ليس لديه بريد إلكتروني مسجل.")
+                logger.info('Skipped permission email: client has no email on file.')
                 return
 
             site_url = "http://127.0.0.1:8000"
@@ -32,6 +35,6 @@ def send_auto_email(sender, instance, created, **kwargs):
             msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
             msg.attach_alternative(html_content, "text/html")
             msg.send()
-            print(f"✅ تم إرسال الإيميل بنجاح إلى {to}")
+            logger.info(f'Permission email sent successfully to {to}')
         except Exception as e:
-            print(f"❌ حدث خطأ أثناء إرسال الإيميل: {str(e)}")
+            logger.error(f'Error sending permission email: {str(e)}')

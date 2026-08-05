@@ -43,6 +43,7 @@ urlpatterns = [
     path('clients/', include('clients.urls')),
     path('permissions/', include('permissions.urls')),
     path('core/', include('core.urls')),
+    path('certificate/', include('portal.urls', namespace='portal')),
 ]
 
 if settings.DEBUG:

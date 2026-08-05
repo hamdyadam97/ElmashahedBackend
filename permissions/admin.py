@@ -6,10 +6,11 @@ from .models import PermissionSlip, PermissionTemplate
 @admin.register(PermissionSlip)
 class PermissionSlipAdmin(admin.ModelAdmin):
     list_display = [
-        'permission_number', 'client', 'get_program', 
-        'program_type', 'issued_by', 'issue_date', 'status'
+        'permission_number', 'client', 'get_program',
+        'program_type', 'issued_by', 'issue_date', 'status',
+        'issued_from_public', 'referral_employee'
     ]
-    list_filter = ['status', 'program_type', 'issue_date', 'institute']
+    list_filter = ['status', 'program_type', 'issue_date', 'institute', 'issued_from_public']
     search_fields = [
         'permission_number', 'client__full_name', 
         'client__national_id', 'diploma__name', 'course__name'
@@ -28,6 +29,10 @@ class PermissionSlipAdmin(admin.ModelAdmin):
         }),
         (_('Institute & Issuer'), {
             'fields': ('institute', 'issued_by')
+        }),
+        (_('Public Portal / Referral'), {
+            'fields': ('issued_from_public', 'referral_employee', 'referral_code'),
+            'classes': ('collapse',)
         }),
         (_('Dates'), {
             'fields': ('issue_date', 'expiry_date')

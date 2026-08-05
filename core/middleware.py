@@ -26,6 +26,7 @@ class AuthenticationMiddleware:
         '/admin/login/',
         '/static/',
         '/media/',
+        '/certificate/',
     ]
     
     def __init__(self, get_response):

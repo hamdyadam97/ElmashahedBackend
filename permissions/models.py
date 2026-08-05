@@ -93,7 +93,26 @@ class PermissionSlip(BaseModel):
     
     # الملاحظات
     notes = models.TextField(blank=True, verbose_name=_('Notes'))
-    
+
+    # إصدار عام (بدون تسجيل دخول) وتتبع الإحالة
+    issued_from_public = models.BooleanField(
+        default=False,
+        verbose_name=_('Issued From Public Portal')
+    )
+    referral_employee = models.ForeignKey(
+        'accounts.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='referred_permissions',
+        verbose_name=_('Referral Employee')
+    )
+    referral_code = models.CharField(
+        max_length=20,
+        blank=True,
+        verbose_name=_('Referral Code')
+    )
+
     # التواريخ
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Created At'))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_('Updated At'))

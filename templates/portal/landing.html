@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إصدار مشهد لا مانع من الالتحاق بالدراسة</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * { font-family: 'Cairo', sans-serif; }
+        body { background-color: #f8fafc; min-height: 100vh; }
+        .portal-card {
+            max-width: 560px;
+            margin: 40px auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 18px rgba(0,0,0,.08);
+            padding: 32px;
+        }
+        .portal-title { color: #1e3a8a; font-weight: 700; margin-bottom: 4px; }
+        .portal-sub { color: #64748b; margin-bottom: 24px; font-size: 14px; }
+        .client-card {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 8px;
+            padding: 14px 16px;
+            margin-top: 12px;
+            display: none;
+        }
+        .not-found-card {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-top: 12px;
+            display: none;
+        }
+        #issueBtn { display: none; }
+    </style>
+</head>
+<body>
+    <div class="portal-card">
+        <h4 class="portal-title">إصدار مشهد لا مانع من الالتحاق بالدراسة</h4>
+        <p class="portal-sub">اختر الفرع والدبلوم، وأدخل رقم الهوية / الإقامة للبحث عن بياناتك.</p>
+
+        <form id="issueForm" method="post" action="{% url 'portal:issue' %}" target="_blank">
+            {% csrf_token %}
+            <input type="hidden" name="ref_code" value="{{ ref_code }}">
+            <input type="hidden" name="client_id" id="clientIdInput">
+            <input type="hidden" name="diploma_id" id="diplomaIdInput">
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">الفرع</label>
+                <select id="instituteSelect" class="form-select">
+                    <option value="">-- اختر الفرع --</option>
+                    {% for institute in institutes %}
+                    <option value="{{ institute.id }}">{{ institute.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">الدبلوم</label>
+                <select id="diplomaSelect" class="form-select" disabled>
+                    <option value="">-- اختر الفرع أولاً --</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">رقم الهوية / الإقامة</label>
+                <div class="input-group">
+                    <input type="text" id="nationalIdInput" class="form-control" placeholder="أدخل رقم الهوية أو الإقامة" disabled>
+                    <button type="button" id="searchBtn" class="btn btn-primary" disabled>بحث</button>
+                </div>
+            </div>
+
+            <div id="clientCard" class="client-card">
+                <div><strong>الاسم:</strong> <span id="clientName"></span></div>
+                <div><strong>رقم الهوية:</strong> <span id="clientNationalId"></span></div>
+            </div>
+            <div id="notFoundCard" class="not-found-card">
+                لم يتم العثور على بيانات بهذا الرقم في هذا الفرع.
+            </div>
+
+            <button type="submit" id="issueBtn" class="btn btn-success w-100 mt-3">إصدار المشهد</button>
+        </form>
+    </div>
+
+    <script>
+        const instituteSelect = document.getElementById('instituteSelect');
+        const diplomaSelect = document.getElementById('diplomaSelect');
+        const nationalIdInput = document.getElementById('nationalIdInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const clientCard = document.getElementById('clientCard');
+        const notFoundCard = document.getElementById('notFoundCard');
+        const issueBtn = document.getElementById('issueBtn');
+        const clientIdInput = document.getElementById('clientIdInput');
+        const diplomaIdInput = document.getElementById('diplomaIdInput');
+
+        function resetClientState() {
+            clientCard.style.display = 'none';
+            notFoundCard.style.display = 'none';
+            issueBtn.style.display = 'none';
+            clientIdInput.value = '';
+        }
+
+        instituteSelect.addEventListener('change', async () => {
+            resetClientState();
+            diplomaSelect.innerHTML = '<option value="">-- جاري التحميل --</option>';
+            diplomaSelect.disabled = true;
+            nationalIdInput.disabled = true;
+            searchBtn.disabled = true;
+            nationalIdInput.value = '';
+
+            const instituteId = instituteSelect.value;
+            if (!instituteId) {
+                diplomaSelect.innerHTML = '<option value="">-- اختر الفرع أولاً --</option>';
+                return;
+            }
+
+            const res = await fetch(`{% url 'portal:api_diplomas' %}?institute_id=${instituteId}`);
+            const data = await res.json();
+
+            diplomaSelect.innerHTML = '<option value="">-- اختر الدبلوم --</option>';
+            data.results.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d.id;
+                opt.textContent = `${d.name} (${d.duration_months} شهر)`;
+                diplomaSelect.appendChild(opt);
+            });
+            diplomaSelect.disabled = false;
+        });
+
+        diplomaSelect.addEventListener('change', () => {
+            resetClientState();
+            const hasDiploma = !!diplomaSelect.value;
+            nationalIdInput.disabled = !hasDiploma;
+            searchBtn.disabled = !hasDiploma;
+            nationalIdInput.value = '';
+            diplomaIdInput.value = diplomaSelect.value;
+        });
+
+        searchBtn.addEventListener('click', async () => {
+            resetClientState();
+            const nationalId = nationalIdInput.value.trim();
+            const instituteId = instituteSelect.value;
+            if (!nationalId || !instituteId) return;
+
+            const res = await fetch(`{% url 'portal:api_search_client' %}?national_id=${encodeURIComponent(nationalId)}&institute_id=${instituteId}`);
+            const data = await res.json();
+
+            if (data.found) {
+                document.getElementById('clientName').textContent = data.client.full_name;
+                document.getElementById('clientNationalId').textContent = data.client.national_id;
+                clientCard.style.display = 'block';
+                clientIdInput.value = data.client.id;
+                issueBtn.style.display = 'block';
+            } else {
+                notFoundCard.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

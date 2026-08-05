@@ -21,6 +21,14 @@ class User(AbstractUser):
     phone = models.CharField(max_length=20, blank=True, verbose_name=_('Phone'))
     address = models.TextField(blank=True, verbose_name=_('Address'))
     is_active = models.BooleanField(default=True, verbose_name=_('Active'))
+    referral_code = models.CharField(
+        max_length=20,
+        unique=True,
+        blank=True,
+        null=True,
+        verbose_name=_('Referral Code'),
+        help_text=_('Used in public certificate links, e.g. /certificate/EMP001/')
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Created At'))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_('Updated At'))
     
@@ -60,7 +68,14 @@ class User(AbstractUser):
     
     def __str__(self):
         return f"{self.get_full_name() or self.username} - {self.get_role_display()}"
-    
+
+    def save(self, *args, **kwargs):
+        is_new = self._state.adding
+        super().save(*args, **kwargs)
+        if is_new and not self.referral_code:
+            self.referral_code = f"EMP{self.pk:03d}"
+            super().save(update_fields=['referral_code'])
+
     def is_admin(self):
         return self.role == self.Role.ADMIN or self.is_superuser
     
