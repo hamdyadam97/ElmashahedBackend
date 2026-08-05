@@ -35,9 +35,15 @@ class LandingView(View):
         employee = _resolve_referral_employee(ref_code)
         valid_ref_code = ref_code if employee else ''
 
+        # لو الموظف مرتبط بفرع معين، نحدده تلقائياً بدل ما الزائر يختار
+        preselected_institute_id = ''
+        if employee and employee.institute_id and employee.institute.status == Institute.Status.ACTIVE:
+            preselected_institute_id = employee.institute_id
+
         institutes = Institute.objects.filter(status=Institute.Status.ACTIVE).order_by('name')
 
         return render(request, 'portal/landing.html', {
+            'preselected_institute_id': preselected_institute_id,
             'institutes': institutes,
             'ref_code': valid_ref_code,
         })

@@ -4,13 +4,18 @@
 
 {% block content %}
 <div class="dashboard">
-    <h4 class="mb-4">مرحباً، {{ user.get_full_name|default:user.username }}! 👋</h4>
-    
+    <div class="d-flex align-items-center justify-content-between mb-4 fade-in-up">
+        <div>
+            <h4 class="mb-1">مرحباً، {{ user.get_full_name|default:user.username }} 👋</h4>
+            <p class="text-muted mb-0">نظرة سريعة على نشاطك اليوم</p>
+        </div>
+    </div>
+
     {% if user.is_admin %}
     <!-- Admin Dashboard -->
     <div class="row g-4 mb-4">
         <div class="col-md-6 col-lg-3">
-            <div class="stat-card">
+            <div class="stat-card hover-lift fade-in-up fade-in-up-1">
                 <div class="stat-icon primary">
                     <i class="fas fa-building"></i>
                 </div>
@@ -19,7 +24,7 @@
             </div>
         </div>
         <div class="col-md-6 col-lg-3">
-            <div class="stat-card">
+            <div class="stat-card hover-lift fade-in-up fade-in-up-2">
                 <div class="stat-icon success">
                     <i class="fas fa-users"></i>
                 </div>
@@ -28,7 +33,7 @@
             </div>
         </div>
         <div class="col-md-6 col-lg-3">
-            <div class="stat-card">
+            <div class="stat-card hover-lift fade-in-up fade-in-up-3">
                 <div class="stat-icon warning">
                     <i class="fas fa-user-graduate"></i>
                 </div>
@@ -37,7 +42,7 @@
             </div>
         </div>
         <div class="col-md-6 col-lg-3">
-            <div class="stat-card">
+            <div class="stat-card hover-lift fade-in-up fade-in-up-4">
                 <div class="stat-icon info">
                     <i class="fas fa-file-pdf"></i>
                 </div>
@@ -46,60 +51,76 @@
             </div>
         </div>
     </div>
-    
-    <div class="content-card">
-        <div class="content-card-header">
-            <h5 class="content-card-title">آخر الأذونات المستخرجة</h5>
-            <a href="{% url 'permissions:permission_list' %}" class="btn btn-sm btn-primary">
-                <i class="fas fa-eye me-1"></i>عرض الكل
-            </a>
+
+    <div class="row g-4 mb-4">
+        <div class="col-lg-4">
+            <div class="content-card h-100 fade-in-up">
+                <div class="content-card-header">
+                    <h5 class="content-card-title">نظرة عامة</h5>
+                </div>
+                <div class="content-card-body">
+                    <canvas id="overviewChart" height="220"></canvas>
+                </div>
+            </div>
         </div>
-        <div class="content-card-body">
-            <div class="table-container">
-                <table class="table custom-table">
-                    <thead>
-                        <tr>
-                            <th>رقم الإذن</th>
-                            <th>العميل</th>
-                            <th>المعهد</th>
-                            <th>البرنامج</th>
-                            <th>تاريخ الإصدار</th>
-                            <th>الإجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for perm in recent_permissions %}
-                        <tr>
-                            <td><span class="fw-semibold">{{ perm.permission_number }}</span></td>
-                            <td>{{ perm.client.full_name }}</td>
-                            <td>{{ perm.institute.name }}</td>
-                            <td>{{ perm.get_program.name|default:"-" }}</td>
-                            <td>{{ perm.issue_date|date:"Y-m-d" }}</td>
-                            <td>
-                                <a href="{% url 'permissions:permission_detail' perm.pk %}" class="btn btn-sm btn-info">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <a href="{% url 'permissions:permission_pdf' perm.pk %}" class="btn btn-sm btn-danger" target="_blank">
-                                    <i class="fas fa-file-pdf"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="6" class="text-center py-4 text-muted">لا توجد أذونات حتى الآن</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+        <div class="col-lg-8">
+            <div class="content-card fade-in-up">
+                <div class="content-card-header">
+                    <h5 class="content-card-title">آخر الأذونات المستخرجة</h5>
+                    <a href="{% url 'permissions:permission_list' %}" class="btn btn-sm btn-primary">
+                        <i class="fas fa-eye me-1"></i>عرض الكل
+                    </a>
+                </div>
+                <div class="content-card-body p-0">
+                    <div class="table-container">
+                        <table class="table custom-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th>رقم الإذن</th>
+                                    <th>العميل</th>
+                                    <th>المعهد</th>
+                                    <th>البرنامج</th>
+                                    <th>تاريخ الإصدار</th>
+                                    <th>الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for perm in recent_permissions %}
+                                <tr>
+                                    <td><span class="fw-semibold">{{ perm.permission_number }}</span></td>
+                                    <td>{{ perm.client.full_name }}</td>
+                                    <td>{{ perm.institute.name }}</td>
+                                    <td>{{ perm.get_program.name|default:"-" }}</td>
+                                    <td>{{ perm.issue_date|date:"Y-m-d" }}</td>
+                                    <td>
+                                        <a href="{% url 'permissions:permission_detail' perm.pk %}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'permissions:permission_pdf' perm.pk %}" class="btn btn-sm btn-danger" target="_blank">
+                                            <i class="fas fa-file-pdf"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6">
+                                        {% include 'partials/empty_state.html' with icon='fa-file-pdf' title='لا توجد أذونات حتى الآن' %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    
+
     {% elif user.is_regional_manager %}
     <!-- Regional Manager Dashboard -->
     <div class="row g-4 mb-4">
         <div class="col-md-4">
-            <div class="stat-card">
+            <div class="stat-card hover-lift fade-in-up fade-in-up-1">
                 <div class="stat-icon primary">
                     <i class="fas fa-building"></i>
                 </div>
@@ -108,7 +129,7 @@
             </div>
         </div>
         <div class="col-md-4">
-            <div class="stat-card">
+            <div class="stat-card hover-lift fade-in-up fade-in-up-2">
                 <div class="stat-icon warning">
                     <i class="fas fa-user-graduate"></i>
                 </div>
@@ -117,7 +138,7 @@
             </div>
         </div>
         <div class="col-md-4">
-            <div class="stat-card">
+            <div class="stat-card hover-lift fade-in-up fade-in-up-3">
                 <div class="stat-icon info">
                     <i class="fas fa-file-pdf"></i>
                 </div>
@@ -126,38 +147,54 @@
             </div>
         </div>
     </div>
-    
-    <div class="content-card">
-        <div class="content-card-header">
-            <h5 class="content-card-title">المعاهد المشرف عليها</h5>
+
+    <div class="row g-4 mb-4">
+        <div class="col-lg-4">
+            <div class="content-card h-100 fade-in-up">
+                <div class="content-card-header">
+                    <h5 class="content-card-title">نظرة عامة</h5>
+                </div>
+                <div class="content-card-body">
+                    <canvas id="overviewChart" height="220"></canvas>
+                </div>
+            </div>
         </div>
-        <div class="content-card-body">
-            <div class="row g-3">
-                {% for institute in managed_institutes %}
-                <div class="col-md-6 col-lg-4">
-                    <div class="card h-100 border-0 shadow-sm">
-                        <div class="card-body">
-                            <h6 class="card-title">{{ institute.name }}</h6>
-                            <p class="text-muted mb-2"><i class="fas fa-map-marker-alt me-2"></i>{{ institute.city }}</p>
-                            <p class="text-muted mb-0"><i class="fas fa-phone me-2"></i>{{ institute.phone }}</p>
+        <div class="col-lg-8">
+            <div class="content-card fade-in-up">
+                <div class="content-card-header">
+                    <h5 class="content-card-title">المعاهد المشرف عليها</h5>
+                </div>
+                <div class="content-card-body">
+                    <div class="row g-3">
+                        {% for institute in managed_institutes %}
+                        <div class="col-md-6">
+                            <div class="mini-card hover-lift h-100">
+                                <div class="p-3">
+                                    <h6 class="mb-2">{{ institute.name }}</h6>
+                                    <p class="text-muted mb-1 small"><i class="fas fa-map-marker-alt me-2"></i>{{ institute.city }}</p>
+                                    <p class="text-muted mb-3 small"><i class="fas fa-phone me-2"></i>{{ institute.phone }}</p>
+                                    <a href="{% url 'institutes:institute_detail' institute.pk %}" class="btn btn-sm btn-outline-primary w-100">
+                                        <i class="fas fa-eye me-1"></i>عرض التفاصيل
+                                    </a>
+                                </div>
+                            </div>
                         </div>
-                        <div class="card-footer bg-transparent border-0">
-                            <a href="{% url 'institutes:institute_detail' institute.pk %}" class="btn btn-sm btn-outline-primary w-100">
-                                <i class="fas fa-eye me-1"></i>عرض التفاصيل
-                            </a>
+                        {% empty %}
+                        <div class="col-12">
+                            {% include 'partials/empty_state.html' with icon='fa-building' title='لا توجد معاهد مسندة إليك' %}
                         </div>
+                        {% endfor %}
                     </div>
                 </div>
-                {% endfor %}
             </div>
         </div>
     </div>
-    
+
     {% elif user.is_branch_manager %}
     <!-- Branch Manager Dashboard -->
     <div class="row g-4 mb-4">
         <div class="col-md-6 col-lg-3">
-            <div class="stat-card">
+            <div class="stat-card hover-lift fade-in-up fade-in-up-1">
                 <div class="stat-icon primary">
                     <i class="fas fa-building"></i>
                 </div>
@@ -166,7 +203,7 @@
             </div>
         </div>
         <div class="col-md-6 col-lg-3">
-            <div class="stat-card">
+            <div class="stat-card hover-lift fade-in-up fade-in-up-2">
                 <div class="stat-icon success">
                     <i class="fas fa-users"></i>
                 </div>
@@ -175,7 +212,7 @@
             </div>
         </div>
         <div class="col-md-6 col-lg-3">
-            <div class="stat-card">
+            <div class="stat-card hover-lift fade-in-up fade-in-up-3">
                 <div class="stat-icon warning">
                     <i class="fas fa-user-graduate"></i>
                 </div>
@@ -184,7 +221,7 @@
             </div>
         </div>
         <div class="col-md-6 col-lg-3">
-            <div class="stat-card">
+            <div class="stat-card hover-lift fade-in-up fade-in-up-4">
                 <div class="stat-icon info">
                     <i class="fas fa-file-pdf"></i>
                 </div>
@@ -193,17 +230,17 @@
             </div>
         </div>
     </div>
-    
+
     <div class="row g-4">
         <div class="col-lg-8">
-            <div class="content-card">
+            <div class="content-card fade-in-up">
                 <div class="content-card-header">
                     <h5 class="content-card-title">آخر الأذونات</h5>
                     <a href="{% url 'permissions:permission_list' %}" class="btn btn-sm btn-primary">عرض الكل</a>
                 </div>
-                <div class="content-card-body">
+                <div class="content-card-body p-0">
                     <div class="table-container">
-                        <table class="table custom-table">
+                        <table class="table custom-table mb-0">
                             <thead>
                                 <tr>
                                     <th>رقم الإذن</th>
@@ -228,7 +265,9 @@
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="5" class="text-center py-4 text-muted">لا توجد أذونات</td>
+                                    <td colspan="5">
+                                        {% include 'partials/empty_state.html' with icon='fa-file-pdf' title='لا توجد أذونات' %}
+                                    </td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -238,7 +277,7 @@
             </div>
         </div>
         <div class="col-lg-4">
-            <div class="content-card">
+            <div class="content-card fade-in-up">
                 <div class="content-card-header">
                     <h5 class="content-card-title">الموظفين</h5>
                 </div>
@@ -254,18 +293,18 @@
                         </div>
                     </div>
                     {% empty %}
-                    <p class="text-muted text-center py-3">لا يوجد موظفين</p>
+                    {% include 'partials/empty_state.html' with icon='fa-users' title='لا يوجد موظفين' %}
                     {% endfor %}
                 </div>
             </div>
         </div>
     </div>
-    
+
     {% elif user.is_employee %}
     <!-- Employee Dashboard -->
     <div class="row g-4 mb-4">
         <div class="col-md-4">
-            <div class="stat-card">
+            <div class="stat-card hover-lift fade-in-up fade-in-up-1">
                 <div class="stat-icon primary">
                     <i class="fas fa-building"></i>
                 </div>
@@ -274,7 +313,7 @@
             </div>
         </div>
         <div class="col-md-4">
-            <div class="stat-card">
+            <div class="stat-card hover-lift fade-in-up fade-in-up-2">
                 <div class="stat-icon warning">
                     <i class="fas fa-user-graduate"></i>
                 </div>
@@ -283,7 +322,7 @@
             </div>
         </div>
         <div class="col-md-4">
-            <div class="stat-card">
+            <div class="stat-card hover-lift fade-in-up fade-in-up-3">
                 <div class="stat-icon info">
                     <i class="fas fa-file-pdf"></i>
                 </div>
@@ -292,16 +331,16 @@
             </div>
         </div>
     </div>
-    
+
     <div class="row g-4">
         <div class="col-lg-8">
-            <div class="content-card">
+            <div class="content-card fade-in-up">
                 <div class="content-card-header">
                     <h5 class="content-card-title">آخر أذوناتي</h5>
                 </div>
-                <div class="content-card-body">
+                <div class="content-card-body p-0">
                     <div class="table-container">
-                        <table class="table custom-table">
+                        <table class="table custom-table mb-0">
                             <thead>
                                 <tr>
                                     <th>رقم الإذن</th>
@@ -326,7 +365,9 @@
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="5" class="text-center py-4 text-muted">لا توجد أذونات</td>
+                                    <td colspan="5">
+                                        {% include 'partials/empty_state.html' with icon='fa-file-pdf' title='لا توجد أذونات' %}
+                                    </td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -336,7 +377,7 @@
             </div>
         </div>
         <div class="col-lg-4">
-            <div class="content-card">
+            <div class="content-card fade-in-up">
                 <div class="content-card-header">
                     <h5 class="content-card-title">إجراءات سريعة</h5>
                 </div>
@@ -356,4 +397,43 @@
     </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+{% if user.is_admin %}
+new Chart(document.getElementById('overviewChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['المعاهد', 'المستخدمين', 'العملاء', 'الأذونات'],
+        datasets: [{
+            data: [{{ total_institutes }}, {{ total_users }}, {{ total_clients }}, {{ total_permissions }}],
+            backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#3b82f6'],
+            borderWidth: 0,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo' } } } }
+    }
+});
+{% elif user.is_regional_manager %}
+new Chart(document.getElementById('overviewChart'), {
+    type: 'doughnut',
+    data: {
+        labels: ['المعاهد', 'العملاء', 'الأذونات'],
+        datasets: [{
+            data: [{{ managed_institutes|length }}, {{ total_clients }}, {{ total_permissions }}],
+            backgroundColor: ['#2563eb', '#f59e0b', '#3b82f6'],
+            borderWidth: 0,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { position: 'bottom', labels: { font: { family: 'Cairo' } } } }
+    }
+});
+{% endif %}
+</script>
 {% endblock %}

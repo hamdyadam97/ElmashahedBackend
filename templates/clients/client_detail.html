@@ -2,11 +2,21 @@
 
 {% block title %}{{ client.full_name }} - نظام إدارة المعاهد{% endblock %}
 
+{% block breadcrumb %}
+<nav class="app-breadcrumb">
+    <a href="{% url 'accounts:dashboard' %}"><i class="fas fa-home"></i></a>
+    <i class="fas fa-chevron-left sep"></i>
+    <a href="{% url 'clients:client_list' %}">العملاء</a>
+    <i class="fas fa-chevron-left sep"></i>
+    <span class="current">{{ client.full_name }}</span>
+</nav>
+{% endblock %}
+
 {% block content %}
 <div class="client-detail-page">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="mb-0">تفاصيل العميل</h4>
-        <div class="d-flex gap-2">
+    <div class="d-flex justify-content-between align-items-center mb-4 fade-in-up flex-wrap gap-2">
+        <h4 class="mb-0"><i class="fas fa-user text-primary me-2"></i>تفاصيل العميل</h4>
+        <div class="d-flex gap-2 flex-wrap">
             <a href="{% url 'permissions:permission_create' %}?client={{ client.pk }}" class="btn btn-success">
                 <i class="fas fa-file-pdf me-2"></i>إصدار إذن
             </a>
@@ -18,10 +28,10 @@
             </a>
         </div>
     </div>
-    
+
     <div class="row g-4">
         <div class="col-lg-4">
-            <div class="content-card">
+            <div class="content-card fade-in-up">
                 <div class="content-card-body">
                     <div class="text-center mb-4">
                         <div class="user-avatar mx-auto mb-3" style="width: 100px; height: 100px; font-size: 2.5rem;">
@@ -31,9 +41,9 @@
                         <p class="text-muted">{{ client.national_id }}</p>
                         <span class="status-badge {{ client.status }}">{{ client.get_status_display }}</span>
                     </div>
-                    
+
                     <hr>
-                    
+
                     <table class="table table-borderless">
                         <tr>
                             <td style="width: 120px;"><strong>الجنس:</strong></td>
@@ -64,7 +74,7 @@
                             <td>{{ client.address }}</td>
                         </tr>
                     </table>
-                    
+
                     {% if client.notes %}
                     <hr>
                     <h6>ملاحظات</h6>
@@ -73,19 +83,19 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-8">
             <!-- التسجيلات -->
-            <div class="content-card mb-4">
+            <div class="content-card mb-4 fade-in-up">
                 <div class="content-card-header">
                     <h5 class="content-card-title">التسجيلات</h5>
                     <a href="{% url 'programs:registration_create' %}?client={{ client.pk }}" class="btn btn-sm btn-primary">
                         <i class="fas fa-plus me-1"></i>تسجيل في برنامج
                     </a>
                 </div>
-                <div class="content-card-body">
+                <div class="content-card-body p-0">
                     <div class="table-container">
-                        <table class="table custom-table">
+                        <table class="table custom-table mb-0">
                             <thead>
                                 <tr>
                                     <th>البرنامج</th>
@@ -104,7 +114,9 @@
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="4" class="text-center py-4 text-muted">لا توجد تسجيلات</td>
+                                    <td colspan="4">
+                                        {% include 'partials/empty_state.html' with icon='fa-clipboard-list' title='لا توجد تسجيلات' %}
+                                    </td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -112,15 +124,15 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- الأذونات -->
-            <div class="content-card">
+            <div class="content-card fade-in-up">
                 <div class="content-card-header">
                     <h5 class="content-card-title">الأذونات المستخرجة</h5>
                 </div>
-                <div class="content-card-body">
+                <div class="content-card-body p-0">
                     <div class="table-container">
-                        <table class="table custom-table">
+                        <table class="table custom-table mb-0">
                             <thead>
                                 <tr>
                                     <th>رقم الإذن</th>
@@ -147,7 +159,9 @@
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="6" class="text-center py-4 text-muted">لا توجد أذونات</td>
+                                    <td colspan="6">
+                                        {% include 'partials/empty_state.html' with icon='fa-file-pdf' title='لا توجد أذونات' %}
+                                    </td>
                                 </tr>
                                 {% endfor %}
                             </tbody>

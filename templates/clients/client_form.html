@@ -2,87 +2,117 @@
 
 {% block title %}{% if object %}تعديل عميل{% else %}تسجيل عميل جديد{% endif %} - نظام إدارة المعاهد{% endblock %}
 
+{% block breadcrumb %}
+<nav class="app-breadcrumb">
+    <a href="{% url 'accounts:dashboard' %}"><i class="fas fa-home"></i></a>
+    <i class="fas fa-chevron-left sep"></i>
+    <a href="{% url 'clients:client_list' %}">العملاء</a>
+    <i class="fas fa-chevron-left sep"></i>
+    <span class="current">{% if object %}تعديل عميل{% else %}عميل جديد{% endif %}</span>
+</nav>
+{% endblock %}
+
 {% block content %}
 <div class="client-form-page">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="mb-0">{% if object %}تعديل بيانات العميل{% else %}تسجيل عميل جديد{% endif %}</h4>
+    <div class="d-flex justify-content-between align-items-center mb-4 fade-in-up">
+        <h4 class="mb-0">
+            <i class="fas fa-user-{% if object %}edit{% else %}plus{% endif %} text-primary me-2"></i>
+            {% if object %}تعديل بيانات العميل{% else %}تسجيل عميل جديد{% endif %}
+        </h4>
         <a href="{% url 'clients:client_list' %}" class="btn btn-outline-secondary">
             <i class="fas fa-arrow-right me-2"></i>رجوع
         </a>
     </div>
-    
-    <div class="content-card">
+
+    <div class="content-card fade-in-up">
         <div class="content-card-body">
             <form method="post" novalidate>
                 {% csrf_token %}
-                
+
+                {% if form.errors or form.non_field_errors %}
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    {{ form.errors }}
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">الاسم الأول <span class="text-danger">*</span></label>
-                        <input type="text" name="first_name" class="form-control" value="{{ object.first_name|default:'' }}" required>
+                        <label class="form-label">الاسم الأول <span class="required-mark">*</span></label>
+                        <div class="field-icon-group">
+                            <input type="text" name="first_name" class="form-control" value="{{ object.first_name|default:'' }}" required>
+                            <i class="fas fa-user field-icon"></i>
+                        </div>
                     </div>
-                    
+
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">الاسم الأخير <span class="text-danger">*</span></label>
-                        <input type="text" name="last_name" class="form-control" value="{{ object.last_name|default:'' }}" required>
+                        <label class="form-label">الاسم الأخير <span class="required-mark">*</span></label>
+                        <div class="field-icon-group">
+                            <input type="text" name="last_name" class="form-control" value="{{ object.last_name|default:'' }}" required>
+                            <i class="fas fa-user field-icon"></i>
+                        </div>
                     </div>
                 </div>
-                
+
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">رقم الهوية <span class="text-danger">*</span></label>
-                        <input type="text" name="national_id" class="form-control" value="{{ object.national_id|default:'' }}" required>
+                        <label class="form-label">رقم الهوية <span class="required-mark">*</span></label>
+                        <div class="field-icon-group">
+                            <input type="text" name="national_id" class="form-control" value="{{ object.national_id|default:'' }}" required>
+                            <i class="fas fa-id-card field-icon"></i>
+                        </div>
                     </div>
-                    
+
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">تاريخ الميلاد <span class="text-danger">*</span></label>
+                        <label class="form-label">تاريخ الميلاد <span class="required-mark">*</span></label>
                         <input type="date" name="birth_date" class="form-control" value="{{ object.birth_date|date:'Y-m-d'|default:'' }}" required>
                     </div>
                 </div>
                 {% if user.is_admin %}
-<div class="mb-3">
-    <label class="form-label">المعهد التابع له العميل <span class="text-danger">*</span></label>
-    <select name="institute" class="form-select" required>
-        <option value="">-- اختر المعهد --</option>
-        {% for inst in institutes_list %}
-            <option value="{{ inst.id }}">{{ inst.name }}</option>
-        {% endfor %}
-    </select>
-</div>
-{% endif %}
+                <div class="mb-3">
+                    <label class="form-label">المعهد التابع له العميل <span class="required-mark">*</span></label>
+                    <select name="institute" class="form-select" required>
+                        <option value="">-- اختر المعهد --</option>
+                        {% for inst in institutes_list %}
+                            <option value="{{ inst.id }}">{{ inst.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
 
-{% if form.errors or form.non_field_errors %}
-    <div class="alert alert-danger">
-        {{ form.errors }}
-        {{ form.non_field_errors }}
-    </div>
-{% endif %}
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">الجنس <span class="text-danger">*</span></label>
+                        <label class="form-label">الجنس <span class="required-mark">*</span></label>
                         <select name="gender" class="form-select" required>
                             <option value="">اختر الجنس</option>
                             <option value="male" {% if object.gender == 'male' %}selected{% endif %}>ذكر</option>
                             <option value="female" {% if object.gender == 'female' %}selected{% endif %}>أنثى</option>
                         </select>
                     </div>
-                    
+
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">رقم الهاتف <span class="text-danger">*</span></label>
-                        <input type="text" name="phone" class="form-control" value="{{ object.phone|default:'' }}" required>
+                        <label class="form-label">رقم الهاتف <span class="required-mark">*</span></label>
+                        <div class="field-icon-group">
+                            <input type="text" name="phone" class="form-control" value="{{ object.phone|default:'' }}" required>
+                            <i class="fas fa-phone field-icon"></i>
+                        </div>
                     </div>
                 </div>
-                
+
                 <div class="mb-3">
                     <label class="form-label">البريد الإلكتروني</label>
-                    <input type="email" name="email" class="form-control" value="{{ object.email|default:'' }}">
+                    <div class="field-icon-group">
+                        <input type="email" name="email" class="form-control" value="{{ object.email|default:'' }}">
+                        <i class="fas fa-envelope field-icon"></i>
+                    </div>
                 </div>
-                
+
                 <div class="mb-3">
-                    <label class="form-label">العنوان <span class="text-danger">*</span></label>
+                    <label class="form-label">العنوان <span class="required-mark">*</span></label>
                     <textarea name="address" class="form-control" rows="2" required>{{ object.address|default:'' }}</textarea>
                 </div>
-                
+
                 {% if object %}
                 <div class="mb-3">
                     <label class="form-label">الحالة</label>
@@ -93,14 +123,14 @@
                     </select>
                 </div>
                 {% endif %}
-                
+
                 <div class="mb-3">
                     <label class="form-label">ملاحظات</label>
                     <textarea name="notes" class="form-control" rows="3">{{ object.notes|default:'' }}</textarea>
                 </div>
-                
-                <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-primary">
+
+                <div class="d-flex gap-2 pt-2 border-top">
+                    <button type="submit" class="btn btn-primary px-4">
                         <i class="fas fa-save me-2"></i>{% if object %}حفظ التغييرات{% else %}تسجيل العميل{% endif %}
                     </button>
                     <a href="{% url 'clients:client_list' %}" class="btn btn-outline-secondary">إلغاء</a>

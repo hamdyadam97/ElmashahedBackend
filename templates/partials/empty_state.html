@@ -1,0 +1,19 @@
+{% comment %}
+Reusable empty-state block.
+Usage: {% include 'partials/empty_state.html' with icon='fa-inbox' title='لا يوجد بيانات' %}
+{% endcomment %}
+<div class="empty-state">
+    <svg viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <ellipse cx="100" cy="140" rx="70" ry="10" fill="#e2e8f0"/>
+        <rect x="45" y="35" width="110" height="80" rx="10" fill="#eef2ff" stroke="#c7d2fe" stroke-width="2"/>
+        <rect x="60" y="55" width="80" height="8" rx="4" fill="#c7d2fe"/>
+        <rect x="60" y="72" width="55" height="8" rx="4" fill="#dbeafe"/>
+        <rect x="60" y="89" width="65" height="8" rx="4" fill="#dbeafe"/>
+        <circle cx="140" cy="45" r="18" fill="#2563eb" opacity="0.12"/>
+        <path d="M133 45 l5 5 l10 -10" stroke="#2563eb" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/>
+    </svg>
+    <p class="empty-title">
+        <i class="fas {{ icon|default:'fa-inbox' }} me-1"></i>
+        {{ title|default:'لا يوجد بيانات لعرضها' }}
+    </p>
+</div>

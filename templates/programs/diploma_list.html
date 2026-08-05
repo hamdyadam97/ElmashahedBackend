@@ -2,18 +2,26 @@
 
 {% block title %}الدبلومات - نظام إدارة البرامج{% endblock %}
 
+{% block breadcrumb %}
+<nav class="app-breadcrumb">
+    <a href="{% url 'accounts:dashboard' %}"><i class="fas fa-home"></i></a>
+    <i class="fas fa-chevron-left sep"></i>
+    <span class="current">الدبلومات</span>
+</nav>
+{% endblock %}
+
 {% block content %}
 <div class="diplomas-page">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="mb-0">الدبلومات</h4>
+    <div class="d-flex justify-content-between align-items-center mb-4 fade-in-up flex-wrap gap-2">
+        <h4 class="mb-0"><i class="fas fa-graduation-cap text-primary me-2"></i>الدبلومات</h4>
         {% if user.is_admin or user.is_branch_manager %}
-        <div class="d-flex gap-2">
-            <a href="{% url 'programs:diploma_create' %}" class="btn btn-primary rounded-0">
-                <i class="fas fa-plus"></i> إضافة دبلومة
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{% url 'programs:diploma_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i> إضافة دبلومة
             </a>
 
-            <button id="uploadFileBtn" class="btn btn-primary rounded-0">
-                <i class="fas fa-file-import"></i> توريد ملف
+            <button id="uploadFileBtn" class="btn btn-outline-primary">
+                <i class="fas fa-file-import me-1"></i> توريد ملف
             </button>
 
 
@@ -24,33 +32,43 @@
             </form>
 
             <button id="exportExcelBtn" class="btn btn-success">
-                <i class="fas fa-file-excel me-2"></i> تصدير Excel
+                <i class="fas fa-file-excel me-1"></i> تصدير Excel
             </button>
 
-             <button id="exportPdfBtn" class="btn btn-success">
-                <i class="fas fa-file-excel me-2"></i> تصدير Pdf
+             <button id="exportPdfBtn" class="btn btn-outline-danger">
+                <i class="fas fa-file-pdf me-1"></i> تصدير PDF
             </button>
         </div>
         {% endif %}
     </div>
 
-    <div class="content-card">
-        <div class="content-card-header">
-            <h5 class="content-card-title">قائمة الدبلومات المتاحة</h5>
-            <form method="get" class="d-flex gap-2">
-                <select name="status" class="form-select form-select-sm" style="width: 120px;" onchange="this.form.submit()">
+    <div class="filter-bar fade-in-up">
+        <form method="get" class="row g-2 align-items-center">
+            <div class="col-md-3 col-6">
+                <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
                     <option value="">كل الحالات</option>
                     {% for status_value, status_label in statuses %}
                     <option value="{{ status_value }}" {% if request.GET.status == status_value %}selected{% endif %}>{{ status_label }}</option>
                     {% endfor %}
                 </select>
-
-                <input type="text" name="search" class="form-control form-select-sm" placeholder="بحث بالاسم أو الكود..." value="{{ request.GET.search }}">
-
-                <button type="submit" class="btn btn-sm btn-primary">
-                    <i class="fas fa-search"></i>
+            </div>
+            <div class="col-md-7 col-6">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                    <input type="text" name="search" class="form-control" placeholder="بحث بالاسم أو الكود..." value="{{ request.GET.search }}">
+                </div>
+            </div>
+            <div class="col-md-2 col-12">
+                <button type="submit" class="btn btn-sm btn-primary w-100">
+                    <i class="fas fa-search me-1"></i> بحث
                 </button>
-            </form>
+            </div>
+        </form>
+    </div>
+
+    <div class="content-card fade-in-up">
+        <div class="content-card-header">
+            <h5 class="content-card-title">قائمة الدبلومات المتاحة</h5>
         </div>
 
         <div class="content-card-body p-0">
@@ -110,7 +128,9 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="8" class="text-center py-4 text-muted">لا توجد دبلومات مسجلة حالياً</td>
+                            <td colspan="8">
+                                {% include 'partials/empty_state.html' with icon='fa-graduation-cap' title='لا توجد دبلومات مسجلة حالياً' %}
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>

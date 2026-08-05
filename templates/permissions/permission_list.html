@@ -2,30 +2,50 @@
 
 {% block title %}الأذونات - نظام إدارة المعاهد{% endblock %}
 
+{% block breadcrumb %}
+<nav class="app-breadcrumb">
+    <a href="{% url 'accounts:dashboard' %}"><i class="fas fa-home"></i></a>
+    <i class="fas fa-chevron-left sep"></i>
+    <span class="current">الأذونات</span>
+</nav>
+{% endblock %}
+
 {% block content %}
 <div class="permissions-page">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="mb-0">الأذونات</h4>
+    <div class="d-flex justify-content-between align-items-center mb-4 fade-in-up">
+        <h4 class="mb-0"><i class="fas fa-file-pdf text-primary me-2"></i>الأذونات</h4>
         <a href="{% url 'permissions:permission_create' %}" class="btn btn-primary">
             <i class="fas fa-plus me-2"></i>إصدار إذن
         </a>
     </div>
-    
-    <div class="content-card">
-        <div class="content-card-header">
-            <h5 class="content-card-title">قائمة الأذونات</h5>
-            <form method="get" class="d-flex gap-2">
-                <select name="status" class="form-select form-select-sm" style="width: 120px;" onchange="this.form.submit()">
+
+    <div class="filter-bar fade-in-up">
+        <form method="get" class="row g-2 align-items-center">
+            <div class="col-md-3 col-6">
+                <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
                     <option value="">كل الحالات</option>
                     {% for status_value, status_label in statuses %}
                     <option value="{{ status_value }}" {% if request.GET.status == status_value %}selected{% endif %}>{{ status_label }}</option>
                     {% endfor %}
                 </select>
-                <input type="text" name="search" class="form-control form-select-sm" placeholder="بحث..." value="{{ request.GET.search }}">
-                <button type="submit" class="btn btn-sm btn-primary">
-                    <i class="fas fa-search"></i>
+            </div>
+            <div class="col-md-7 col-6">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                    <input type="text" name="search" class="form-control" placeholder="بحث برقم الإذن أو اسم العميل..." value="{{ request.GET.search }}">
+                </div>
+            </div>
+            <div class="col-md-2 col-12">
+                <button type="submit" class="btn btn-sm btn-primary w-100">
+                    <i class="fas fa-search me-1"></i> بحث
                 </button>
-            </form>
+            </div>
+        </form>
+    </div>
+
+    <div class="content-card fade-in-up">
+        <div class="content-card-header">
+            <h5 class="content-card-title">قائمة الأذونات</h5>
         </div>
         <div class="content-card-body p-0">
             <div class="table-container">
@@ -76,7 +96,9 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="8" class="text-center py-4 text-muted">لا توجد أذونات</td>
+                            <td colspan="8">
+                                {% include 'partials/empty_state.html' with icon='fa-file-pdf' title='لا توجد أذونات' %}
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -84,7 +106,7 @@
             </div>
         </div>
     </div>
-    
+
     {% if is_paginated %}
     <nav class="mt-4">
         <ul class="pagination justify-content-center">
@@ -93,13 +115,13 @@
                 <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">السابق</a>
             </li>
             {% endif %}
-            
+
             {% for num in page_obj.paginator.page_range %}
             <li class="page-item {% if page_obj.number == num %}active{% endif %}">
                 <a class="page-link" href="?page={{ num }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">{{ num }}</a>
             </li>
             {% endfor %}
-            
+
             {% if page_obj.has_next %}
             <li class="page-item">
                 <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">التالي</a>
