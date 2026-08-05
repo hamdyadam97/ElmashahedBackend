@@ -78,6 +78,23 @@
                         <span class="fw-bold">{{ user_institute.name }}</span>
                     </div>
                     {% endif %}
+
+                    {% if user.is_employee and user.referral_code %}
+                    <hr>
+                    <div class="alert alert-light border mb-0 text-start">
+                        <small class="text-muted d-block mb-2">
+                            <i class="fas fa-link me-2"></i>رابط دعوتك لإصدار المشهد
+                        </small>
+                        <div class="input-group input-group-sm">
+                            <input type="text" id="referralLinkInput" class="form-control" readonly
+                                   value="{{ request.scheme }}://{{ request.get_host }}{% url 'portal:landing_ref' user.referral_code %}">
+                            <button class="btn btn-outline-primary" type="button" id="copyReferralBtn">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                        <small class="text-muted d-block mt-1">شارك الرابط ده مع الطالب، وأي مشهد يصدره هيتسجل باسمك تلقائياً.</small>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -286,5 +303,23 @@ const yearlyChart = new Chart(ctx, {
         }
     }
 });
+
+// Copy referral link
+const copyReferralBtn = document.getElementById('copyReferralBtn');
+if (copyReferralBtn) {
+    copyReferralBtn.addEventListener('click', () => {
+        const input = document.getElementById('referralLinkInput');
+        input.select();
+        navigator.clipboard.writeText(input.value).then(() => {
+            const icon = copyReferralBtn.querySelector('i');
+            icon.classList.remove('fa-copy');
+            icon.classList.add('fa-check');
+            setTimeout(() => {
+                icon.classList.remove('fa-check');
+                icon.classList.add('fa-copy');
+            }, 1500);
+        });
+    });
+}
 </script>
 {% endblock %}
