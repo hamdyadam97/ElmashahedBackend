@@ -119,13 +119,10 @@
 
                     <div class="col-md-6 mb-3">
                         <label class="form-label">القطاع</label>
-                        <select name="sector" class="form-select">
-                            <option value="">-- اختر القطاع --</option>
-                            <option value="military" {% if object.sector == 'military' %}selected{% endif %}>عسكري</option>
-                            <option value="civil" {% if object.sector == 'civil' %}selected{% endif %}>مدني</option>
-                            <option value="retired" {% if object.sector == 'retired' %}selected{% endif %}>متقاعد</option>
-                            <option value="other" {% if object.sector == 'other' %}selected{% endif %}>أخرى</option>
-                        </select>
+                        <div class="field-icon-group">
+                            <input type="text" name="sector" class="form-control" value="{{ object.sector|default:'' }}" placeholder="اكتب القطاع">
+                            <i class="fas fa-briefcase field-icon"></i>
+                        </div>
                     </div>
                 </div>
 

@@ -9,9 +9,9 @@ class ClientAdmin(admin.ModelAdmin):
         'full_name', 'national_id', 'phone', 'city', 'institute',
         'gender', 'status', 'registration_date'
     ]
-    list_filter = ['status', 'gender', 'sector', 'institute', 'registration_date']
+    list_filter = ['status', 'gender', 'institute', 'registration_date']
     search_fields = [
-        'full_name', 'national_id', 'phone', 'email', 'city'
+        'full_name', 'national_id', 'phone', 'email', 'city', 'sector'
     ]
     date_hierarchy = 'registration_date'
 
