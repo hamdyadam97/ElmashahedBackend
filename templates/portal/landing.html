@@ -6,87 +6,259 @@
     <title>إصدار مشهد لا مانع من الالتحاق بالدراسة</title>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
-        * { font-family: 'Cairo', sans-serif; }
-        body { background-color: #f8fafc; min-height: 100vh; }
-        .portal-card {
-            max-width: 560px;
-            margin: 40px auto;
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 4px 18px rgba(0,0,0,.08);
-            padding: 32px;
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --light-bg: #f8fafc;
         }
-        .portal-title { color: #1e3a8a; font-weight: 700; margin-bottom: 4px; }
-        .portal-sub { color: #64748b; margin-bottom: 24px; font-size: 14px; }
+        * { font-family: 'Cairo', sans-serif; }
+        body {
+            background: linear-gradient(160deg, #eef2ff 0%, var(--light-bg) 55%);
+            min-height: 100vh;
+            padding: 24px 12px;
+        }
+
+        .portal-wrap { max-width: 600px; margin: 0 auto; }
+
+        .portal-header { text-align: center; margin-bottom: 22px; }
+        .portal-header .icon-badge {
+            width: 64px; height: 64px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 14px; box-shadow: 0 8px 20px rgba(37,99,235,.25);
+        }
+        .portal-header .icon-badge i { color: #fff; font-size: 26px; }
+        .portal-header h1 { font-size: 20px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+        .portal-header p { color: #64748b; font-size: 14px; margin: 0; }
+
+        .portal-card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(15,23,42,.08);
+            padding: 28px;
+        }
+
+        .step {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .step-num {
+            flex-shrink: 0;
+            width: 30px; height: 30px; border-radius: 50%;
+            background: #e2e8f0; color: #64748b;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 13px;
+            transition: all .2s ease;
+        }
+        .step.active .step-num { background: var(--primary-color); color: #fff; }
+        .step.done .step-num { background: var(--success-color); color: #fff; }
+        .step-body { flex: 1; }
+        .step-body label { font-weight: 600; color: #334155; font-size: 14px; margin-bottom: 6px; display: block; }
+
+        .form-select, .form-control {
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            padding: 10px 14px;
+        }
+        .form-select:focus, .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37,99,235,.12);
+        }
+        .form-select:disabled, .form-control:disabled { background: #f8fafc; color: #94a3b8; }
+
+        .btn-primary {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            border-radius: 10px;
+        }
+        .btn-primary:hover { background: var(--secondary-color); border-color: var(--secondary-color); }
+        .btn-success { border-radius: 10px; }
+        .btn-outline-danger { border-radius: 10px; }
+
         .client-card {
             background: #f0fdf4;
             border: 1px solid #bbf7d0;
-            border-radius: 8px;
-            padding: 14px 16px;
-            margin-top: 12px;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 8px;
             display: none;
         }
+        .client-card .icon { color: var(--success-color); font-size: 22px; }
+        .client-card .name { font-weight: 700; color: #166534; font-size: 16px; }
+        .client-card .sub { color: #4b5563; font-size: 13px; }
+
         .not-found-card {
             background: #fef2f2;
             border: 1px solid #fecaca;
             color: #991b1b;
-            border-radius: 8px;
-            padding: 12px 16px;
-            margin-top: 12px;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-top: 8px;
+            display: none;
+            font-size: 14px;
+        }
+
+        .register-box {
+            background: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 18px;
+            margin-top: 14px;
             display: none;
         }
-        #issueBtn { display: none; }
+        .register-box h6 { font-weight: 700; color: #334155; }
+        .register-box .form-label { font-size: 13px; color: #475569; margin-bottom: 4px; }
+
+        #registerErrorCard {
+            display: none;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+            border-radius: 10px;
+            padding: 10px 14px;
+            margin-bottom: 12px;
+            font-size: 13px;
+        }
+
+        #issueBtn {
+            display: none;
+            background: linear-gradient(135deg, var(--success-color), #059669);
+            border: none;
+            font-weight: 700;
+            padding: 13px;
+            font-size: 16px;
+        }
+
+        .footer-note { text-align: center; color: #94a3b8; font-size: 12px; margin-top: 18px; }
     </style>
 </head>
 <body>
-    <div class="portal-card">
-        <h4 class="portal-title">إصدار مشهد لا مانع من الالتحاق بالدراسة</h4>
-        <p class="portal-sub">اختر الفرع والدبلوم، وأدخل رقم الهوية / الإقامة للبحث عن بياناتك.</p>
+    <div class="portal-wrap">
+        <div class="portal-header">
+            <div class="icon-badge"><i class="fas fa-file-shield"></i></div>
+            <h1>إصدار مشهد لا مانع من الالتحاق بالدراسة</h1>
+            <p>خدمة ذاتية سريعة - بدون الحاجة لتسجيل الدخول</p>
+        </div>
 
-        <form id="issueForm" method="post" action="{% url 'portal:issue' %}" target="_blank">
-            {% csrf_token %}
-            <input type="hidden" name="ref_code" value="{{ ref_code }}">
-            <input type="hidden" name="client_id" id="clientIdInput">
-            <input type="hidden" name="diploma_id" id="diplomaIdInput">
+        <div class="portal-card">
+            <form id="issueForm" method="post" action="{% url 'portal:issue' %}" target="_blank">
+                {% csrf_token %}
+                <input type="hidden" name="ref_code" id="refCodeInput" value="{{ ref_code }}">
+                <input type="hidden" name="client_id" id="clientIdInput">
+                <input type="hidden" name="diploma_id" id="diplomaIdInput">
 
-            <div class="mb-3">
-                <label class="form-label fw-bold">الفرع</label>
-                <select id="instituteSelect" class="form-select">
-                    <option value="">-- اختر الفرع --</option>
-                    {% for institute in institutes %}
-                    <option value="{{ institute.id }}">{{ institute.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label fw-bold">الدبلوم</label>
-                <select id="diplomaSelect" class="form-select" disabled>
-                    <option value="">-- اختر الفرع أولاً --</option>
-                </select>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label fw-bold">رقم الهوية / الإقامة</label>
-                <div class="input-group">
-                    <input type="text" id="nationalIdInput" class="form-control" placeholder="أدخل رقم الهوية أو الإقامة" disabled>
-                    <button type="button" id="searchBtn" class="btn btn-primary" disabled>بحث</button>
+                <div class="step active" id="stepInstitute">
+                    <div class="step-num">1</div>
+                    <div class="step-body">
+                        <label><i class="fas fa-building me-1"></i> اختر الفرع</label>
+                        <select id="instituteSelect" class="form-select">
+                            <option value="">-- اختر الفرع --</option>
+                            {% for institute in institutes %}
+                            <option value="{{ institute.id }}">{{ institute.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                 </div>
-            </div>
 
-            <div id="clientCard" class="client-card">
-                <div><strong>الاسم:</strong> <span id="clientName"></span></div>
-                <div><strong>رقم الهوية:</strong> <span id="clientNationalId"></span></div>
-            </div>
-            <div id="notFoundCard" class="not-found-card">
-                لم يتم العثور على بيانات بهذا الرقم في هذا الفرع.
-            </div>
+                <div class="step" id="stepDiploma">
+                    <div class="step-num">2</div>
+                    <div class="step-body">
+                        <label><i class="fas fa-graduation-cap me-1"></i> اختر الدبلوم</label>
+                        <select id="diplomaSelect" class="form-select" disabled>
+                            <option value="">-- اختر الفرع أولاً --</option>
+                        </select>
+                    </div>
+                </div>
 
-            <button type="submit" id="issueBtn" class="btn btn-success w-100 mt-3">إصدار المشهد</button>
-        </form>
+                <div class="step" id="stepSearch">
+                    <div class="step-num">3</div>
+                    <div class="step-body">
+                        <label><i class="fas fa-id-card me-1"></i> رقم الهوية / الإقامة</label>
+                        <div class="input-group">
+                            <input type="text" id="nationalIdInput" class="form-control" placeholder="أدخل رقم الهوية أو الإقامة" disabled>
+                            <button type="button" id="searchBtn" class="btn btn-primary px-4" disabled>
+                                <i class="fas fa-search me-1"></i> بحث
+                            </button>
+                        </div>
+
+                        <div id="clientCard" class="client-card">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="fas fa-circle-check icon"></i>
+                                <div>
+                                    <div class="name" id="clientName"></div>
+                                    <div class="sub">رقم الهوية: <span id="clientNationalId"></span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="notFoundCard" class="not-found-card">
+                            <i class="fas fa-circle-exclamation me-1"></i>
+                            لم يتم العثور على بيانات بهذا الرقم في هذا الفرع.
+                            <button type="button" id="showRegisterBtn" class="btn btn-sm btn-outline-danger mt-2 d-block">
+                                <i class="fas fa-user-plus me-1"></i> سجّل بياناتك الآن
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" id="issueBtn" class="btn btn-success w-100 mt-2 text-white">
+                    <i class="fas fa-file-arrow-down me-2"></i> إصدار المشهد
+                </button>
+            </form>
+
+            <div id="registerBox" class="register-box">
+                <h6 class="mb-3"><i class="fas fa-user-pen me-1"></i> تسجيل بيانات جديدة</h6>
+                <div id="registerErrorCard"></div>
+
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label class="form-label">الاسم الأول</label>
+                        <input type="text" id="regFirstName" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">اسم العائلة</label>
+                        <input type="text" id="regLastName" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">الجنس</label>
+                        <select id="regGender" class="form-select form-select-sm">
+                            <option value="">-- اختر --</option>
+                            <option value="male">ذكر</option>
+                            <option value="female">أنثى</option>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">تاريخ الميلاد</label>
+                        <input type="date" id="regBirthDate" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">رقم الجوال</label>
+                        <input type="text" id="regPhone" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">البريد الإلكتروني (اختياري)</label>
+                        <input type="email" id="regEmail" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">العنوان</label>
+                        <input type="text" id="regAddress" class="form-control form-control-sm">
+                    </div>
+                </div>
+
+                <button type="button" id="registerSubmitBtn" class="btn btn-primary w-100 mt-3">
+                    <i class="fas fa-check me-1"></i> تسجيل والمتابعة
+                </button>
+            </div>
+        </div>
+
+        <p class="footer-note">بياناتك تُستخدم فقط لإصدار مشهد لا مانع من الالتحاق بالدراسة.</p>
     </div>
 
     <script>
@@ -99,12 +271,40 @@
         const issueBtn = document.getElementById('issueBtn');
         const clientIdInput = document.getElementById('clientIdInput');
         const diplomaIdInput = document.getElementById('diplomaIdInput');
+        const refCodeInput = document.getElementById('refCodeInput');
+        const registerBox = document.getElementById('registerBox');
+        const showRegisterBtn = document.getElementById('showRegisterBtn');
+        const registerSubmitBtn = document.getElementById('registerSubmitBtn');
+        const registerErrorCard = document.getElementById('registerErrorCard');
+        const csrfToken = document.querySelector('#issueForm [name=csrfmiddlewaretoken]').value;
+
+        const stepInstitute = document.getElementById('stepInstitute');
+        const stepDiploma = document.getElementById('stepDiploma');
+        const stepSearch = document.getElementById('stepSearch');
+
+        function setStepState(step, state) {
+            step.classList.remove('active', 'done');
+            if (state) step.classList.add(state);
+        }
 
         function resetClientState() {
             clientCard.style.display = 'none';
             notFoundCard.style.display = 'none';
             issueBtn.style.display = 'none';
+            registerBox.style.display = 'none';
+            registerErrorCard.style.display = 'none';
             clientIdInput.value = '';
+        }
+
+        function showClient(client) {
+            document.getElementById('clientName').textContent = client.full_name;
+            document.getElementById('clientNationalId').textContent = client.national_id;
+            clientCard.style.display = 'block';
+            notFoundCard.style.display = 'none';
+            registerBox.style.display = 'none';
+            clientIdInput.value = client.id;
+            issueBtn.style.display = 'block';
+            setStepState(stepSearch, 'done');
         }
 
         instituteSelect.addEventListener('change', async () => {
@@ -114,6 +314,9 @@
             nationalIdInput.disabled = true;
             searchBtn.disabled = true;
             nationalIdInput.value = '';
+            setStepState(stepInstitute, 'active');
+            setStepState(stepDiploma, null);
+            setStepState(stepSearch, null);
 
             const instituteId = instituteSelect.value;
             if (!instituteId) {
@@ -132,6 +335,8 @@
                 diplomaSelect.appendChild(opt);
             });
             diplomaSelect.disabled = false;
+            setStepState(stepInstitute, 'done');
+            setStepState(stepDiploma, 'active');
         });
 
         diplomaSelect.addEventListener('change', () => {
@@ -141,25 +346,81 @@
             searchBtn.disabled = !hasDiploma;
             nationalIdInput.value = '';
             diplomaIdInput.value = diplomaSelect.value;
+            setStepState(stepDiploma, hasDiploma ? 'done' : 'active');
+            setStepState(stepSearch, hasDiploma ? 'active' : null);
         });
 
-        searchBtn.addEventListener('click', async () => {
+        async function doSearch() {
             resetClientState();
             const nationalId = nationalIdInput.value.trim();
             const instituteId = instituteSelect.value;
             if (!nationalId || !instituteId) return;
 
-            const res = await fetch(`{% url 'portal:api_search_client' %}?national_id=${encodeURIComponent(nationalId)}&institute_id=${instituteId}`);
-            const data = await res.json();
+            searchBtn.disabled = true;
+            searchBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+            try {
+                const res = await fetch(`{% url 'portal:api_search_client' %}?national_id=${encodeURIComponent(nationalId)}&institute_id=${instituteId}`);
+                const data = await res.json();
 
-            if (data.found) {
-                document.getElementById('clientName').textContent = data.client.full_name;
-                document.getElementById('clientNationalId').textContent = data.client.national_id;
-                clientCard.style.display = 'block';
-                clientIdInput.value = data.client.id;
-                issueBtn.style.display = 'block';
-            } else {
-                notFoundCard.style.display = 'block';
+                if (data.found) {
+                    showClient(data.client);
+                } else {
+                    notFoundCard.style.display = 'block';
+                }
+            } finally {
+                searchBtn.disabled = false;
+                searchBtn.innerHTML = '<i class="fas fa-search me-1"></i> بحث';
+            }
+        }
+
+        searchBtn.addEventListener('click', doSearch);
+        nationalIdInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); doSearch(); }
+        });
+
+        showRegisterBtn.addEventListener('click', () => {
+            registerBox.style.display = 'block';
+            registerBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+
+        registerSubmitBtn.addEventListener('click', async () => {
+            registerErrorCard.style.display = 'none';
+
+            const payload = new URLSearchParams({
+                national_id: nationalIdInput.value.trim(),
+                institute_id: instituteSelect.value,
+                ref_code: refCodeInput.value,
+                first_name: document.getElementById('regFirstName').value.trim(),
+                last_name: document.getElementById('regLastName').value.trim(),
+                gender: document.getElementById('regGender').value,
+                birth_date: document.getElementById('regBirthDate').value,
+                phone: document.getElementById('regPhone').value.trim(),
+                email: document.getElementById('regEmail').value.trim(),
+                address: document.getElementById('regAddress').value.trim(),
+            });
+
+            registerSubmitBtn.disabled = true;
+            registerSubmitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> جاري التسجيل...';
+            try {
+                const res = await fetch(`{% url 'portal:api_register_client' %}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': csrfToken,
+                    },
+                    body: payload.toString(),
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    showClient(data.client);
+                } else {
+                    registerErrorCard.textContent = data.error || 'برجاء مراجعة البيانات المدخلة.';
+                    registerErrorCard.style.display = 'block';
+                }
+            } finally {
+                registerSubmitBtn.disabled = false;
+                registerSubmitBtn.innerHTML = '<i class="fas fa-check me-1"></i> تسجيل والمتابعة';
             }
         });
     </script>

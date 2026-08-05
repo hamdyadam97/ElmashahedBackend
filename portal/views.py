@@ -1,8 +1,10 @@
 import logging
 
+from django.db import IntegrityError
 from django.http import JsonResponse, HttpResponse, HttpResponseNotAllowed
 from django.shortcuts import render, get_object_or_404
 from django.views import View
+from django.views.decorators.http import require_POST
 
 from institutes.models import Institute
 from programs.models import Diploma
@@ -76,6 +78,72 @@ def api_search_client(request):
 
     return JsonResponse({
         'found': True,
+        'client': {
+            'id': client.id,
+            'full_name': client.full_name,
+            'national_id': client.national_id,
+            'phone': client.phone,
+        }
+    })
+
+
+REQUIRED_REGISTER_FIELDS = ['first_name', 'last_name', 'gender', 'birth_date', 'phone', 'address']
+
+
+@require_POST
+def api_register_client(request):
+    """AJAX: تسجيل طالب جديد بصمت لو مش موجود، ثم إرجاعه زي نتيجة البحث"""
+    national_id = (request.POST.get('national_id') or '').strip()
+    institute_id = request.POST.get('institute_id')
+    ref_code = (request.POST.get('ref_code') or '').strip()
+
+    if not national_id or not institute_id:
+        return JsonResponse({'success': False, 'error': 'بيانات ناقصة.'}, status=400)
+
+    institute = Institute.objects.filter(pk=institute_id, status=Institute.Status.ACTIVE).first()
+    if not institute:
+        return JsonResponse({'success': False, 'error': 'الفرع غير صالح.'}, status=400)
+
+    errors = {}
+    for field in REQUIRED_REGISTER_FIELDS:
+        if not (request.POST.get(field) or '').strip():
+            errors[field] = 'مطلوب'
+    if request.POST.get('gender') not in ('male', 'female'):
+        errors['gender'] = 'مطلوب'
+    if errors:
+        return JsonResponse({'success': False, 'errors': errors}, status=400)
+
+    if Client.objects.filter(national_id=national_id).exists():
+        return JsonResponse({
+            'success': False,
+            'error': 'يوجد بالفعل حساب بهذا الرقم، برجاء التواصل مع المعهد.'
+        }, status=409)
+
+    employee = _resolve_referral_employee(ref_code)
+
+    try:
+        client = Client.objects.create(
+            national_id=national_id,
+            institute=institute,
+            first_name=request.POST.get('first_name').strip(),
+            last_name=request.POST.get('last_name').strip(),
+            gender=request.POST.get('gender'),
+            birth_date=request.POST.get('birth_date'),
+            phone=request.POST.get('phone').strip(),
+            email=(request.POST.get('email') or '').strip(),
+            address=request.POST.get('address').strip(),
+            registered_by=employee,
+        )
+    except IntegrityError:
+        return JsonResponse({
+            'success': False,
+            'error': 'يوجد بالفعل حساب بهذا الرقم، برجاء التواصل مع المعهد.'
+        }, status=409)
+
+    logger.info(f'Public self-registration: client {client.national_id} at institute {institute.code}')
+
+    return JsonResponse({
+        'success': True,
         'client': {
             'id': client.id,
             'full_name': client.full_name,
