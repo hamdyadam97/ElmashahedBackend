@@ -1,0 +1,141 @@
+{% extends 'base/base.html' %}
+
+{% block title %}نتيجة استيراد الموظفين - نظام إدارة المعاهد{% endblock %}
+
+{% block breadcrumb %}
+<nav class="app-breadcrumb">
+    <a href="{% url 'accounts:dashboard' %}"><i class="fas fa-home"></i></a>
+    <i class="fas fa-chevron-left sep"></i>
+    <a href="{% url 'accounts:user_list' %}">المستخدمين</a>
+    <i class="fas fa-chevron-left sep"></i>
+    <span class="current">نتيجة الاستيراد</span>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="upload-result-page">
+    <div class="d-flex justify-content-between align-items-center mb-4 fade-in-up flex-wrap gap-2">
+        <h4 class="mb-0"><i class="fas fa-file-import text-primary me-2"></i>نتيجة استيراد الموظفين</h4>
+        <a href="{% url 'accounts:user_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-right me-2"></i>رجوع لقائمة المستخدمين
+        </a>
+    </div>
+
+    {% if not has_result %}
+    <div class="content-card fade-in-up">
+        <div class="content-card-body">
+            {% include 'partials/empty_state.html' with icon='fa-file-import' title='لا توجد نتيجة استيراد لعرضها' %}
+        </div>
+    </div>
+    {% else %}
+
+    <div class="alert alert-warning fade-in-up">
+        <i class="fas fa-triangle-exclamation me-2"></i>
+        الصفحة دي بتتعرض <strong>مرة واحدة بس</strong> — انسخ أو صوّر كلمات المرور دلوقتي قبل ما تسيبها، مش هتقدر تشوفها تاني بعد كده.
+    </div>
+
+    <div class="row g-4 mb-4">
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card hover-lift fade-in-up fade-in-up-1">
+                <div class="stat-icon primary"><i class="fas fa-building"></i></div>
+                <div class="stat-value" style="font-size: 1.1rem;">{{ institute_name }}</div>
+                <div class="stat-label">الفرع</div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card hover-lift fade-in-up fade-in-up-2">
+                <div class="stat-icon success"><i class="fas fa-user-check"></i></div>
+                <div class="stat-value">{{ created|length }}</div>
+                <div class="stat-label">تم إنشاؤهم بنجاح</div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="stat-card hover-lift fade-in-up fade-in-up-3">
+                <div class="stat-icon danger"><i class="fas fa-user-xmark"></i></div>
+                <div class="stat-value">{{ errors|length }}</div>
+                <div class="stat-label">فشلوا</div>
+            </div>
+        </div>
+    </div>
+
+    {% if created %}
+    <div class="content-card mb-4 fade-in-up">
+        <div class="content-card-header">
+            <h5 class="content-card-title">حسابات الموظفين الجديدة</h5>
+            <button type="button" class="btn btn-sm btn-outline-primary" id="copyAllBtn">
+                <i class="fas fa-copy me-1"></i>نسخ الكل
+            </button>
+        </div>
+        <div class="content-card-body p-0">
+            <div class="table-container">
+                <table class="table custom-table mb-0" id="createdTable">
+                    <thead>
+                        <tr>
+                            <th>الاسم</th>
+                            <th>اسم المستخدم</th>
+                            <th>كلمة المرور</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in created %}
+                        <tr>
+                            <td>{{ item.full_name }}</td>
+                            <td><code>{{ item.username }}</code></td>
+                            <td><code>{{ item.password }}</code></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if errors %}
+    <div class="content-card fade-in-up">
+        <div class="content-card-header">
+            <h5 class="content-card-title text-danger">صفوف لم تُستورد</h5>
+        </div>
+        <div class="content-card-body p-0">
+            <div class="table-container">
+                <table class="table custom-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>رقم الصف بالملف</th>
+                            <th>السبب</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for err in errors %}
+                        <tr>
+                            <td>{{ err.row }}</td>
+                            <td class="text-danger">{{ err.reason }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% endif %}
+</div>
+
+{% block extra_js %}
+<script>
+document.getElementById('copyAllBtn')?.addEventListener('click', function() {
+    const rows = document.querySelectorAll('#createdTable tbody tr');
+    let text = 'الاسم\tاسم المستخدم\tكلمة المرور\n';
+    rows.forEach(r => {
+        const cells = r.querySelectorAll('td');
+        text += `${cells[0].textContent}\t${cells[1].textContent}\t${cells[2].textContent}\n`;
+    });
+    navigator.clipboard.writeText(text).then(() => {
+        this.innerHTML = '<i class="fas fa-check me-1"></i>تم النسخ';
+        setTimeout(() => { this.innerHTML = '<i class="fas fa-copy me-1"></i>نسخ الكل'; }, 1500);
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}

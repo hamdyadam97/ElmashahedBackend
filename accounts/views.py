@@ -6,8 +6,10 @@ from django.contrib import messages
 from django.urls import reverse_lazy
 from django.db.models import Count, Q
 from django.utils import timezone
+from django.utils.crypto import get_random_string
 from datetime import datetime, timedelta
 import logging
+import pandas as pd
 
 from .models import User
 from institutes.models import Institute
@@ -153,6 +155,92 @@ class UserListView(AdminRequiredMixin, SearchMixin, FilterMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['roles'] = User.Role.choices
+        context['institutes'] = Institute.objects.filter(status='active').order_by('name')
+        return context
+
+
+def upload_employees(request):
+    """استيراد موظفين بالجملة من ملف Excel/CSV لمعهد محدد (Admin فقط)"""
+    if not request.user.is_authenticated or not request.user.is_admin():
+        return redirect('accounts:user_list')
+
+    if request.method != "POST" or not request.FILES.get('file'):
+        return redirect('accounts:user_list')
+
+    institute = get_object_or_404(Institute, pk=request.POST.get('institute'))
+    uploaded_file = request.FILES['file']
+
+    try:
+        if uploaded_file.name.endswith('.csv'):
+            df = pd.read_csv(uploaded_file)
+        else:
+            df = pd.read_excel(uploaded_file)
+
+        def clean_str(value):
+            """Excel blank cells come back as NaN (a truthy float), not '' - normalize both to ''"""
+            if pd.isna(value):
+                return ''
+            return str(value).strip()
+
+        created = []
+        errors = []
+        seen_usernames = set()
+
+        for index, row in df.iterrows():
+            username = clean_str(row.get('username'))
+            if not username:
+                errors.append({'row': index + 2, 'reason': 'اسم المستخدم (username) مطلوب'})
+                continue
+            if username in seen_usernames or User.objects.filter(username=username).exists():
+                errors.append({'row': index + 2, 'reason': f'اسم المستخدم "{username}" مستخدم بالفعل'})
+                continue
+            seen_usernames.add(username)
+
+            password = get_random_string(10)
+            user = User(
+                username=username,
+                first_name=clean_str(row.get('first_name')),
+                last_name=clean_str(row.get('last_name')),
+                email=clean_str(row.get('email')),
+                phone=clean_str(row.get('phone')),
+                role=User.Role.EMPLOYEE,
+                institute=institute,
+            )
+            user.set_password(password)
+            user.save()
+            created.append({
+                'username': username,
+                'password': password,
+                'full_name': user.get_full_name() or username,
+            })
+
+        request.session['employee_import_result'] = {
+            'created': created,
+            'errors': errors,
+            'institute_name': institute.name,
+        }
+        logger.info(
+            f'{len(created)} employees imported for institute {institute.code} '
+            f'by {request.user.username} ({len(errors)} errors)'
+        )
+        return redirect('accounts:upload_employees_result')
+    except Exception as e:
+        logger.error(f'Error importing employees: {str(e)}')
+        messages.error(request, f'حدث خطأ أثناء استيراد الموظفين: {str(e)}')
+        return redirect('accounts:user_list')
+
+
+class UploadEmployeesResultView(AdminRequiredMixin, TemplateView):
+    """نتيجة استيراد الموظفين - تعرض مرة واحدة بعد الرفع"""
+    template_name = 'accounts/upload_employees_result.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        result = self.request.session.pop('employee_import_result', None)
+        context['created'] = result.get('created', []) if result else []
+        context['errors'] = result.get('errors', []) if result else []
+        context['institute_name'] = result.get('institute_name', '') if result else ''
+        context['has_result'] = result is not None
         return context
 
 

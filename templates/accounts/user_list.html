@@ -2,30 +2,55 @@
 
 {% block title %}المستخدمين - نظام إدارة المعاهد{% endblock %}
 
+{% block breadcrumb %}
+<nav class="app-breadcrumb">
+    <a href="{% url 'accounts:dashboard' %}"><i class="fas fa-home"></i></a>
+    <i class="fas fa-chevron-left sep"></i>
+    <span class="current">المستخدمين</span>
+</nav>
+{% endblock %}
+
 {% block content %}
 <div class="users-page">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="mb-0">إدارة المستخدمين</h4>
-        <a href="{% url 'accounts:user_create' %}" class="btn btn-primary">
-            <i class="fas fa-plus me-2"></i>إضافة مستخدم
-        </a>
+    <div class="d-flex justify-content-between align-items-center mb-4 fade-in-up flex-wrap gap-2">
+        <h4 class="mb-0"><i class="fas fa-user-cog text-primary me-2"></i>إدارة المستخدمين</h4>
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{% url 'accounts:user_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>إضافة مستخدم
+            </a>
+            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#uploadEmployeesModal">
+                <i class="fas fa-file-import me-2"></i>استيراد موظفين من إكسل
+            </button>
+        </div>
     </div>
-    
-    <div class="content-card">
-        <div class="content-card-header">
-            <h5 class="content-card-title">قائمة المستخدمين</h5>
-            <form method="get" class="d-flex gap-2">
-                <select name="role" class="form-select form-select-sm" style="width: 150px;" onchange="this.form.submit()">
+
+    <div class="filter-bar fade-in-up">
+        <form method="get" class="row g-2 align-items-center">
+            <div class="col-md-3 col-6">
+                <select name="role" class="form-select form-select-sm" onchange="this.form.submit()">
                     <option value="">كل الأدوار</option>
                     {% for role_value, role_label in roles %}
                     <option value="{{ role_value }}" {% if request.GET.role == role_value %}selected{% endif %}>{{ role_label }}</option>
                     {% endfor %}
                 </select>
-                <input type="text" name="search" class="form-control form-control-sm" placeholder="بحث..." value="{{ request.GET.search }}">
-                <button type="submit" class="btn btn-sm btn-primary">
-                    <i class="fas fa-search"></i>
+            </div>
+            <div class="col-md-7 col-6">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                    <input type="text" name="search" class="form-control" placeholder="بحث..." value="{{ request.GET.search }}">
+                </div>
+            </div>
+            <div class="col-md-2 col-12">
+                <button type="submit" class="btn btn-sm btn-primary w-100">
+                    <i class="fas fa-search me-1"></i> بحث
                 </button>
-            </form>
+            </div>
+        </form>
+    </div>
+
+    <div class="content-card fade-in-up">
+        <div class="content-card-header">
+            <h5 class="content-card-title">قائمة المستخدمين</h5>
         </div>
         <div class="content-card-body p-0">
             <div class="table-container">
@@ -93,7 +118,9 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="8" class="text-center py-4 text-muted">لا يوجد مستخدمين</td>
+                            <td colspan="8">
+                                {% include 'partials/empty_state.html' with icon='fa-user-cog' title='لا يوجد مستخدمين' %}
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -101,7 +128,7 @@
             </div>
         </div>
     </div>
-    
+
     {% if is_paginated %}
     <nav class="mt-4">
         <ul class="pagination justify-content-center">
@@ -110,13 +137,13 @@
                 <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.role %}&role={{ request.GET.role }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">السابق</a>
             </li>
             {% endif %}
-            
+
             {% for num in page_obj.paginator.page_range %}
             <li class="page-item {% if page_obj.number == num %}active{% endif %}">
                 <a class="page-link" href="?page={{ num }}{% if request.GET.role %}&role={{ request.GET.role }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">{{ num }}</a>
             </li>
             {% endfor %}
-            
+
             {% if page_obj.has_next %}
             <li class="page-item">
                 <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.role %}&role={{ request.GET.role }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}">التالي</a>
@@ -125,5 +152,46 @@
         </ul>
     </nav>
     {% endif %}
+</div>
+
+<!-- Upload Employees Modal -->
+<div class="modal fade" id="uploadEmployeesModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'accounts:upload_employees' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-file-import me-2"></i>استيراد موظفين من إكسل</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">الفرع <span class="required-mark">*</span></label>
+                        <select name="institute" class="form-select" required>
+                            <option value="">-- اختر الفرع --</option>
+                            {% for inst in institutes %}
+                            <option value="{{ inst.id }}">{{ inst.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">كل الموظفين في الملف هيتضافوا للفرع ده.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">ملف Excel / CSV <span class="required-mark">*</span></label>
+                        <input type="file" name="file" class="form-control" accept=".xlsx,.xls,.csv" required>
+                        <small class="text-muted d-block mt-2">
+                            أعمدة الملف المطلوبة: <code>username</code> (إجباري وفريد)، <code>first_name</code>، <code>last_name</code>، <code>email</code>، <code>phone</code>.
+                            الباسورد بيتولّد تلقائياً لكل موظف وهيظهرلك في جدول بعد الرفع.
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-upload me-2"></i>رفع واستيراد
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 {% endblock %}

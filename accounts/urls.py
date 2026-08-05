@@ -35,6 +35,8 @@ urlpatterns = [
     # User Management (Admin only)
     path('users/', views.UserListView.as_view(), name='user_list'),
     path('users/create/', views.UserCreateView.as_view(), name='user_create'),
+    path('users/upload/', views.upload_employees, name='upload_employees'),
+    path('users/upload/result/', views.UploadEmployeesResultView.as_view(), name='upload_employees_result'),
     path('users/<int:pk>/', views.UserDetailView.as_view(), name='user_detail'),
     path('users/<int:pk>/edit/', views.UserUpdateView.as_view(), name='user_update'),
     path('users/<int:pk>/delete/', views.UserDeleteView.as_view(), name='user_delete'),
