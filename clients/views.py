@@ -40,7 +40,7 @@ class ClientCreateView(EmployeeRequiredMixin, CreateView):
     template_name = 'clients/client_form.html'
     fields = [
         'first_name', 'last_name', 'national_id', 'gender', 'birth_date',
-        'phone', 'email', 'address', 'notes'
+        'phone', 'email', 'city', 'sector', 'notes'
     ]
     success_url = reverse_lazy('clients:client_list')
     
@@ -98,7 +98,7 @@ class ClientUpdateView(EmployeeRequiredMixin, UpdateView):
     template_name = 'clients/client_form.html'
     fields = [
         'first_name', 'last_name', 'national_id', 'gender', 'birth_date',
-        'phone', 'email', 'address', 'status', 'notes'
+        'phone', 'email', 'city', 'sector', 'status', 'notes'
     ]
     
     def get_success_url(self):
@@ -202,7 +202,8 @@ class GetClientByNationalIdView(LoginRequiredMixin, View):
                     'email': client.email,
                     'birth_date': client.birth_date.strftime('%Y-%m-%d') if client.birth_date else None,
                     'gender': client.gender,
-                    'address': client.address,
+                    'city': client.city,
+                    'sector': client.sector,
                     'institute_id': client.institute_id
                 }
             })
@@ -257,7 +258,8 @@ def upload_clients(request):
                     'birth_date': clean_date(row.get('birth_date')),
                     'phone': str(row.get('phone', '')).strip(),
                     'email': row.get('email', ''),
-                    'address': row.get('address', ''),
+                    'city': row.get('city', ''),
+                    'sector': row.get('sector', ''),
                     'notes': row.get('notes', ''),
                     'status': row.get('status', 'active'),
                     'institute_id': inst_id,

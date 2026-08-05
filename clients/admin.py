@@ -6,24 +6,24 @@ from .models import Client
 @admin.register(Client)
 class ClientAdmin(admin.ModelAdmin):
     list_display = [
-        'full_name', 'national_id', 'phone', 'institute', 
+        'full_name', 'national_id', 'phone', 'city', 'institute',
         'gender', 'status', 'registration_date'
     ]
-    list_filter = ['status', 'gender', 'institute', 'registration_date']
+    list_filter = ['status', 'gender', 'sector', 'institute', 'registration_date']
     search_fields = [
-        'full_name', 'national_id', 'phone', 'email', 'address'
+        'full_name', 'national_id', 'phone', 'email', 'city'
     ]
     date_hierarchy = 'registration_date'
-    
+
     fieldsets = (
         (_('Personal Info'), {
             'fields': ('first_name', 'last_name', 'full_name', 'national_id')
         }),
         (_('Personal Details'), {
-            'fields': ('gender', 'birth_date')
+            'fields': ('gender', 'birth_date', 'sector')
         }),
         (_('Contact Info'), {
-            'fields': ('phone', 'email', 'address')
+            'fields': ('phone', 'email', 'city', 'address')
         }),
         (_('Institute & Registration'), {
             'fields': ('institute', 'registered_by', 'status')

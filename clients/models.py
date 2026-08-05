@@ -15,7 +15,13 @@ class Client(BaseModel):
         ACTIVE = 'active', _('Active')
         INACTIVE = 'inactive', _('Inactive')
         GRADUATED = 'graduated', _('Graduated')
-    
+
+    class Sector(models.TextChoices):
+        MILITARY = 'military', _('عسكري')
+        CIVIL = 'civil', _('مدني')
+        RETIRED = 'retired', _('متقاعد')
+        OTHER = 'other', _('أخرى')
+
     # البيانات الشخصية
     first_name = models.CharField(max_length=100, verbose_name=_('First Name'))
     last_name = models.CharField(max_length=100, verbose_name=_('Last Name'))
@@ -39,8 +45,15 @@ class Client(BaseModel):
     # معلومات الاتصال
     phone = models.CharField(max_length=20, verbose_name=_('Phone'))
     email = models.EmailField(blank=True, verbose_name=_('Email'))
-    address = models.TextField(verbose_name=_('Address'))
-    
+    address = models.TextField(blank=True, verbose_name=_('Address'))
+    city = models.CharField(max_length=100, blank=True, verbose_name=_('City'))
+    sector = models.CharField(
+        max_length=20,
+        choices=Sector.choices,
+        blank=True,
+        verbose_name=_('Sector')
+    )
+
     # المعهد
     institute = models.ForeignKey(
         'institutes.Institute',

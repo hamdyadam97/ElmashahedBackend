@@ -70,8 +70,12 @@
                             <td>{{ client.registration_date|date:"Y-m-d" }}</td>
                         </tr>
                         <tr>
-                            <td><strong>العنوان:</strong></td>
-                            <td>{{ client.address }}</td>
+                            <td><strong>المدينة:</strong></td>
+                            <td>{{ client.city|default:"-" }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>القطاع:</strong></td>
+                            <td>{{ client.get_sector_display|default:"-" }}</td>
                         </tr>
                     </table>
 

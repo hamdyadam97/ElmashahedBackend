@@ -108,9 +108,25 @@
                     </div>
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label">العنوان <span class="required-mark">*</span></label>
-                    <textarea name="address" class="form-control" rows="2" required>{{ object.address|default:'' }}</textarea>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">المدينة</label>
+                        <div class="field-icon-group">
+                            <input type="text" name="city" class="form-control" value="{{ object.city|default:'' }}">
+                            <i class="fas fa-city field-icon"></i>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">القطاع</label>
+                        <select name="sector" class="form-select">
+                            <option value="">-- اختر القطاع --</option>
+                            <option value="military" {% if object.sector == 'military' %}selected{% endif %}>عسكري</option>
+                            <option value="civil" {% if object.sector == 'civil' %}selected{% endif %}>مدني</option>
+                            <option value="retired" {% if object.sector == 'retired' %}selected{% endif %}>متقاعد</option>
+                            <option value="other" {% if object.sector == 'other' %}selected{% endif %}>أخرى</option>
+                        </select>
+                    </div>
                 </div>
 
                 {% if object %}
