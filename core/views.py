@@ -185,8 +185,8 @@ class ArchiveView(LoginRequiredMixin, TemplateView):
         
         if search_query:
             queryset = queryset.filter(name__icontains=search_query)
-        
-        return queryset.order_by('-updated_at')[:50]
+
+        return queryset.order_by('-id')[:50]
 
 
 class RestoreItemView(LoginRequiredMixin, View):
