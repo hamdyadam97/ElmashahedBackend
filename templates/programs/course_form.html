@@ -14,22 +14,23 @@
             <form method="post" novalidate>
                 {% csrf_token %}
 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">المعهد التابع له <span class="text-danger">*</span></label>
-                        <select name="institute" class="form-select" required>
-                            <option value="">إختر المعهد...</option>
-                            {% for inst in form.fields.institute.queryset %}
-                                <option value="{{ inst.id }}" {% if object.institute_id == inst.id or form.institute.value|add:"0" == inst.id %}selected{% endif %}>
-                                    {{ inst.name }}
-                                </option>
-                            {% endfor %}
-                        </select>
+                <div class="mb-3">
+                    <label class="form-label">اسم الدورة <span class="text-danger">*</span></label>
+                    <input type="text" name="name" class="form-control" value="{{ object.name|default:'' }}" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">المعاهد اللي بتقدّم الدورة دي <span class="text-danger">*</span></label>
+                    <div class="border rounded p-3 d-flex flex-wrap gap-3">
+                        {% for inst in institutes %}
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="institutes" value="{{ inst.id }}" id="inst_{{ inst.id }}"
+                                {% if inst.id in selected_institute_ids %}checked{% endif %}>
+                            <label class="form-check-label" for="inst_{{ inst.id }}">{{ inst.name }}</label>
+                        </div>
+                        {% endfor %}
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">اسم الدورة <span class="text-danger">*</span></label>
-                        <input type="text" name="name" class="form-control" value="{{ object.name|default:'' }}" required>
-                    </div>
+                    <small class="text-muted">تقدر تختار أكتر من معهد - الدورة تبقى متاحة لكل المعاهد المختارة.</small>
                 </div>
 
                 <div class="row">

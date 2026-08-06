@@ -51,12 +51,13 @@ class LandingView(View):
 
 
 def api_diplomas(request):
-    """AJAX: قائمة الدبلومات النشطة - متاحة لكل الفروع بصرف النظر عن الفرع المختار"""
+    """AJAX: قائمة الدبلومات النشطة المرتبطة فعلياً بالفرع المختار"""
     institute_id = request.GET.get('institute_id')
     if not institute_id:
         return JsonResponse({'results': []})
 
     diplomas = Diploma.objects.filter(
+        institutes__id=institute_id,
         status='active',
         is_deleted=False
     ).order_by('name').values(
@@ -172,16 +173,26 @@ class IssueView(View):
         client_id = request.POST.get('client_id')
         diploma_id = request.POST.get('diploma_id')
         institute_id = request.POST.get('institute_id')
+        study_mode = request.POST.get('study_mode') or ''
         ref_code = (request.POST.get('ref_code') or '').strip()
 
         client = get_object_or_404(Client, pk=client_id, is_deleted=False)
-        diploma = get_object_or_404(Diploma, pk=diploma_id, is_deleted=False, status='active')
 
-        # الإذن بيتربط بالفرع اللي اختاره الزائر في الخطوة الأولى - مش بفرع الدبلومة
-        # (الدبلومة بقت متاحة لكل الفروع)، وإلا بنرجع لمعهد العميل كاحتياطي
+        # الإذن بيتربط بالفرع اللي اختاره الزائر في الخطوة الأولى، وإلا بنرجع لمعهد العميل كاحتياطي
         institute = Institute.objects.filter(pk=institute_id, status=Institute.Status.ACTIVE).first()
         if not institute:
             institute = client.institute
+
+        # حماية: التأكد إن الدبلومة فعلاً مرتبطة بالفرع ده
+        diploma = get_object_or_404(
+            Diploma, pk=diploma_id, is_deleted=False, status='active', institutes=institute
+        )
+
+        # طريقة الدراسة: لو الدبلومة حضوري/أونلاين بس، نثبتها كده بصرف النظر عما أُرسل
+        if diploma.study_mode != 'both':
+            study_mode = diploma.study_mode
+        elif study_mode not in ('offline', 'online'):
+            study_mode = ''
 
         employee = _resolve_referral_employee(ref_code)
 
@@ -189,6 +200,7 @@ class IssueView(View):
             client=client,
             diploma=diploma,
             institute=institute,
+            study_mode=study_mode,
             expiry_date=diploma.end_date or (timezone.now().date() + timezone.timedelta(days=365)),
             issued_by=None,
             issued_from_public=True,

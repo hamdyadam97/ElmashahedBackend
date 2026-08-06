@@ -19,19 +19,20 @@ class ProgramRegistrationInline(admin.TabularInline):
 @admin.register(Diploma)
 class DiplomaAdmin(admin.ModelAdmin):
     list_display = [
-        'name', 'code', 'institute', 'duration_months', 
+        'name', 'code', 'get_institutes_display', 'duration_months',
         'start_date', 'end_date', 'status'
     ]
-    list_filter = ['status', 'institute', 'start_date']
+    list_filter = ['status', 'institutes', 'start_date']
     search_fields = ['name', 'code', 'description']
     date_hierarchy = 'start_date'
-    
+    filter_horizontal = ('institutes',)
+
     fieldsets = (
         (_('Basic Info'), {
             'fields': ('name', 'code', 'description', 'category')
         }),
-        (_('Institute'), {
-            'fields': ('institute',)
+        (_('Institutes'), {
+            'fields': ('institutes',)
         }),
         (_('Duration & Dates'), {
             'fields': (
@@ -49,24 +50,29 @@ class DiplomaAdmin(admin.ModelAdmin):
     )
 
     inlines = [ProgramRegistrationInline]
+
+    def get_institutes_display(self, obj):
+        return obj.get_institutes_display()
+    get_institutes_display.short_description = _('Institutes')
 
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
     list_display = [
-        'name', 'code', 'institute', 'duration_months',
+        'name', 'code', 'get_institutes_display', 'duration_months',
         'start_date', 'end_date', 'status'
     ]
-    list_filter = ['status', 'institute', 'start_date']
+    list_filter = ['status', 'institutes', 'start_date']
     search_fields = ['name', 'code', 'description']
     date_hierarchy = 'start_date'
+    filter_horizontal = ('institutes',)
 
     fieldsets = (
         (_('Basic Info'), {
             'fields': ('name', 'code', 'description', 'category')
         }),
-        (_('Institute'), {
-            'fields': ('institute',)
+        (_('Institutes'), {
+            'fields': ('institutes',)
         }),
         (_('Duration & Dates'), {
             'fields': (
@@ -84,6 +90,10 @@ class CourseAdmin(admin.ModelAdmin):
     )
 
     inlines = [ProgramRegistrationInline]
+
+    def get_institutes_display(self, obj):
+        return obj.get_institutes_display()
+    get_institutes_display.short_description = _('Institutes')
 
 
 @admin.register(ProgramRegistration)

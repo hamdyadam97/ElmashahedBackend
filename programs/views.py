@@ -95,7 +95,7 @@ class BaseProgramListView(LoginRequiredMixin, SearchMixin, FilterMixin, ListView
 class BaseProgramCreateView(BranchManagerRequiredMixin, CreateView):
     """Base View for creating Diploma or Course"""
     fields = [
-        'institute', 'name', 'code', 'description', 'category', 'duration_months',
+        'institutes', 'name', 'code', 'description', 'category', 'duration_months',
         'hours', 'duration', 'study_mode',
         'start_date', 'end_date', 'registration_start_date', 'registration_end_date',
         'fees', 'status'
@@ -103,26 +103,18 @@ class BaseProgramCreateView(BranchManagerRequiredMixin, CreateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if self.request.user.is_admin():
-            context['institutes'] = Institute.objects.all()
-        return context
-    
-    def get_form(self, form_class=None):
-        form = super().get_form(form_class)
+        context['institutes'] = Institute.objects.filter(status='active').order_by('name')
+        # نقترح معهد المستخدم كاختيار مبدئي، بدون ما نمنعه من إضافة معاهد تانية
         user = self.request.user
-        
-        if user.is_branch_manager() and user.managed_institute:
-            form.instance.institute = user.managed_institute
-            if 'institute' in form.fields:
-                del form.fields['institute']
-        
-        return form
-    
+        default_institute = user.managed_institute or user.institute
+        context['selected_institute_ids'] = [default_institute.pk] if default_institute else []
+        return context
+
     def form_valid(self, form):
         messages.success(self.request, f'تم إنشاء {self.get_program_type()} {form.instance.name} بنجاح')
         logger.info(f'{self.get_program_type()} {form.instance.name} created by {self.request.user.username}')
         return super().form_valid(form)
-    
+
     def get_program_type(self):
         return 'البرنامج'
 
@@ -130,20 +122,26 @@ class BaseProgramCreateView(BranchManagerRequiredMixin, CreateView):
 class BaseProgramUpdateView(BranchManagerRequiredMixin, UpdateView):
     """Base View for updating Diploma or Course"""
     fields = [
-        'institute', 'name', 'code', 'description', 'category', 'duration_months',
+        'institutes', 'name', 'code', 'description', 'category', 'duration_months',
         'hours', 'duration', 'study_mode',
         'start_date', 'end_date', 'registration_start_date', 'registration_end_date',
         'fees', 'status'
     ]
-    
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['institutes'] = Institute.objects.filter(status='active').order_by('name')
+        context['selected_institute_ids'] = list(self.object.institutes.values_list('id', flat=True))
+        return context
+
     def get_success_url(self):
         return reverse_lazy(self.detail_url_name, kwargs={'pk': self.object.pk})
-    
+
     def form_valid(self, form):
         messages.success(self.request, 'تم التحديث بنجاح')
         logger.info(f'{self.get_program_type()} {form.instance.name} updated by {self.request.user.username}')
         return super().form_valid(form)
-    
+
     def get_program_type(self):
         return 'البرنامج'
 
@@ -303,14 +301,18 @@ class RegistrationCreateView(EmployeeRequiredMixin, CreateView):
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
         user = self.request.user
+        institute = user.institute or user.managed_institute
 
-        # الدبلومات والدورات متاحة لكل الفروع - مش مقصورة على معهد الموظف
-        form.fields['diploma'].queryset = Diploma.objects.filter(status='active')
-        form.fields['course'].queryset = Course.objects.filter(status='active')
+        # الدبلومة/الدورة لازم تكون مرتبطة فعلياً بمعهد الموظف (أو كل المعاهد لو أدمن/مدير إقليمي)
+        if institute:
+            form.fields['diploma'].queryset = Diploma.objects.filter(institutes=institute, status='active')
+            form.fields['course'].queryset = Course.objects.filter(institutes=institute, status='active')
+            form.fields['client'].queryset = institute.clients.filter(status='active', is_deleted=False)
+        else:
+            form.fields['diploma'].queryset = Diploma.objects.filter(status='active')
+            form.fields['course'].queryset = Course.objects.filter(status='active')
+
         form.fields['study_mode'].required = False
-
-        if user.institute:
-            form.fields['client'].queryset = user.institute.clients.filter(status='active', is_deleted=False)
 
         return form
 
@@ -384,12 +386,11 @@ def upload_diplomas(request):
             if cat_id and not ProgramCategory.objects.filter(id=cat_id).exists():
                 continue
             
-            Diploma.objects.update_or_create(
+            diploma, _created = Diploma.objects.update_or_create(
                 code=row['code'],
                 defaults={
                     'name': row['name'],
                     'description': row.get('description', ''),
-                    'institute_id': inst_id,
                     'category_id': cat_id,
                     'duration_months': row.get('duration_months', 24),
                     'fees': row.get('fees', 0.00),
@@ -400,6 +401,7 @@ def upload_diplomas(request):
                     'status': row.get('status', 'active'),
                 }
             )
+            diploma.institutes.add(inst_id)
             items_created += 1
         
         if items_created > 0:
@@ -444,12 +446,11 @@ def upload_courses(request):
             s_date = _clean_date(row.get('start_date'), date.today())
             e_date = _clean_date(row.get('end_date'), s_date)
             
-            Course.objects.update_or_create(
+            course, _created = Course.objects.update_or_create(
                 code=code,
                 defaults={
                     'name': row.get('name'),
                     'description': row.get('description', ''),
-                    'institute_id': inst_id,
                     'category_id': cat_id,
                     'duration_months': row.get('duration_months', 6),
                     'fees': row.get('fees', 0.00),
@@ -460,6 +461,7 @@ def upload_courses(request):
                     'status': row.get('status', 'active'),
                 }
             )
+            course.institutes.add(inst_id)
             items_created += 1
         
         logger.info(f'{items_created} courses imported by {user.username}')
@@ -480,7 +482,7 @@ def export_diplomas_excel(request):
             data.append({
                 'الكود': d.code,
                 'الاسم': d.name,
-                'المعهد': d.institute.name,
+                'المعهد': d.get_institutes_display(),
                 'الفئة': d.category.name if d.category else '',
                 'الرسوم': d.fees,
                 'المدة': d.duration_months,

@@ -46,13 +46,13 @@ class Diploma(BaseModel):
     code = models.CharField(max_length=20, unique=True, verbose_name=_('Diploma Code'))
     description = models.TextField(blank=True, verbose_name=_('Description'))
     
-    institute = models.ForeignKey(
+    institutes = models.ManyToManyField(
         'institutes.Institute',
-        on_delete=models.CASCADE,
         related_name='diplomas',
-        verbose_name=_('Institute')
+        verbose_name=_('Institutes'),
+        help_text=_('Institutes offering this diploma - can be more than one')
     )
-    
+
     category = models.ForeignKey(
         ProgramCategory,
         on_delete=models.SET_NULL,
@@ -113,14 +113,17 @@ class Diploma(BaseModel):
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['code']),
-            models.Index(fields=['institute', 'status']),
+            models.Index(fields=['status']),
             models.Index(fields=['start_date', 'end_date']),
             models.Index(fields=['is_deleted']),
         ]
-    
+
     def __str__(self):
-        return f"{self.name} - {self.institute.name}"
-    
+        return self.name
+
+    def get_institutes_display(self):
+        return '، '.join(self.institutes.values_list('name', flat=True))
+
     def get_registered_clients_count(self):
         return self.registrations.count()
 
@@ -137,13 +140,13 @@ class Course(BaseModel):
     code = models.CharField(max_length=20, unique=True, verbose_name=_('Course Code'))
     description = models.TextField(blank=True, verbose_name=_('Description'))
     
-    institute = models.ForeignKey(
+    institutes = models.ManyToManyField(
         'institutes.Institute',
-        on_delete=models.CASCADE,
         related_name='courses',
-        verbose_name=_('Institute')
+        verbose_name=_('Institutes'),
+        help_text=_('Institutes offering this course - can be more than one')
     )
-    
+
     category = models.ForeignKey(
         ProgramCategory,
         on_delete=models.SET_NULL,
@@ -204,14 +207,17 @@ class Course(BaseModel):
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['code']),
-            models.Index(fields=['institute', 'status']),
+            models.Index(fields=['status']),
             models.Index(fields=['start_date', 'end_date']),
             models.Index(fields=['is_deleted']),
         ]
-    
+
     def __str__(self):
-        return f"{self.name} - {self.institute.name}"
-    
+        return self.name
+
+    def get_institutes_display(self):
+        return '، '.join(self.institutes.values_list('name', flat=True))
+
     def get_registered_clients_count(self):
         return self.registrations.count()
 

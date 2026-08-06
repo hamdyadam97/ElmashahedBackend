@@ -120,7 +120,7 @@
             <tr>
                 <td><strong>{{ d.code }}</strong></td>
                 <td style="text-align: right;">{{ d.name }}</td>
-                <td>{{ d.institute.name }}</td>
+                <td>{{ d.get_institutes_display }}</td>
                 <td class="fees">{{ d.fees }} ج.م</td>
                 <td>
                     <span class="status-badge {% if d.status == 'active' %}active{% else %}closed{% endif %}">

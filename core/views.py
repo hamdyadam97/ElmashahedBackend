@@ -102,45 +102,45 @@ class ArchiveView(LoginRequiredMixin, TemplateView):
             pass
         elif user.is_regional_manager():
             institutes = user.managed_institutes.all()
-            queryset = queryset.filter(institute__in=institutes)
+            queryset = queryset.filter(institutes__in=institutes)
         elif user.is_branch_manager() and user.managed_institute:
-            queryset = queryset.filter(institute=user.managed_institute)
+            queryset = queryset.filter(institutes=user.managed_institute)
         elif user.is_employee() and user.institute:
-            queryset = queryset.filter(institute=user.institute)
+            queryset = queryset.filter(institutes=user.institute)
         else:
             queryset = queryset.none()
-        
+
         if search_query:
             queryset = queryset.filter(
                 Q(name__icontains=search_query) |
                 Q(code__icontains=search_query)
             )
-        
-        return queryset.select_related('institute').order_by('-updated_at')[:50]
-    
+
+        return queryset.prefetch_related('institutes').distinct().order_by('-updated_at')[:50]
+
     def _get_deleted_courses(self, user, search_query=''):
         """الحصول على الدورات المحذوفة"""
         queryset = Course.all_objects.filter(is_deleted=True)
-        
+
         if user.is_admin():
             pass
         elif user.is_regional_manager():
             institutes = user.managed_institutes.all()
-            queryset = queryset.filter(institute__in=institutes)
+            queryset = queryset.filter(institutes__in=institutes)
         elif user.is_branch_manager() and user.managed_institute:
-            queryset = queryset.filter(institute=user.managed_institute)
+            queryset = queryset.filter(institutes=user.managed_institute)
         elif user.is_employee() and user.institute:
-            queryset = queryset.filter(institute=user.institute)
+            queryset = queryset.filter(institutes=user.institute)
         else:
             queryset = queryset.none()
-        
+
         if search_query:
             queryset = queryset.filter(
                 Q(name__icontains=search_query) |
                 Q(code__icontains=search_query)
             )
-        
-        return queryset.select_related('institute').order_by('-updated_at')[:50]
+
+        return queryset.prefetch_related('institutes').distinct().order_by('-updated_at')[:50]
     
     def _get_deleted_institutes(self, search_query=''):
         """الحصول على المعاهد المحذوفة (Admin فقط)"""

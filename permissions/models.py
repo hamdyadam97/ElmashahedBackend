@@ -4,6 +4,7 @@ from django.utils import timezone
 import uuid
 
 from core.models import BaseModel
+from programs.models import StudyMode
 
 
 class PermissionSlip(BaseModel):
@@ -94,6 +95,14 @@ class PermissionSlip(BaseModel):
     # الملاحظات
     notes = models.TextField(blank=True, verbose_name=_('Notes'))
 
+    # طريقة الدراسة اللي اختارها الطالب (حضوري/أونلاين) - لو البرنامج بيدعم الاتنين
+    study_mode = models.CharField(
+        max_length=20,
+        choices=[(StudyMode.OFFLINE, StudyMode.OFFLINE.label), (StudyMode.ONLINE, StudyMode.ONLINE.label)],
+        blank=True,
+        verbose_name=_('Study Mode')
+    )
+
     # إصدار عام (بدون تسجيل دخول) وتتبع الإحالة
     issued_from_public = models.BooleanField(
         default=False,
@@ -146,13 +155,11 @@ class PermissionSlip(BaseModel):
         elif self.course:
             self.program_type = 'course'
 
-        # المعهد: لو محدد صراحةً (الفرع اللي بيصدر الإذن) بنسيبه زي ما هو،
-        # وإلا (لأي كود قديم مبيحددوش) بنرجع لمعهد الدبلومة/الدورة كاحتياطي
-        if not self.institute_id:
-            if self.diploma:
-                self.institute = self.diploma.institute
-            elif self.course:
-                self.institute = self.course.institute
+        # المعهد: لازم يتحدد صراحةً من الكود اللي بينشئ الإذن (فرع الموظف/الفرع
+        # المختار في البورتال). الدبلومة/الدورة بقت متاحة لأكتر من معهد فمفيش
+        # "معهد واحد" نقدر نرجع له تلقائياً - بنرجع لمعهد العميل كاحتياطي أخير فقط
+        if not self.institute_id and self.client_id:
+            self.institute = self.client.institute
 
         super().save(*args, **kwargs)
     

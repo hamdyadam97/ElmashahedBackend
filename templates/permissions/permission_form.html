@@ -23,7 +23,7 @@
 
     <div class="content-card fade-in-up">
         <div class="content-card-body">
-            <form method="post" novalidate>
+            <form method="post" novalidate id="permissionForm">
                 {% csrf_token %}
 
                 <div class="mb-3">
@@ -42,7 +42,7 @@
                         <select name="diploma" class="form-select" id="diploma_select">
                             <option value="">-</option>
                             {% for diploma in diplomas %}
-                            <option value="{{ diploma.pk }}">{{ diploma.name }}</option>
+                            <option value="{{ diploma.pk }}" data-study-mode="{{ diploma.study_mode }}">{{ diploma.name }}</option>
                             {% endfor %}
                         </select>
                         <small class="text-muted">اختر الدبلومة أو الدورة</small>
@@ -53,11 +53,29 @@
                         <select name="course" class="form-select" id="course_select">
                             <option value="">-</option>
                             {% for course in courses %}
-                            <option value="{{ course.pk }}">{{ course.name }}</option>
+                            <option value="{{ course.pk }}" data-study-mode="{{ course.study_mode }}">{{ course.name }}</option>
                             {% endfor %}
                         </select>
                     </div>
                 </div>
+
+                <div class="mb-3" id="studyModeSection" style="display:none;">
+                    <label class="form-label">طريقة الدراسة <span class="required-mark">*</span></label>
+
+                    <div id="studyModeFixedText" class="alert alert-light border py-2 mb-0" style="display:none;"></div>
+
+                    <div id="studyModeChoice" class="d-flex gap-3" style="display:none;">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="study_mode_radio" id="modeOffline" value="offline">
+                            <label class="form-check-label" for="modeOffline"><i class="fas fa-building me-1"></i>حضوري</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="study_mode_radio" id="modeOnline" value="online">
+                            <label class="form-check-label" for="modeOnline"><i class="fas fa-laptop me-1"></i>أونلاين</label>
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" name="study_mode" id="studyModeHidden" value="">
 
                 <div class="mb-3">
                     <label class="form-label">تاريخ الانتهاء</label>
@@ -83,18 +101,77 @@
 
 {% block extra_js %}
 <script>
-// التأكد من اختيار دبلومة أو دورة فقط
-document.getElementById('diploma_select').addEventListener('change', function() {
-    if (this.value) {
-        document.getElementById('course_select').value = '';
-    }
-});
+    const diplomaSelect = document.getElementById('diploma_select');
+    const courseSelect = document.getElementById('course_select');
+    const studyModeSection = document.getElementById('studyModeSection');
+    const studyModeFixedText = document.getElementById('studyModeFixedText');
+    const studyModeChoice = document.getElementById('studyModeChoice');
+    const studyModeHidden = document.getElementById('studyModeHidden');
+    const permissionForm = document.getElementById('permissionForm');
 
-document.getElementById('course_select').addEventListener('change', function() {
-    if (this.value) {
-        document.getElementById('diploma_select').value = '';
+    function applyStudyMode(mode) {
+        if (!mode) {
+            studyModeSection.style.display = 'none';
+            studyModeFixedText.style.display = 'none';
+            studyModeChoice.style.display = 'none';
+            studyModeHidden.value = '';
+            return;
+        }
+
+        studyModeSection.style.display = 'block';
+
+        if (mode === 'both') {
+            studyModeFixedText.style.display = 'none';
+            studyModeChoice.style.display = 'flex';
+            const checked = document.querySelector('input[name="study_mode_radio"]:checked');
+            studyModeHidden.value = checked ? checked.value : '';
+        } else {
+            studyModeChoice.style.display = 'none';
+            studyModeFixedText.style.display = 'block';
+            studyModeFixedText.textContent = mode === 'offline'
+                ? '📍 هذا البرنامج حضوري فقط'
+                : '💻 هذا البرنامج أونلاين فقط';
+            studyModeHidden.value = mode;
+        }
     }
-});
+
+    function getSelectedStudyMode() {
+        if (diplomaSelect.value) {
+            return diplomaSelect.options[diplomaSelect.selectedIndex].dataset.studyMode || '';
+        }
+        if (courseSelect.value) {
+            return courseSelect.options[courseSelect.selectedIndex].dataset.studyMode || '';
+        }
+        return '';
+    }
+
+    // التأكد من اختيار دبلومة أو دورة فقط
+    diplomaSelect.addEventListener('change', function() {
+        if (this.value) {
+            courseSelect.value = '';
+        }
+        applyStudyMode(getSelectedStudyMode());
+    });
+
+    courseSelect.addEventListener('change', function() {
+        if (this.value) {
+            diplomaSelect.value = '';
+        }
+        applyStudyMode(getSelectedStudyMode());
+    });
+
+    document.querySelectorAll('input[name="study_mode_radio"]').forEach(radio => {
+        radio.addEventListener('change', function () {
+            studyModeHidden.value = this.value;
+        });
+    });
+
+    permissionForm.addEventListener('submit', function (e) {
+        if (studyModeSection.style.display !== 'none' && !studyModeHidden.value) {
+            e.preventDefault();
+            alert('برجاء اختيار طريقة الدراسة');
+        }
+    });
 </script>
 {% endblock %}
 {% endblock %}

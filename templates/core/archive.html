@@ -196,7 +196,7 @@
                                     {{ diploma.name }}
                                 </td>
                                 <td><code>{{ diploma.code }}</code></td>
-                                <td>{{ diploma.institute.name }}</td>
+                                <td>{{ diploma.get_institutes_display }}</td>
                                 <td>
                                     <span class="text-danger">
                                         {{ diploma.updated_at|timesince }}
@@ -255,7 +255,7 @@
                                     {{ course.name }}
                                 </td>
                                 <td><code>{{ course.code }}</code></td>
-                                <td>{{ course.institute.name }}</td>
+                                <td>{{ course.get_institutes_display }}</td>
                                 <td>
                                     <span class="text-danger">
                                         {{ course.updated_at|timesince }}

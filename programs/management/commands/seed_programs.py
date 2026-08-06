@@ -80,7 +80,6 @@ class Command(BaseCommand):
         for code, name, hours, duration_text, duration_months in DIPLOMAS:
             defaults = {
                 'name': name,
-                'institute': institute,
                 'hours': hours,
                 'duration': duration_text,
                 'study_mode': StudyMode.BOTH,
@@ -89,6 +88,7 @@ class Command(BaseCommand):
                 defaults['duration_months'] = duration_months
 
             obj, created = Diploma.objects.update_or_create(code=code, defaults=defaults)
+            obj.institutes.add(institute)
             if created:
                 diplomas_created += 1
             else:
@@ -98,7 +98,6 @@ class Command(BaseCommand):
         for code, name, hours, duration_text, duration_months in COURSES:
             defaults = {
                 'name': name,
-                'institute': institute,
                 'hours': hours,
                 'duration': duration_text,
                 'study_mode': StudyMode.BOTH,
@@ -107,6 +106,7 @@ class Command(BaseCommand):
                 defaults['duration_months'] = duration_months
 
             obj, created = Course.objects.update_or_create(code=code, defaults=defaults)
+            obj.institutes.add(institute)
             if created:
                 courses_created += 1
             else:

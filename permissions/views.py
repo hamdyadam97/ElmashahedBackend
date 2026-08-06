@@ -54,21 +54,26 @@ class PermissionCreateView(EmployeeRequiredMixin, CreateView):
     """إنشاء إذن جديد"""
     model = PermissionSlip
     template_name = 'permissions/permission_form.html'
-    fields = ['client', 'diploma', 'course', 'expiry_date', 'notes']
+    fields = ['client', 'diploma', 'course', 'study_mode', 'expiry_date', 'notes']
     success_url = reverse_lazy('permissions:permission_list')
-    
+
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
         user = self.request.user
+        institute = user.institute or user.managed_institute
 
-        # الدبلومات والدورات متاحة لكل الفروع - مش مقصورة على معهد الموظف
-        form.fields['diploma'].queryset = Diploma.objects.filter(status='active', is_deleted=False)
-        form.fields['course'].queryset = Course.objects.filter(status='active', is_deleted=False)
+        # الدبلومة/الدورة لازم تكون مرتبطة فعلياً بمعهد الموظف (أو كل المعاهد لو أدمن/مدير إقليمي)
+        if institute:
+            form.fields['diploma'].queryset = Diploma.objects.filter(institutes=institute, status='active', is_deleted=False)
+            form.fields['course'].queryset = Course.objects.filter(institutes=institute, status='active', is_deleted=False)
+            form.fields['client'].queryset = institute.clients.filter(status='active', is_deleted=False)
+        else:
+            form.fields['diploma'].queryset = Diploma.objects.filter(status='active', is_deleted=False)
+            form.fields['course'].queryset = Course.objects.filter(status='active', is_deleted=False)
+
         # اختياري - لو فاضي بناخد تاريخ انتهاء البرنامج تلقائياً (انظر form_valid)
         form.fields['expiry_date'].required = False
-
-        if user.institute:
-            form.fields['client'].queryset = user.institute.clients.filter(status='active', is_deleted=False)
+        form.fields['study_mode'].required = False
 
         return form
     
@@ -84,23 +89,28 @@ class PermissionCreateView(EmployeeRequiredMixin, CreateView):
         user = self.request.user
         form.instance.issued_by = user
 
-        # الإذن بيتربط بفرع الموظف اللي بيصدره، مش بفرع الدبلومة (اللي بقت متاحة لكل الفروع)
+        # الإذن بيتربط بفرع الموظف اللي بيصدره، مش بفرع الدبلومة (اللي بقت متاحة لأكتر من فرع)
         if user.institute:
             form.instance.institute = user.institute
         elif user.managed_institute:
             form.instance.institute = user.managed_institute
-        else:
-            program = form.instance.diploma or form.instance.course
-            if program:
-                form.instance.institute = program.institute
+        elif form.instance.client_id:
+            form.instance.institute = form.instance.client.institute
+
+        program = form.instance.diploma or form.instance.course
 
         if not form.instance.expiry_date:
-            program = form.instance.diploma or form.instance.course
             if program and program.end_date:
                 form.instance.expiry_date = program.end_date
             else:
                 form.instance.expiry_date = timezone.now().date() + timezone.timedelta(days=365)
-        
+
+        # طريقة الدراسة: لو البرنامج حضوري/أونلاين بس، نثبتها كده بصرف النظر عما أُرسل
+        if program and program.study_mode != 'both':
+            form.instance.study_mode = program.study_mode
+        elif form.instance.study_mode not in ('offline', 'online'):
+            form.instance.study_mode = ''
+
         messages.success(self.request, 'تم إصدار الإذن بنجاح')
         logger.info(f'Permission issued for {form.instance.client} by {self.request.user.username}')
         return super().form_valid(form)

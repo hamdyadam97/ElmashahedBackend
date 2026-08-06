@@ -38,7 +38,7 @@
             <tr>
                 <td>{{ course.code }}</td>
                 <td style="text-align: right;">{{ course.name }}</td>
-                <td>{{ course.institute.name }}</td>
+                <td>{{ course.get_institutes_display }}</td>
                 <td>{{ course.duration_months }} شهر</td>
                 <td class="price">{{ course.fees }} ج.م</td>
             </tr>

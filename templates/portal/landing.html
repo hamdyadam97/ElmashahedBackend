@@ -193,6 +193,22 @@
                             <option value="">-- اختر الفرع أولاً --</option>
                         </select>
                         <div id="diplomaDetails" class="diploma-details" style="display:none;"></div>
+
+                        <div class="mt-2" id="studyModeSection" style="display:none;">
+                            <label class="mb-1"><i class="fas fa-chalkboard me-1"></i> طريقة الدراسة</label>
+                            <div id="studyModeFixedText" class="diploma-details" style="display:none;"></div>
+                            <div id="studyModeChoice" class="d-flex gap-3" style="display:none;">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="study_mode_radio" id="modeOffline" value="offline">
+                                    <label class="form-check-label" for="modeOffline"><i class="fas fa-building me-1"></i>حضوري</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="study_mode_radio" id="modeOnline" value="online">
+                                    <label class="form-check-label" for="modeOnline"><i class="fas fa-laptop me-1"></i>أونلاين</label>
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="study_mode" id="studyModeHidden" value="">
                     </div>
                 </div>
 
@@ -297,6 +313,11 @@
         const diplomaIdInput = document.getElementById('diplomaIdInput');
         const instituteIdInput = document.getElementById('instituteIdInput');
         const refCodeInput = document.getElementById('refCodeInput');
+        const studyModeSection = document.getElementById('studyModeSection');
+        const studyModeFixedText = document.getElementById('studyModeFixedText');
+        const studyModeChoice = document.getElementById('studyModeChoice');
+        const studyModeHidden = document.getElementById('studyModeHidden');
+        const issueForm = document.getElementById('issueForm');
         const registerBox = document.getElementById('registerBox');
         const showRegisterBtn = document.getElementById('showRegisterBtn');
         const registerSubmitBtn = document.getElementById('registerSubmitBtn');
@@ -341,6 +362,45 @@
             diplomaDetails.style.display = 'flex';
         }
 
+        function applyStudyMode(mode) {
+            if (!mode) {
+                studyModeSection.style.display = 'none';
+                studyModeFixedText.style.display = 'none';
+                studyModeChoice.style.display = 'none';
+                studyModeHidden.value = '';
+                return;
+            }
+
+            studyModeSection.style.display = 'block';
+
+            if (mode === 'both') {
+                studyModeFixedText.style.display = 'none';
+                studyModeChoice.style.display = 'flex';
+                const checked = document.querySelector('input[name="study_mode_radio"]:checked');
+                studyModeHidden.value = checked ? checked.value : '';
+            } else {
+                studyModeChoice.style.display = 'none';
+                studyModeFixedText.style.display = 'flex';
+                studyModeFixedText.innerHTML = mode === 'offline'
+                    ? '<span><i class="fas fa-building"></i> هذا البرنامج حضوري فقط</span>'
+                    : '<span><i class="fas fa-laptop"></i> هذا البرنامج أونلاين فقط</span>';
+                studyModeHidden.value = mode;
+            }
+        }
+
+        document.querySelectorAll('input[name="study_mode_radio"]').forEach(radio => {
+            radio.addEventListener('change', function () {
+                studyModeHidden.value = this.value;
+            });
+        });
+
+        issueForm.addEventListener('submit', function (e) {
+            if (studyModeSection.style.display !== 'none' && !studyModeHidden.value) {
+                e.preventDefault();
+                alert('برجاء اختيار طريقة الدراسة (حضوري أو أونلاين)');
+            }
+        });
+
         function setStepState(step, state) {
             step.classList.remove('active', 'done');
             if (state) step.classList.add(state);
@@ -371,6 +431,7 @@
             diplomaSelect.innerHTML = '<option value="">-- جاري التحميل --</option>';
             diplomaSelect.disabled = true;
             diplomaDetails.style.display = 'none';
+            applyStudyMode('');
             nationalIdInput.disabled = true;
             searchBtn.disabled = true;
             nationalIdInput.value = '';
@@ -410,7 +471,9 @@
             searchBtn.disabled = !hasDiploma;
             nationalIdInput.value = '';
             diplomaIdInput.value = diplomaSelect.value;
-            showDiplomaDetails(diplomaSelect.options[diplomaSelect.selectedIndex]);
+            const selectedOpt = diplomaSelect.options[diplomaSelect.selectedIndex];
+            showDiplomaDetails(selectedOpt);
+            applyStudyMode(hasDiploma ? (selectedOpt.dataset.studyMode || '') : '');
             setStepState(stepDiploma, hasDiploma ? 'done' : 'active');
             setStepState(stepSearch, hasDiploma ? 'active' : null);
         });
