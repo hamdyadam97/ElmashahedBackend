@@ -8,7 +8,7 @@ from django.views import View
 from django.views.decorators.http import require_POST
 
 from institutes.models import Institute
-from programs.models import Diploma
+from programs.models import Diploma, Course
 from clients.models import Client
 from accounts.models import User
 from permissions.models import PermissionSlip
@@ -55,20 +55,32 @@ class LandingView(View):
 
 
 def api_diplomas(request):
-    """AJAX: قائمة الدبلومات النشطة المرتبطة فعلياً بالفرع المختار"""
+    """AJAX: قائمة الدبلومات والدورات النشطة المرتبطة فعلياً بالفرع المختار"""
     institute_id = request.GET.get('institute_id')
     if not institute_id:
         return JsonResponse({'results': []})
 
-    diplomas = Diploma.objects.filter(
-        institutes__id=institute_id,
-        status='active',
-        is_deleted=False
-    ).order_by('name').values(
-        'id', 'name', 'duration_months', 'hours', 'duration', 'study_mode'
-    )
+    fields = ['id', 'name', 'duration_months', 'hours', 'duration', 'study_mode']
 
-    return JsonResponse({'results': list(diplomas)})
+    diplomas = Diploma.objects.filter(
+        institutes__id=institute_id, status='active', is_deleted=False
+    ).order_by('name').values(*fields)
+
+    courses = Course.objects.filter(
+        institutes__id=institute_id, status='active', is_deleted=False
+    ).order_by('name').values(*fields)
+
+    results = []
+    for row in diplomas:
+        row = dict(row)
+        row['type'] = 'diploma'
+        results.append(row)
+    for row in courses:
+        row = dict(row)
+        row['type'] = 'course'
+        results.append(row)
+
+    return JsonResponse({'results': results})
 
 
 def api_search_client(request):
@@ -229,6 +241,7 @@ class IssueView(View):
     def post(self, request):
         client_id = request.POST.get('client_id')
         diploma_id = request.POST.get('diploma_id')
+        program_type = request.POST.get('program_type') or 'diploma'
         institute_id = request.POST.get('institute_id')
         study_mode = request.POST.get('study_mode') or ''
         ref_code = (request.POST.get('ref_code') or '').strip()
@@ -256,14 +269,15 @@ class IssueView(View):
             """
             return HttpResponse(html, status=409)
 
-        # حماية: التأكد إن الدبلومة فعلاً مرتبطة بالفرع ده
-        diploma = get_object_or_404(
-            Diploma, pk=diploma_id, is_deleted=False, status='active', institutes=institute
+        # حماية: التأكد إن البرنامج (دبلومة أو دورة) فعلاً مرتبط بالفرع ده
+        program_model = Course if program_type == 'course' else Diploma
+        program = get_object_or_404(
+            program_model, pk=diploma_id, is_deleted=False, status='active', institutes=institute
         )
 
-        # طريقة الدراسة: لو الدبلومة حضوري/أونلاين بس، نثبتها كده بصرف النظر عما أُرسل
-        if diploma.study_mode != 'both':
-            study_mode = diploma.study_mode
+        # طريقة الدراسة: لو البرنامج حضوري/أونلاين بس، نثبتها كده بصرف النظر عما أُرسل
+        if program.study_mode != 'both':
+            study_mode = program.study_mode
         elif study_mode not in ('offline', 'online'):
             study_mode = ''
 
@@ -271,10 +285,11 @@ class IssueView(View):
 
         permission = PermissionSlip(
             client=client,
-            diploma=diploma,
+            diploma=program if program_type != 'course' else None,
+            course=program if program_type == 'course' else None,
             institute=institute,
             study_mode=study_mode,
-            expiry_date=diploma.end_date or (timezone.now().date() + timezone.timedelta(days=365)),
+            expiry_date=program.end_date or (timezone.now().date() + timezone.timedelta(days=365)),
             issued_by=None,
             issued_from_public=True,
             referral_employee=employee,
