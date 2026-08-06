@@ -139,15 +139,21 @@ class PermissionSlip(BaseModel):
         # توليد رقم الإذن تلقائياً إذا لم يكن موجوداً
         if not self.permission_number:
             self.permission_number = self.generate_permission_number()
-        
+
         # تحديد نوع البرنامج
         if self.diploma:
             self.program_type = 'diploma'
-            self.institute = self.diploma.institute
         elif self.course:
             self.program_type = 'course'
-            self.institute = self.course.institute
-        
+
+        # المعهد: لو محدد صراحةً (الفرع اللي بيصدر الإذن) بنسيبه زي ما هو،
+        # وإلا (لأي كود قديم مبيحددوش) بنرجع لمعهد الدبلومة/الدورة كاحتياطي
+        if not self.institute_id:
+            if self.diploma:
+                self.institute = self.diploma.institute
+            elif self.course:
+                self.institute = self.course.institute
+
         super().save(*args, **kwargs)
     
     def generate_permission_number(self):

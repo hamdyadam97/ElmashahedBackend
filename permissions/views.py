@@ -81,9 +81,19 @@ class PermissionCreateView(EmployeeRequiredMixin, CreateView):
         return context
     
     def form_valid(self, form):
-        form.instance.issued_by = self.request.user
-        form.instance.institute = self.request.user.institute
-        
+        user = self.request.user
+        form.instance.issued_by = user
+
+        # الإذن بيتربط بفرع الموظف اللي بيصدره، مش بفرع الدبلومة (اللي بقت متاحة لكل الفروع)
+        if user.institute:
+            form.instance.institute = user.institute
+        elif user.managed_institute:
+            form.instance.institute = user.managed_institute
+        else:
+            program = form.instance.diploma or form.instance.course
+            if program:
+                form.instance.institute = program.institute
+
         if not form.instance.expiry_date:
             program = form.instance.diploma or form.instance.course
             if program and program.end_date:

@@ -59,7 +59,9 @@ def api_diplomas(request):
     diplomas = Diploma.objects.filter(
         status='active',
         is_deleted=False
-    ).order_by('name').values('id', 'name', 'duration_months')
+    ).order_by('name').values(
+        'id', 'name', 'duration_months', 'hours', 'duration', 'study_mode'
+    )
 
     return JsonResponse({'results': list(diplomas)})
 
@@ -169,16 +171,24 @@ class IssueView(View):
     def post(self, request):
         client_id = request.POST.get('client_id')
         diploma_id = request.POST.get('diploma_id')
+        institute_id = request.POST.get('institute_id')
         ref_code = (request.POST.get('ref_code') or '').strip()
 
         client = get_object_or_404(Client, pk=client_id, is_deleted=False)
         diploma = get_object_or_404(Diploma, pk=diploma_id, is_deleted=False, status='active')
+
+        # الإذن بيتربط بالفرع اللي اختاره الزائر في الخطوة الأولى - مش بفرع الدبلومة
+        # (الدبلومة بقت متاحة لكل الفروع)، وإلا بنرجع لمعهد العميل كاحتياطي
+        institute = Institute.objects.filter(pk=institute_id, status=Institute.Status.ACTIVE).first()
+        if not institute:
+            institute = client.institute
 
         employee = _resolve_referral_employee(ref_code)
 
         permission = PermissionSlip(
             client=client,
             diploma=diploma,
+            institute=institute,
             expiry_date=diploma.end_date or (timezone.now().date() + timezone.timedelta(days=365)),
             issued_by=None,
             issued_from_public=True,

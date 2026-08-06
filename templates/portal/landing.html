@@ -137,6 +137,20 @@
         }
 
         .footer-note { text-align: center; color: #94a3b8; font-size: 12px; margin-top: 18px; }
+
+        .diploma-details {
+            margin-top: 10px;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 13px;
+            color: #1e3a8a;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+        .diploma-details span { display: flex; align-items: center; gap: 5px; }
     </style>
 </head>
 <body>
@@ -153,6 +167,7 @@
                 <input type="hidden" name="ref_code" id="refCodeInput" value="{{ ref_code }}">
                 <input type="hidden" name="client_id" id="clientIdInput">
                 <input type="hidden" name="diploma_id" id="diplomaIdInput">
+                <input type="hidden" name="institute_id" id="instituteIdInput">
 
                 <div class="step active" id="stepInstitute">
                     <div class="step-num">1</div>
@@ -177,6 +192,7 @@
                         <select id="diplomaSelect" class="form-select" disabled>
                             <option value="">-- اختر الفرع أولاً --</option>
                         </select>
+                        <div id="diplomaDetails" class="diploma-details" style="display:none;"></div>
                     </div>
                 </div>
 
@@ -271,6 +287,7 @@
     <script>
         const instituteSelect = document.getElementById('instituteSelect');
         const diplomaSelect = document.getElementById('diplomaSelect');
+        const diplomaDetails = document.getElementById('diplomaDetails');
         const nationalIdInput = document.getElementById('nationalIdInput');
         const searchBtn = document.getElementById('searchBtn');
         const clientCard = document.getElementById('clientCard');
@@ -278,16 +295,51 @@
         const issueBtn = document.getElementById('issueBtn');
         const clientIdInput = document.getElementById('clientIdInput');
         const diplomaIdInput = document.getElementById('diplomaIdInput');
+        const instituteIdInput = document.getElementById('instituteIdInput');
         const refCodeInput = document.getElementById('refCodeInput');
         const registerBox = document.getElementById('registerBox');
         const showRegisterBtn = document.getElementById('showRegisterBtn');
         const registerSubmitBtn = document.getElementById('registerSubmitBtn');
         const registerErrorCard = document.getElementById('registerErrorCard');
-        const csrfToken = document.querySelector('#issueForm [name=csrfmiddlewaretoken]').value;
 
         const stepInstitute = document.getElementById('stepInstitute');
         const stepDiploma = document.getElementById('stepDiploma');
         const stepSearch = document.getElementById('stepSearch');
+
+        // بنقرا التوكن من الكوكي مباشرة بدل الحقل المخفي، عشان لو الصفحة اتخزنت
+        // في أي كاش (CDN/متصفح) التوكن المستخدم يفضل هو الحالي الفعلي دايماً
+        function getCookie(name) {
+            const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+            return match ? decodeURIComponent(match[2]) : null;
+        }
+        function csrfToken() {
+            return getCookie('csrftoken') || document.querySelector('#issueForm [name=csrfmiddlewaretoken]').value;
+        }
+
+        const studyModeLabels = { offline: 'حضوري', online: 'أونلاين', both: 'حضوري أو أونلاين' };
+
+        function showDiplomaDetails(opt) {
+            if (!opt || !opt.value) {
+                diplomaDetails.style.display = 'none';
+                return;
+            }
+            const parts = [];
+            if (opt.dataset.hours) {
+                parts.push(`<span><i class="fas fa-clock"></i> ${opt.dataset.hours} ساعة</span>`);
+            }
+            if (opt.dataset.duration) {
+                parts.push(`<span><i class="fas fa-calendar"></i> ${opt.dataset.duration}</span>`);
+            }
+            if (opt.dataset.studyMode) {
+                parts.push(`<span><i class="fas fa-chalkboard"></i> ${studyModeLabels[opt.dataset.studyMode] || opt.dataset.studyMode}</span>`);
+            }
+            if (!parts.length) {
+                diplomaDetails.style.display = 'none';
+                return;
+            }
+            diplomaDetails.innerHTML = parts.join('');
+            diplomaDetails.style.display = 'flex';
+        }
 
         function setStepState(step, state) {
             step.classList.remove('active', 'done');
@@ -318,9 +370,11 @@
             resetClientState();
             diplomaSelect.innerHTML = '<option value="">-- جاري التحميل --</option>';
             diplomaSelect.disabled = true;
+            diplomaDetails.style.display = 'none';
             nationalIdInput.disabled = true;
             searchBtn.disabled = true;
             nationalIdInput.value = '';
+            instituteIdInput.value = instituteSelect.value;
             setStepState(stepInstitute, 'active');
             setStepState(stepDiploma, null);
             setStepState(stepSearch, null);
@@ -339,6 +393,9 @@
                 const opt = document.createElement('option');
                 opt.value = d.id;
                 opt.textContent = `${d.name} (${d.duration_months} شهر)`;
+                if (d.hours) opt.dataset.hours = d.hours;
+                if (d.duration) opt.dataset.duration = d.duration;
+                if (d.study_mode) opt.dataset.studyMode = d.study_mode;
                 diplomaSelect.appendChild(opt);
             });
             diplomaSelect.disabled = false;
@@ -353,6 +410,7 @@
             searchBtn.disabled = !hasDiploma;
             nationalIdInput.value = '';
             diplomaIdInput.value = diplomaSelect.value;
+            showDiplomaDetails(diplomaSelect.options[diplomaSelect.selectedIndex]);
             setStepState(stepDiploma, hasDiploma ? 'done' : 'active');
             setStepState(stepSearch, hasDiploma ? 'active' : null);
         });
@@ -414,7 +472,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
-                        'X-CSRFToken': csrfToken,
+                        'X-CSRFToken': csrfToken(),
                     },
                     body: payload.toString(),
                 });
