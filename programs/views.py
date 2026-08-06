@@ -80,8 +80,8 @@ class ProgramCategoryDeleteView(AdminRequiredMixin, SoftDeleteMixin, DeleteView)
 
 # ==================== Base Program Views (Diploma & Course) ====================
 
-class BaseProgramListView(LoginRequiredMixin, InstituteScopedMixin, SearchMixin, FilterMixin, ListView):
-    """Base View for Diploma and Course List"""
+class BaseProgramListView(LoginRequiredMixin, SearchMixin, FilterMixin, ListView):
+    """Base View for Diploma and Course List - الدبلومات/الدورات متاحة لكل الفروع، مش مقصورة على معهد معين"""
     paginate_by = 20
     search_fields = ['name', 'code']
     filter_fields = {'status': 'status'}
@@ -96,6 +96,7 @@ class BaseProgramCreateView(BranchManagerRequiredMixin, CreateView):
     """Base View for creating Diploma or Course"""
     fields = [
         'institute', 'name', 'code', 'description', 'category', 'duration_months',
+        'hours', 'duration', 'study_mode',
         'start_date', 'end_date', 'registration_start_date', 'registration_end_date',
         'fees', 'status'
     ]
@@ -130,6 +131,7 @@ class BaseProgramUpdateView(BranchManagerRequiredMixin, UpdateView):
     """Base View for updating Diploma or Course"""
     fields = [
         'institute', 'name', 'code', 'description', 'category', 'duration_months',
+        'hours', 'duration', 'study_mode',
         'start_date', 'end_date', 'registration_start_date', 'registration_end_date',
         'fees', 'status'
     ]
@@ -295,19 +297,32 @@ class RegistrationCreateView(EmployeeRequiredMixin, CreateView):
     """إنشاء تسجيل جديد"""
     model = ProgramRegistration
     template_name = 'programs/registration_form.html'
-    fields = ['client', 'diploma', 'course', 'status', 'notes']
+    fields = ['client', 'diploma', 'course', 'study_mode', 'status', 'notes']
     success_url = reverse_lazy('programs:registration_list')
-    
+
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
         user = self.request.user
-        
+
+        # الدبلومات والدورات متاحة لكل الفروع - مش مقصورة على معهد الموظف
+        form.fields['diploma'].queryset = Diploma.objects.filter(status='active')
+        form.fields['course'].queryset = Course.objects.filter(status='active')
+        form.fields['study_mode'].required = False
+
         if user.institute:
-            form.fields['diploma'].queryset = user.institute.diplomas.filter(status='active')
-            form.fields['course'].queryset = user.institute.courses.filter(status='active')
-        
+            form.fields['client'].queryset = user.institute.clients.filter(status='active', is_deleted=False)
+
         return form
-    
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        form = self.get_form()
+        context['clients'] = form.fields['client'].queryset
+        context['diplomas'] = form.fields['diploma'].queryset
+        context['courses'] = form.fields['course'].queryset
+        context['preselected_client_id'] = self.request.GET.get('client', '')
+        return context
+
     def form_valid(self, form):
         form.instance.registered_by = self.request.user
         messages.success(self.request, 'تم تسجيل العميل بنجاح')

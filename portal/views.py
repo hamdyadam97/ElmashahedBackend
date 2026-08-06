@@ -3,6 +3,7 @@ import logging
 from django.db import IntegrityError
 from django.http import JsonResponse, HttpResponse, HttpResponseNotAllowed
 from django.shortcuts import render, get_object_or_404
+from django.utils import timezone
 from django.views import View
 from django.views.decorators.http import require_POST
 
@@ -50,13 +51,12 @@ class LandingView(View):
 
 
 def api_diplomas(request):
-    """AJAX: قائمة الدبلومات النشطة لمعهد معين"""
+    """AJAX: قائمة الدبلومات النشطة - متاحة لكل الفروع بصرف النظر عن الفرع المختار"""
     institute_id = request.GET.get('institute_id')
     if not institute_id:
         return JsonResponse({'results': []})
 
     diplomas = Diploma.objects.filter(
-        institute_id=institute_id,
         status='active',
         is_deleted=False
     ).order_by('name').values('id', 'name', 'duration_months')
@@ -172,18 +172,14 @@ class IssueView(View):
         ref_code = (request.POST.get('ref_code') or '').strip()
 
         client = get_object_or_404(Client, pk=client_id, is_deleted=False)
-        diploma = get_object_or_404(Diploma, pk=diploma_id, is_deleted=False)
-
-        # حماية إضافية: التأكد إن الطالب والدبلوم من نفس المعهد
-        if client.institute_id != diploma.institute_id:
-            return HttpResponse('Invalid selection', status=400)
+        diploma = get_object_or_404(Diploma, pk=diploma_id, is_deleted=False, status='active')
 
         employee = _resolve_referral_employee(ref_code)
 
         permission = PermissionSlip(
             client=client,
             diploma=diploma,
-            expiry_date=diploma.end_date,
+            expiry_date=diploma.end_date or (timezone.now().date() + timezone.timedelta(days=365)),
             issued_by=None,
             issued_from_public=True,
             referral_employee=employee,

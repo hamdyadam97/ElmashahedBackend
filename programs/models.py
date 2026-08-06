@@ -5,6 +5,12 @@ from django.core.validators import MinValueValidator
 from core.models import BaseModel
 
 
+class StudyMode(models.TextChoices):
+    OFFLINE = 'offline', _('حضوري')
+    ONLINE = 'online', _('أونلاين')
+    BOTH = 'both', _('حضوري أو أونلاين')
+
+
 class ProgramCategory(BaseModel):
     """فئة البرنامج (دبلومة أو دورة)"""
     
@@ -62,13 +68,25 @@ class Diploma(BaseModel):
         validators=[MinValueValidator(1)],
         verbose_name=_('Duration (Months)')
     )
-    
-    # المواعيد
-    start_date = models.DateField(verbose_name=_('Start Date'))
-    end_date = models.DateField(verbose_name=_('End Date'))
-    registration_start_date = models.DateField(verbose_name=_('Registration Start Date'))
-    registration_end_date = models.DateField(verbose_name=_('Registration End Date'))
-    
+
+    # عدد الساعات ومدة الدراسة النصية (اختياريان)
+    hours = models.PositiveIntegerField(null=True, blank=True, verbose_name=_('Hours'))
+    duration = models.CharField(max_length=100, null=True, blank=True, verbose_name=_('Duration (Text)'))
+
+    # طريقة الدراسة
+    study_mode = models.CharField(
+        max_length=20,
+        choices=StudyMode.choices,
+        default=StudyMode.BOTH,
+        verbose_name=_('Study Mode')
+    )
+
+    # المواعيد - تُدخل لاحقاً من لوحة التحكم
+    start_date = models.DateField(null=True, blank=True, verbose_name=_('Start Date'))
+    end_date = models.DateField(null=True, blank=True, verbose_name=_('End Date'))
+    registration_start_date = models.DateField(null=True, blank=True, verbose_name=_('Registration Start Date'))
+    registration_end_date = models.DateField(null=True, blank=True, verbose_name=_('Registration End Date'))
+
     # التكلفة
     fees = models.DecimalField(
         max_digits=10,
@@ -76,7 +94,7 @@ class Diploma(BaseModel):
         default=0.00,
         verbose_name=_('Fees')
     )
-    
+
     # الحالة
     status = models.CharField(
         max_length=20,
@@ -84,11 +102,11 @@ class Diploma(BaseModel):
         default=Status.ACTIVE,
         verbose_name=_('Status')
     )
-    
+
     # التواريخ
     created_at = models.DateTimeField(auto_now_add=True, verbose_name=_('Created At'))
     updated_at = models.DateTimeField(auto_now=True, verbose_name=_('Updated At'))
-    
+
     class Meta:
         verbose_name = _('Diploma')
         verbose_name_plural = _('Diplomas')
@@ -141,13 +159,25 @@ class Course(BaseModel):
         validators=[MinValueValidator(1)],
         verbose_name=_('Duration (Months)')
     )
-    
-    # المواعيد
-    start_date = models.DateField(verbose_name=_('Start Date'))
-    end_date = models.DateField(verbose_name=_('End Date'))
-    registration_start_date = models.DateField(verbose_name=_('Registration Start Date'))
-    registration_end_date = models.DateField(verbose_name=_('Registration End Date'))
-    
+
+    # عدد الساعات ومدة الدراسة النصية (اختياريان)
+    hours = models.PositiveIntegerField(null=True, blank=True, verbose_name=_('Hours'))
+    duration = models.CharField(max_length=100, null=True, blank=True, verbose_name=_('Duration (Text)'))
+
+    # طريقة الدراسة
+    study_mode = models.CharField(
+        max_length=20,
+        choices=StudyMode.choices,
+        default=StudyMode.BOTH,
+        verbose_name=_('Study Mode')
+    )
+
+    # المواعيد - تُدخل لاحقاً من لوحة التحكم
+    start_date = models.DateField(null=True, blank=True, verbose_name=_('Start Date'))
+    end_date = models.DateField(null=True, blank=True, verbose_name=_('End Date'))
+    registration_start_date = models.DateField(null=True, blank=True, verbose_name=_('Registration Start Date'))
+    registration_end_date = models.DateField(null=True, blank=True, verbose_name=_('Registration End Date'))
+
     # التكلفة
     fees = models.DecimalField(
         max_digits=10,
@@ -230,6 +260,14 @@ class ProgramRegistration(BaseModel):
         verbose_name=_('Registered By')
     )
     
+    # طريقة الدراسة اللي اختارها الطالب (حضوري/أونلاين) - لو البرنامج بيدعم الاتنين
+    study_mode = models.CharField(
+        max_length=20,
+        choices=[(StudyMode.OFFLINE, StudyMode.OFFLINE.label), (StudyMode.ONLINE, StudyMode.ONLINE.label)],
+        blank=True,
+        verbose_name=_('Study Mode')
+    )
+
     # تاريخ التسجيل والحالة
     registration_date = models.DateField(auto_now_add=True, verbose_name=_('Registration Date'))
     status = models.CharField(
@@ -238,7 +276,7 @@ class ProgramRegistration(BaseModel):
         default=Status.CONFIRMED,
         verbose_name=_('Status')
     )
-    
+
     # الملاحظات
     notes = models.TextField(blank=True, verbose_name=_('Notes'))
     

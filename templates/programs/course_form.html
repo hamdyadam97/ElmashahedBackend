@@ -59,9 +59,28 @@
                 </div>
 
                 <div class="row">
-                    <div class="col-md-6 mb-3">
+                    <div class="col-md-4 mb-3">
                         <label class="form-label">مدة الدراسة (بالشهور) <span class="text-danger">*</span></label>
                         <input type="number" name="duration_months" class="form-control" value="{{ object.duration_months|default:'6' }}" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">عدد الساعات</label>
+                        <input type="number" name="hours" class="form-control" value="{{ object.hours|default_if_none:'' }}">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">مدة الدراسة (نص حر)</label>
+                        <input type="text" name="duration" class="form-control" placeholder="مثال: 3 أشهر" value="{{ object.duration|default:'' }}">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">طريقة الدراسة</label>
+                        <select name="study_mode" class="form-select">
+                            {% for value, label in form.fields.study_mode.choices %}
+                                <option value="{{ value }}" {% if object.study_mode == value or not object and value == 'both' %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label">الرسوم <span class="text-danger">*</span></label>
@@ -76,15 +95,16 @@
 
                 <hr class="my-4">
                 <h6 class="mb-3 text-success"><i class="fas fa-calendar-check me-2"></i>التواريخ والجدول</h6>
+                <p class="text-muted small">اختياري - يمكن إدخالها لاحقاً من لوحة التحكم.</p>
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label">تاريخ البداية</label>
-                        <input type="date" name="start_date" class="form-control" value="{{ object.start_date|date:'Y-m-d' }}" required>
+                        <input type="date" name="start_date" class="form-control" value="{{ object.start_date|date:'Y-m-d' }}">
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label">تاريخ النهاية</label>
-                        <input type="date" name="end_date" class="form-control" value="{{ object.end_date|date:'Y-m-d' }}" required>
+                        <input type="date" name="end_date" class="form-control" value="{{ object.end_date|date:'Y-m-d' }}">
                     </div>
                 </div>
 

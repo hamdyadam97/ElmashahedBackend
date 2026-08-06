@@ -35,7 +35,7 @@ class DiplomaAdmin(admin.ModelAdmin):
         }),
         (_('Duration & Dates'), {
             'fields': (
-                'duration_months', 
+                'duration_months', 'hours', 'duration', 'study_mode',
                 'start_date', 'end_date',
                 'registration_start_date', 'registration_end_date'
             )
@@ -47,20 +47,20 @@ class DiplomaAdmin(admin.ModelAdmin):
             'fields': ('status',)
         }),
     )
-    
+
     inlines = [ProgramRegistrationInline]
 
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
     list_display = [
-        'name', 'code', 'institute', 'duration_months', 
+        'name', 'code', 'institute', 'duration_months',
         'start_date', 'end_date', 'status'
     ]
     list_filter = ['status', 'institute', 'start_date']
     search_fields = ['name', 'code', 'description']
     date_hierarchy = 'start_date'
-    
+
     fieldsets = (
         (_('Basic Info'), {
             'fields': ('name', 'code', 'description', 'category')
@@ -70,7 +70,7 @@ class CourseAdmin(admin.ModelAdmin):
         }),
         (_('Duration & Dates'), {
             'fields': (
-                'duration_months', 
+                'duration_months', 'hours', 'duration', 'study_mode',
                 'start_date', 'end_date',
                 'registration_start_date', 'registration_end_date'
             )
@@ -82,17 +82,17 @@ class CourseAdmin(admin.ModelAdmin):
             'fields': ('status',)
         }),
     )
-    
+
     inlines = [ProgramRegistrationInline]
 
 
 @admin.register(ProgramRegistration)
 class ProgramRegistrationAdmin(admin.ModelAdmin):
     list_display = [
-        'client', 'get_program', 'program_type', 
+        'client', 'get_program', 'program_type', 'study_mode',
         'registered_by', 'registration_date', 'status'
     ]
-    list_filter = ['status', 'registration_date']
+    list_filter = ['status', 'study_mode', 'registration_date']
     search_fields = [
         'client__full_name', 'client__national_id',
         'diploma__name', 'course__name'

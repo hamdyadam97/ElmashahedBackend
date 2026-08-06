@@ -19,6 +19,7 @@ from core.mixins import (
     EmployeeRequiredMixin, AdminRequiredMixin, BranchManagerRequiredMixin,
     InstituteScopedMixin, SearchMixin, FilterMixin
 )
+from programs.models import Diploma, Course
 from .models import PermissionSlip, PermissionTemplate
 
 logger = logging.getLogger('edu_system')
@@ -59,12 +60,16 @@ class PermissionCreateView(EmployeeRequiredMixin, CreateView):
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
         user = self.request.user
-        
+
+        # الدبلومات والدورات متاحة لكل الفروع - مش مقصورة على معهد الموظف
+        form.fields['diploma'].queryset = Diploma.objects.filter(status='active', is_deleted=False)
+        form.fields['course'].queryset = Course.objects.filter(status='active', is_deleted=False)
+        # اختياري - لو فاضي بناخد تاريخ انتهاء البرنامج تلقائياً (انظر form_valid)
+        form.fields['expiry_date'].required = False
+
         if user.institute:
-            form.fields['diploma'].queryset = user.institute.diplomas.filter(status='active', is_deleted=False)
-            form.fields['course'].queryset = user.institute.courses.filter(status='active', is_deleted=False)
             form.fields['client'].queryset = user.institute.clients.filter(status='active', is_deleted=False)
-        
+
         return form
     
     def get_context_data(self, **kwargs):
@@ -81,7 +86,7 @@ class PermissionCreateView(EmployeeRequiredMixin, CreateView):
         
         if not form.instance.expiry_date:
             program = form.instance.diploma or form.instance.course
-            if program:
+            if program and program.end_date:
                 form.instance.expiry_date = program.end_date
             else:
                 form.instance.expiry_date = timezone.now().date() + timezone.timedelta(days=365)

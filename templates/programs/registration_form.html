@@ -1,0 +1,182 @@
+{% extends 'base/base.html' %}
+
+{% block title %}تسجيل جديد - نظام إدارة المعاهد{% endblock %}
+
+{% block breadcrumb %}
+<nav class="app-breadcrumb">
+    <a href="{% url 'accounts:dashboard' %}"><i class="fas fa-home"></i></a>
+    <i class="fas fa-chevron-left sep"></i>
+    <a href="{% url 'programs:registration_list' %}">التسجيلات</a>
+    <i class="fas fa-chevron-left sep"></i>
+    <span class="current">تسجيل جديد</span>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="registration-form-page">
+    <div class="d-flex justify-content-between align-items-center mb-4 fade-in-up">
+        <h4 class="mb-0"><i class="fas fa-clipboard-list text-primary me-2"></i>تسجيل عميل في برنامج</h4>
+        <a href="{% url 'programs:registration_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-right me-2"></i>رجوع
+        </a>
+    </div>
+
+    <div class="content-card fade-in-up">
+        <div class="content-card-body">
+            <form method="post" novalidate id="registrationForm">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label class="form-label">العميل <span class="required-mark">*</span></label>
+                    <select name="client" class="form-select" required>
+                        <option value="">اختر العميل</option>
+                        {% for client in clients %}
+                        <option value="{{ client.pk }}" {% if preselected_client_id == client.pk|stringformat:"s" %}selected{% endif %}>{{ client.full_name }} - {{ client.national_id }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">الدبلومة</label>
+                        <select name="diploma" class="form-select" id="diploma_select">
+                            <option value="">-</option>
+                            {% for diploma in diplomas %}
+                            <option value="{{ diploma.pk }}" data-study-mode="{{ diploma.study_mode }}">{{ diploma.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted">اختر الدبلومة أو الدورة</small>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">الدورة</label>
+                        <select name="course" class="form-select" id="course_select">
+                            <option value="">-</option>
+                            {% for course in courses %}
+                            <option value="{{ course.pk }}" data-study-mode="{{ course.study_mode }}">{{ course.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3" id="studyModeSection" style="display:none;">
+                    <label class="form-label">طريقة الدراسة <span class="required-mark">*</span></label>
+
+                    <div id="studyModeFixedText" class="alert alert-light border py-2 mb-0" style="display:none;"></div>
+
+                    <div id="studyModeChoice" class="d-flex gap-3" style="display:none;">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="study_mode_radio" id="modeOffline" value="offline">
+                            <label class="form-check-label" for="modeOffline"><i class="fas fa-building me-1"></i>حضوري</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="study_mode_radio" id="modeOnline" value="online">
+                            <label class="form-check-label" for="modeOnline"><i class="fas fa-laptop me-1"></i>أونلاين</label>
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" name="study_mode" id="studyModeHidden" value="">
+
+                <div class="mb-3">
+                    <label class="form-label">الحالة</label>
+                    <select name="status" class="form-select">
+                        <option value="confirmed">مؤكد</option>
+                        <option value="pending">قيد الانتظار</option>
+                        <option value="completed">مكتمل</option>
+                        <option value="cancelled">ملغي</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">ملاحظات</label>
+                    <textarea name="notes" class="form-control" rows="3"></textarea>
+                </div>
+
+                <div class="d-flex gap-2 pt-2 border-top">
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="fas fa-check me-2"></i>تسجيل
+                    </button>
+                    <a href="{% url 'programs:registration_list' %}" class="btn btn-outline-secondary">إلغاء</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const diplomaSelect = document.getElementById('diploma_select');
+    const courseSelect = document.getElementById('course_select');
+    const studyModeSection = document.getElementById('studyModeSection');
+    const studyModeFixedText = document.getElementById('studyModeFixedText');
+    const studyModeChoice = document.getElementById('studyModeChoice');
+    const studyModeHidden = document.getElementById('studyModeHidden');
+    const registrationForm = document.getElementById('registrationForm');
+
+    function applyStudyMode(mode) {
+        if (!mode) {
+            studyModeSection.style.display = 'none';
+            studyModeFixedText.style.display = 'none';
+            studyModeChoice.style.display = 'none';
+            studyModeHidden.value = '';
+            return;
+        }
+
+        studyModeSection.style.display = 'block';
+
+        if (mode === 'both') {
+            studyModeFixedText.style.display = 'none';
+            studyModeChoice.style.display = 'flex';
+            const checked = document.querySelector('input[name="study_mode_radio"]:checked');
+            studyModeHidden.value = checked ? checked.value : '';
+        } else {
+            studyModeChoice.style.display = 'none';
+            studyModeFixedText.style.display = 'block';
+            studyModeFixedText.textContent = mode === 'offline'
+                ? '📍 هذا البرنامج حضوري فقط'
+                : '💻 هذا البرنامج أونلاين فقط';
+            studyModeHidden.value = mode;
+        }
+    }
+
+    function getSelectedStudyMode() {
+        if (diplomaSelect.value) {
+            const opt = diplomaSelect.options[diplomaSelect.selectedIndex];
+            return opt.dataset.studyMode || '';
+        }
+        if (courseSelect.value) {
+            const opt = courseSelect.options[courseSelect.selectedIndex];
+            return opt.dataset.studyMode || '';
+        }
+        return '';
+    }
+
+    diplomaSelect.addEventListener('change', function () {
+        if (this.value) {
+            courseSelect.value = '';
+        }
+        applyStudyMode(getSelectedStudyMode());
+    });
+
+    courseSelect.addEventListener('change', function () {
+        if (this.value) {
+            diplomaSelect.value = '';
+        }
+        applyStudyMode(getSelectedStudyMode());
+    });
+
+    document.querySelectorAll('input[name="study_mode_radio"]').forEach(radio => {
+        radio.addEventListener('change', function () {
+            studyModeHidden.value = this.value;
+        });
+    });
+
+    registrationForm.addEventListener('submit', function (e) {
+        if (studyModeSection.style.display !== 'none' && !studyModeHidden.value) {
+            e.preventDefault();
+            alert('برجاء اختيار طريقة الدراسة');
+        }
+    });
+</script>
+{% endblock %}
