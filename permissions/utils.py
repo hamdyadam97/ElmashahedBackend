@@ -15,6 +15,28 @@ def find_blocking_active_permission(client, target_institute_id):
     ).order_by('-created_at').first()
 
 
+def find_existing_permission(client, target_institute_id):
+    """
+    يرجع إذن نشط للعميل في نفس المعهد المستهدف (لو موجود)، وإلا None.
+    يُستخدم عشان لو الطالب أصدر مشهد قبل كده من نفس الفرع، نوجّهه لمشهده
+    الحالي بدل ما يصدر واحد جديد مكرر.
+    """
+    from .models import PermissionSlip
+
+    return PermissionSlip.objects.filter(
+        client=client, status='active', institute_id=target_institute_id
+    ).select_related('institute').order_by('-created_at').first()
+
+
+def existing_info(permission):
+    """يبني بيانات صالحة للعرض عن مشهد سابق للطالب في نفس الفرع"""
+    return {
+        'permission_number': permission.permission_number,
+        'institute_name': permission.institute.name,
+        'issue_date': permission.issue_date.strftime('%Y-%m-%d') if permission.issue_date else '',
+    }
+
+
 def resolve_contact(permission):
     """يرجع (الاسم، رقم التليفون) للتواصل بخصوص إلغاء إذن قديم"""
     if permission.issued_by and permission.issued_by.phone:

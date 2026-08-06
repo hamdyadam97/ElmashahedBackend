@@ -8,6 +8,7 @@ urlpatterns = [
     path('api/diplomas/', views.api_diplomas, name='api_diplomas'),
     path('api/search-client/', views.api_search_client, name='api_search_client'),
     path('api/register-client/', views.api_register_client, name='api_register_client'),
+    path('download-existing/', views.download_existing, name='download_existing'),
     path('issue/', views.IssueView.as_view(), name='issue'),
     path('<str:ref_code>/', views.LandingView.as_view(), name='landing_ref'),
 ]

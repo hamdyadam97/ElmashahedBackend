@@ -12,7 +12,10 @@ from programs.models import Diploma
 from clients.models import Client
 from accounts.models import User
 from permissions.models import PermissionSlip
-from permissions.utils import find_blocking_active_permission, blocking_info
+from permissions.utils import (
+    find_blocking_active_permission, blocking_info,
+    find_existing_permission, existing_info,
+)
 
 logger = logging.getLogger('edu_system')
 
@@ -69,7 +72,8 @@ def api_diplomas(request):
 
 
 def api_search_client(request):
-    """AJAX: البحث عن طالب برقم الهوية/الإقامة داخل معهد معين"""
+    """AJAX: البحث عن طالب برقم الهوية/الإقامة - بحث عام (مش مقصور على فرع)
+    عشان نكشف أي حساب أو مشهد سابق للطالب من أول لحظة، قبل ما يكمل أي خطوة"""
     national_id = (request.GET.get('national_id') or '').strip()
     institute_id = request.GET.get('institute_id')
 
@@ -78,7 +82,6 @@ def api_search_client(request):
 
     client = Client.objects.filter(
         national_id=national_id,
-        institute_id=institute_id,
         is_deleted=False,
         status='active'
     ).first()
@@ -86,6 +89,7 @@ def api_search_client(request):
     if not client:
         return JsonResponse({'found': False})
 
+    # 1) عنده إذن نشط في معهد تاني؟ - يمنع الإصدار لحد ما يتم التواصل والإلغاء
     blocking_permission = find_blocking_active_permission(client, institute_id)
     if blocking_permission:
         return JsonResponse({
@@ -94,9 +98,25 @@ def api_search_client(request):
             'block': blocking_info(blocking_permission),
         })
 
+    # 2) عنده مشهد سابق بالفعل في نفس الفرع ده؟ - نوجهه لتحميله بدل ما يصدر واحد جديد
+    existing_permission = find_existing_permission(client, institute_id)
+    if existing_permission:
+        return JsonResponse({
+            'found': True,
+            'blocked': False,
+            'has_existing': True,
+            'existing': existing_info(existing_permission),
+            'client': {
+                'id': client.id,
+                'full_name': client.full_name,
+                'national_id': client.national_id,
+            },
+        })
+
     return JsonResponse({
         'found': True,
         'blocked': False,
+        'has_existing': False,
         'client': {
             'id': client.id,
             'full_name': client.full_name,
@@ -104,6 +124,33 @@ def api_search_client(request):
             'phone': client.phone,
         }
     })
+
+
+def download_existing(request):
+    """
+    تحميل مشهد سابق للطالب في نفس الفرع - بنعيد التحقق من رقم الهوية بدل ما نثق
+    بأي pk جاي من الفرونت، بنفس مستوى الحماية المستخدم في باقي خطوات البورتال
+    """
+    national_id = (request.GET.get('national_id') or '').strip()
+    institute_id = request.GET.get('institute_id')
+
+    if not national_id or not institute_id:
+        return HttpResponse('بيانات ناقصة', status=400)
+
+    client = Client.objects.filter(national_id=national_id, is_deleted=False).first()
+    if not client:
+        return HttpResponse('غير موجود', status=404)
+
+    permission = find_existing_permission(client, institute_id)
+    if not permission:
+        return HttpResponse('لا يوجد مشهد سابق', status=404)
+
+    from permissions.views import generate_permission_pdf
+    pdf_buffer = generate_permission_pdf(permission)
+
+    response = HttpResponse(pdf_buffer.getvalue(), content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="{permission.permission_number}.pdf"'
+    return response
 
 
 REQUIRED_REGISTER_FIELDS = ['first_name', 'last_name', 'gender', 'birth_date', 'phone']

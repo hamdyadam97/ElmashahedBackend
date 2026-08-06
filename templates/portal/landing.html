@@ -7,114 +7,200 @@
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --primary-color: #2563eb;
-            --secondary-color: #1e40af;
-            --success-color: #10b981;
-            --danger-color: #ef4444;
-            --light-bg: #f8fafc;
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --bg: #f8fafc;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --border: #e6e9ef;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --shadow-sm: 0 1px 2px rgba(15,23,42,.04);
+            --shadow-md: 0 12px 32px rgba(15,23,42,.08);
         }
-        * { font-family: 'Cairo', sans-serif; }
+
+        * { font-family: 'Cairo', sans-serif; box-sizing: border-box; }
+
         body {
-            background: linear-gradient(160deg, #eef2ff 0%, var(--light-bg) 55%);
+            background: var(--bg);
             min-height: 100vh;
-            padding: 24px 12px;
+            padding: 32px 16px;
+            color: var(--text);
         }
 
-        .portal-wrap { max-width: 600px; margin: 0 auto; }
+        .portal-wrap { max-width: 720px; margin: 0 auto; }
 
-        .portal-header { text-align: center; margin-bottom: 22px; }
+        /* ===== Header ===== */
+        .portal-header { text-align: center; margin-bottom: 28px; }
         .portal-header .icon-badge {
-            width: 64px; height: 64px; border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            width: 60px; height: 60px; border-radius: 18px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             display: flex; align-items: center; justify-content: center;
-            margin: 0 auto 14px; box-shadow: 0 8px 20px rgba(37,99,235,.25);
+            margin: 0 auto 16px; box-shadow: 0 10px 24px rgba(37,99,235,.25);
         }
-        .portal-header .icon-badge i { color: #fff; font-size: 26px; }
-        .portal-header h1 { font-size: 20px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
-        .portal-header p { color: #64748b; font-size: 14px; margin: 0; }
+        .portal-header .icon-badge i { color: #fff; font-size: 24px; }
+        .portal-header h1 { font-size: 22px; font-weight: 800; color: var(--text); margin-bottom: 6px; }
+        .portal-header p { color: var(--text-muted); font-size: 14px; margin: 0; }
 
-        .portal-card {
-            background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(15,23,42,.08);
-            padding: 28px;
-        }
-
-        .step {
+        /* ===== Progress stepper (decorative, 3-phase) ===== */
+        .phase-tracker {
             display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-bottom: 24px;
+            padding: 0 8px;
         }
-        .step-num {
-            flex-shrink: 0;
-            width: 30px; height: 30px; border-radius: 50%;
-            background: #e2e8f0; color: #64748b;
+        .phase-tracker .phase {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .phase-tracker .phase-dot {
+            width: 26px; height: 26px; border-radius: 50%;
+            background: #fff; border: 2px solid var(--border);
             display: flex; align-items: center; justify-content: center;
-            font-weight: 700; font-size: 13px;
-            transition: all .2s ease;
+            font-size: 12px; font-weight: 800; color: var(--text-muted);
+            transition: all .25s ease;
+            flex-shrink: 0;
         }
-        .step.active .step-num { background: var(--primary-color); color: #fff; }
-        .step.done .step-num { background: var(--success-color); color: #fff; }
-        .step-body { flex: 1; }
-        .step-body label { font-weight: 600; color: #334155; font-size: 14px; margin-bottom: 6px; display: block; }
+        .phase-tracker .phase.active .phase-dot { border-color: var(--primary); color: var(--primary); background: #eff6ff; }
+        .phase-tracker .phase.done .phase-dot { border-color: var(--success); background: var(--success); color: #fff; }
+        .phase-tracker .phase.active,
+        .phase-tracker .phase.done { color: var(--text); }
+        .phase-tracker .phase-line {
+            width: 32px; height: 2px; background: var(--border);
+            transition: background .25s ease;
+        }
+        .phase-tracker .phase-line.done { background: var(--success); }
+        .phase-tracker .phase-label { display: none; }
+        @media (min-width: 560px) {
+            .phase-tracker .phase-label { display: inline; }
+        }
+
+        /* ===== Cards ===== */
+        .surface {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+        .surface-title {
+            display: flex; align-items: center; gap: 10px;
+            font-size: 15px; font-weight: 700; color: var(--text);
+            margin-bottom: 18px;
+        }
+        .surface-title .num {
+            width: 26px; height: 26px; border-radius: 8px;
+            background: #eff6ff; color: var(--primary);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 800;
+        }
+
+        label.field-label {
+            font-weight: 600; color: var(--text); font-size: 13.5px;
+            margin-bottom: 6px; display: block;
+        }
 
         .form-select, .form-control {
             border-radius: 10px;
-            border: 1px solid #e2e8f0;
-            padding: 10px 14px;
+            border: 1.5px solid var(--border);
+            padding: 11px 14px;
+            font-size: 14.5px;
+            height: 46px;
+            transition: border-color .15s ease, box-shadow .15s ease;
         }
+        textarea.form-control { height: auto; }
         .form-select:focus, .form-control:focus {
-            border-color: var(--primary-color);
+            border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(37,99,235,.12);
         }
-        .form-select:disabled, .form-control:disabled { background: #f8fafc; color: #94a3b8; }
+        .form-select:disabled, .form-control:disabled { background: #f8fafc; color: #b0b8c4; }
 
+        /* ===== Buttons ===== */
+        .btn { border-radius: 10px; font-weight: 700; transition: all .15s ease; }
         .btn-primary {
-            background: var(--primary-color);
-            border-color: var(--primary-color);
-            border-radius: 10px;
+            background: var(--primary); border-color: var(--primary);
         }
-        .btn-primary:hover { background: var(--secondary-color); border-color: var(--secondary-color); }
-        .btn-success { border-radius: 10px; }
-        .btn-outline-danger { border-radius: 10px; }
-
-        .client-card {
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
-            border-radius: 12px;
-            padding: 16px;
-            margin-top: 8px;
+        .btn-primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); transform: translateY(-1px); }
+        .btn-lg-modern {
+            padding: 14px; font-size: 16px; box-shadow: 0 8px 20px rgba(37,99,235,.2);
+        }
+        #issueBtn {
             display: none;
+            background: linear-gradient(135deg, var(--success), #15803d);
+            border: none;
+            padding: 15px;
+            font-size: 16.5px;
+            box-shadow: 0 10px 24px rgba(22,163,74,.25);
         }
-        .client-card .icon { color: var(--success-color); font-size: 22px; }
-        .client-card .name { font-weight: 700; color: #166534; font-size: 16px; }
-        .client-card .sub { color: #4b5563; font-size: 13px; }
+        #issueBtn:hover { filter: brightness(1.05); transform: translateY(-1px); }
 
-        .not-found-card {
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            color: #991b1b;
-            border-radius: 12px;
+        /* ===== Diploma info card (chips) ===== */
+        .diploma-details {
+            margin-top: 12px;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: var(--radius-md);
             padding: 14px 16px;
-            margin-top: 8px;
             display: none;
-            font-size: 14px;
+        }
+        .diploma-details .diploma-title {
+            font-weight: 700; color: var(--primary-dark); font-size: 15px; margin-bottom: 10px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .diploma-details .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+        .diploma-details .chip {
+            display: flex; align-items: center; gap: 6px;
+            background: #fff; border: 1px solid #bfdbfe;
+            color: var(--primary-dark);
+            border-radius: 999px; padding: 5px 12px;
+            font-size: 12.5px; font-weight: 600;
+        }
+        .diploma-details .chip i { color: var(--primary); font-size: 11px; }
+
+        /* ===== Status cards (small, not big alerts) ===== */
+        .status-card {
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+            margin-top: 12px;
+            display: none;
+            font-size: 13.5px;
+            line-height: 1.7;
+        }
+        .status-card.success {
+            background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534;
+        }
+        .status-card.success .icon { color: var(--success); font-size: 20px; }
+        .status-card.success .name { font-weight: 700; color: #14532d; font-size: 15.5px; }
+        .status-card.success .sub { color: #4b5563; font-size: 13px; }
+        .status-card.soft-danger {
+            background: #fef2f2; border: 1px solid #fecaca; color: #991b1b;
+        }
+        .status-card.soft-neutral {
+            background: #f8fafc; border: 1px solid var(--border); color: var(--text-muted);
         }
 
         .register-box {
-            background: #f8fafc;
-            border: 1px dashed #cbd5e1;
-            border-radius: 12px;
-            padding: 18px;
+            background: #fbfcfe;
+            border: 1.5px dashed #cbd5e1;
+            border-radius: var(--radius-md);
+            padding: 20px;
             margin-top: 14px;
             display: none;
         }
-        .register-box h6 { font-weight: 700; color: #334155; }
-        .register-box .form-label { font-size: 13px; color: #475569; margin-bottom: 4px; }
+        .register-box h6 { font-weight: 700; color: var(--text); font-size: 14.5px; }
 
         #registerErrorCard {
             display: none;
@@ -123,34 +209,59 @@
             color: #991b1b;
             border-radius: 10px;
             padding: 10px 14px;
-            margin-bottom: 12px;
+            margin-bottom: 14px;
             font-size: 13px;
         }
 
-        #issueBtn {
-            display: none;
-            background: linear-gradient(135deg, var(--success-color), #059669);
-            border: none;
-            font-weight: 700;
-            padding: 13px;
-            font-size: 16px;
+        /* ===== Study mode selectable cards ===== */
+        .study-mode-cards { display: flex; gap: 12px; flex-wrap: wrap; }
+        .study-mode-card {
+            flex: 1 1 140px;
+            position: relative;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px 14px;
+            text-align: center;
+            cursor: pointer;
+            transition: all .15s ease;
+            background: #fff;
         }
-
-        .footer-note { text-align: center; color: #94a3b8; font-size: 12px; margin-top: 18px; }
-
-        .diploma-details {
-            margin-top: 10px;
+        .study-mode-card:hover { border-color: #bfdbfe; background: #f8fbff; }
+        .study-mode-card i.mode-icon {
+            font-size: 22px; color: var(--text-muted); display: block; margin-bottom: 8px;
+            transition: color .15s ease;
+        }
+        .study-mode-card .mode-label { font-weight: 700; font-size: 14px; color: var(--text); }
+        .study-mode-card input[type="radio"] {
+            position: absolute; top: 10px; left: 10px; width: 16px; height: 16px;
+            accent-color: var(--primary);
+        }
+        input[name="study_mode_radio"]:checked + .study-mode-card,
+        .study-mode-card:has(input:checked) {
+            border-color: var(--primary);
             background: #eff6ff;
-            border: 1px solid #bfdbfe;
-            border-radius: 10px;
-            padding: 10px 14px;
-            font-size: 13px;
-            color: #1e3a8a;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 14px;
+            box-shadow: 0 0 0 3px rgba(37,99,235,.1);
         }
-        .diploma-details span { display: flex; align-items: center; gap: 5px; }
+        .study-mode-card:has(input:checked) i.mode-icon,
+        .study-mode-card:has(input:checked) .mode-label { color: var(--primary-dark); }
+
+        /* ===== Review summary (phase 3) ===== */
+        .review-summary { display: none; }
+        .review-row {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 0; border-bottom: 1px solid var(--border);
+            font-size: 13.5px;
+        }
+        .review-row:last-child { border-bottom: none; }
+        .review-row .label { color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+        .review-row .value { font-weight: 700; color: var(--text); }
+
+        .footer-note { text-align: center; color: #94a3b8; font-size: 12px; margin-top: 20px; }
+
+        @media (max-width: 480px) {
+            .surface { padding: 18px; border-radius: 14px; }
+            .study-mode-card { flex: 1 1 100%; }
+        }
     </style>
 </head>
 <body>
@@ -161,18 +272,37 @@
             <p>خدمة ذاتية سريعة - بدون الحاجة لتسجيل الدخول</p>
         </div>
 
-        <div class="portal-card">
-            <form id="issueForm" method="post" action="{% url 'portal:issue' %}" target="_blank">
-                {% csrf_token %}
-                <input type="hidden" name="ref_code" id="refCodeInput" value="{{ ref_code }}">
-                <input type="hidden" name="client_id" id="clientIdInput">
-                <input type="hidden" name="diploma_id" id="diplomaIdInput">
-                <input type="hidden" name="institute_id" id="instituteIdInput">
+        <div class="phase-tracker">
+            <div class="phase active" id="phase1">
+                <div class="phase-dot">١</div>
+                <span class="phase-label">البحث</span>
+            </div>
+            <div class="phase-line" id="phaseLine1"></div>
+            <div class="phase" id="phase2">
+                <div class="phase-dot">٢</div>
+                <span class="phase-label">البيانات الشخصية</span>
+            </div>
+            <div class="phase-line" id="phaseLine2"></div>
+            <div class="phase" id="phase3">
+                <div class="phase-dot">٣</div>
+                <span class="phase-label">المراجعة والتسجيل</span>
+            </div>
+        </div>
 
-                <div class="step active" id="stepInstitute">
-                    <div class="step-num">1</div>
-                    <div class="step-body">
-                        <label><i class="fas fa-building me-1"></i> الفرع</label>
+        <form id="issueForm" method="post" action="{% url 'portal:issue' %}" target="_blank">
+            {% csrf_token %}
+            <input type="hidden" name="ref_code" id="refCodeInput" value="{{ ref_code }}">
+            <input type="hidden" name="client_id" id="clientIdInput">
+            <input type="hidden" name="diploma_id" id="diplomaIdInput">
+            <input type="hidden" name="institute_id" id="instituteIdInput">
+
+            <!-- ===== Phase 1: البحث ===== -->
+            <div class="surface">
+                <div class="surface-title"><span class="num">١</span> البحث برقم الهوية</div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="field-label"><i class="fas fa-building me-1 text-muted"></i> الفرع</label>
                         <select id="instituteSelect" class="form-select" {% if preselected_institute_id %}disabled{% endif %}>
                             <option value="">-- اختر الفرع --</option>
                             {% for institute in institutes %}
@@ -183,129 +313,163 @@
                         <small class="text-muted d-block mt-1"><i class="fas fa-lock me-1"></i>الفرع محدد مسبقاً حسب رابط الدعوة.</small>
                         {% endif %}
                     </div>
-                </div>
 
-                <div class="step" id="stepDiploma">
-                    <div class="step-num">2</div>
-                    <div class="step-body">
-                        <label><i class="fas fa-graduation-cap me-1"></i> اختر الدبلوم</label>
+                    <div class="col-md-6">
+                        <label class="field-label"><i class="fas fa-graduation-cap me-1 text-muted"></i> الدبلوم</label>
                         <select id="diplomaSelect" class="form-select" disabled>
                             <option value="">-- اختر الفرع أولاً --</option>
                         </select>
-                        <div id="diplomaDetails" class="diploma-details" style="display:none;"></div>
-
-                        <div class="mt-2" id="studyModeSection" style="display:none;">
-                            <label class="mb-1"><i class="fas fa-chalkboard me-1"></i> طريقة الدراسة</label>
-                            <div id="studyModeFixedText" class="diploma-details" style="display:none;"></div>
-                            <div id="studyModeChoice" class="d-flex gap-3" style="display:none;">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="study_mode_radio" id="modeOffline" value="offline">
-                                    <label class="form-check-label" for="modeOffline"><i class="fas fa-building me-1"></i>حضوري</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="study_mode_radio" id="modeOnline" value="online">
-                                    <label class="form-check-label" for="modeOnline"><i class="fas fa-laptop me-1"></i>أونلاين</label>
-                                </div>
-                            </div>
-                        </div>
-                        <input type="hidden" name="study_mode" id="studyModeHidden" value="">
                     </div>
                 </div>
 
-                <div class="step" id="stepSearch">
-                    <div class="step-num">3</div>
-                    <div class="step-body">
-                        <label><i class="fas fa-id-card me-1"></i> رقم الهوية / الإقامة</label>
-                        <div class="input-group">
-                            <input type="text" id="nationalIdInput" class="form-control" placeholder="أدخل رقم الهوية أو الإقامة" disabled>
-                            <button type="button" id="searchBtn" class="btn btn-primary px-4" disabled>
-                                <i class="fas fa-search me-1"></i> بحث
-                            </button>
-                        </div>
+                <!-- Course info card (chips) -->
+                <div id="diplomaDetails" class="diploma-details"></div>
 
-                        <div id="clientCard" class="client-card">
-                            <div class="d-flex align-items-center gap-2">
-                                <i class="fas fa-circle-check icon"></i>
-                                <div>
-                                    <div class="name" id="clientName"></div>
-                                    <div class="sub">رقم الهوية: <span id="clientNationalId"></span></div>
-                                </div>
-                            </div>
-                        </div>
+                <!-- Study mode selectable cards -->
+                <div class="mt-3" id="studyModeSection" style="display:none;">
+                    <label class="field-label"><i class="fas fa-chalkboard me-1 text-muted"></i> طريقة الدراسة</label>
+                    <div id="studyModeFixedText" class="diploma-details" style="margin-top:0;"></div>
+                    <div id="studyModeChoice" class="study-mode-cards" style="display:none;">
+                        <label for="modeOffline" class="study-mode-card">
+                            <input type="radio" name="study_mode_radio" id="modeOffline" value="offline">
+                            <i class="fas fa-building mode-icon"></i>
+                            <div class="mode-label">حضوري</div>
+                        </label>
+                        <label for="modeOnline" class="study-mode-card">
+                            <input type="radio" name="study_mode_radio" id="modeOnline" value="online">
+                            <i class="fas fa-laptop mode-icon"></i>
+                            <div class="mode-label">أونلاين</div>
+                        </label>
+                    </div>
+                </div>
+                <input type="hidden" name="study_mode" id="studyModeHidden" value="">
 
-                        <div id="notFoundCard" class="not-found-card">
-                            <i class="fas fa-circle-exclamation me-1"></i>
-                            لم يتم العثور على بيانات بهذا الرقم في هذا الفرع.
-                            <button type="button" id="showRegisterBtn" class="btn btn-sm btn-outline-danger mt-2 d-block">
-                                <i class="fas fa-user-plus me-1"></i> سجّل بياناتك الآن
-                            </button>
-                        </div>
+                <hr class="my-4" style="border-color: var(--border);">
 
-                        <div id="blockedCard" class="not-found-card">
-                            <i class="fas fa-triangle-exclamation me-1"></i>
-                            يوجد للطالب إذن نشط بالفعل من معهد "<span id="blockedInstitute"></span>".
-                            <div class="mt-2">
-                                لازم التواصل مع <strong id="blockedContactName"></strong>
-                                على <strong id="blockedContactPhone"></strong>
-                                لإلغاء الإذن القديم، وبعدها تقدر تعيد المحاولة.
-                            </div>
+                <label class="field-label"><i class="fas fa-id-card me-1 text-muted"></i> رقم الهوية / الإقامة</label>
+                <div class="input-group">
+                    <input type="text" id="nationalIdInput" class="form-control" placeholder="أدخل رقم الهوية أو الإقامة" disabled>
+                    <button type="button" id="searchBtn" class="btn btn-primary px-4" disabled>
+                        <i class="fas fa-search me-1"></i> بحث
+                    </button>
+                </div>
+
+                <div id="clientCard" class="status-card success">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fas fa-circle-check icon"></i>
+                        <div>
+                            <div class="name" id="clientName"></div>
+                            <div class="sub">رقم الهوية: <span id="clientNationalId"></span></div>
                         </div>
                     </div>
                 </div>
 
-                <button type="submit" id="issueBtn" class="btn btn-success w-100 mt-2 text-white">
-                    <i class="fas fa-file-arrow-down me-2"></i> إصدار المشهد
-                </button>
-            </form>
+                <div id="notFoundCard" class="status-card soft-neutral">
+                    <i class="fas fa-circle-info me-1"></i>
+                    لم يتم العثور على بيانات بهذا الرقم في هذا الفرع.
+                    <button type="button" id="showRegisterBtn" class="btn btn-sm btn-outline-primary mt-2 d-block">
+                        <i class="fas fa-user-plus me-1"></i> سجّل بياناتك الآن
+                    </button>
+                </div>
 
-            <div id="registerBox" class="register-box">
-                <h6 class="mb-3"><i class="fas fa-user-pen me-1"></i> تسجيل بيانات جديدة</h6>
+                <div id="blockedCard" class="status-card soft-danger">
+                    <i class="fas fa-triangle-exclamation me-1"></i>
+                    يوجد للطالب إذن نشط بالفعل من معهد "<span id="blockedInstitute"></span>".
+                    <div class="mt-2">
+                        لازم التواصل مع <strong id="blockedContactName"></strong>
+                        على <strong id="blockedContactPhone"></strong>
+                        لإلغاء الإذن القديم، وبعدها تقدر تعيد المحاولة.
+                    </div>
+                </div>
+
+                <div id="existingCard" class="status-card success">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fas fa-file-circle-check icon"></i>
+                        <div>
+                            <div class="name">عندك مشهد صادر بالفعل من هذا الفرع</div>
+                            <div class="sub">رقم المشهد: <span id="existingNumber"></span> - بتاريخ <span id="existingDate"></span></div>
+                        </div>
+                    </div>
+                    <a href="#" id="downloadExistingBtn" target="_blank" class="btn btn-success btn-sm w-100 mt-2">
+                        <i class="fas fa-download me-1"></i> ادخل إلى مشهدك وحمّله
+                    </a>
+                </div>
+            </div>
+
+            <!-- ===== Phase 2: البيانات الشخصية (تسجيل بيانات جديدة لو مش موجود) ===== -->
+            <div id="registerBox" class="surface register-box" style="margin-top:0;">
+                <div class="surface-title" style="margin-bottom:14px;"><span class="num">٢</span> بياناتك الشخصية</div>
                 <div id="registerErrorCard"></div>
 
-                <div class="row g-2">
-                    <div class="col-6">
-                        <label class="form-label">الاسم الأول</label>
-                        <input type="text" id="regFirstName" class="form-control form-control-sm">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="field-label">الاسم الأول</label>
+                        <input type="text" id="regFirstName" class="form-control">
                     </div>
-                    <div class="col-6">
-                        <label class="form-label">اسم العائلة</label>
-                        <input type="text" id="regLastName" class="form-control form-control-sm">
+                    <div class="col-md-6">
+                        <label class="field-label">اسم العائلة</label>
+                        <input type="text" id="regLastName" class="form-control">
                     </div>
-                    <div class="col-6">
-                        <label class="form-label">الجنس</label>
-                        <select id="regGender" class="form-select form-select-sm">
+                    <div class="col-md-6">
+                        <label class="field-label">الجنس</label>
+                        <select id="regGender" class="form-select">
                             <option value="">-- اختر --</option>
                             <option value="male">ذكر</option>
                             <option value="female">أنثى</option>
                         </select>
                     </div>
-                    <div class="col-6">
-                        <label class="form-label">تاريخ الميلاد</label>
-                        <input type="date" id="regBirthDate" class="form-control form-control-sm">
+                    <div class="col-md-6">
+                        <label class="field-label">تاريخ الميلاد</label>
+                        <input type="date" id="regBirthDate" class="form-control">
                     </div>
-                    <div class="col-6">
-                        <label class="form-label">رقم الجوال</label>
-                        <input type="text" id="regPhone" class="form-control form-control-sm">
+                    <div class="col-md-6">
+                        <label class="field-label">رقم الجوال</label>
+                        <input type="text" id="regPhone" class="form-control">
                     </div>
-                    <div class="col-6">
-                        <label class="form-label">البريد الإلكتروني (اختياري)</label>
-                        <input type="email" id="regEmail" class="form-control form-control-sm">
+                    <div class="col-md-6">
+                        <label class="field-label">البريد الإلكتروني (اختياري)</label>
+                        <input type="email" id="regEmail" class="form-control">
                     </div>
-                    <div class="col-6">
-                        <label class="form-label">المدينة</label>
-                        <input type="text" id="regCity" class="form-control form-control-sm">
+                    <div class="col-md-6">
+                        <label class="field-label">المدينة</label>
+                        <input type="text" id="regCity" class="form-control">
                     </div>
-                    <div class="col-6">
-                        <label class="form-label">القطاع</label>
-                        <input type="text" id="regSector" class="form-control form-control-sm">
+                    <div class="col-md-6">
+                        <label class="field-label">القطاع</label>
+                        <input type="text" id="regSector" class="form-control">
                     </div>
                 </div>
 
-                <button type="button" id="registerSubmitBtn" class="btn btn-primary w-100 mt-3">
-                    <i class="fas fa-check me-1"></i> تسجيل والمتابعة
+                <button type="button" id="registerSubmitBtn" class="btn btn-primary w-100 mt-4 btn-lg-modern">
+                    <i class="fas fa-check me-2"></i> تسجيل والمتابعة
                 </button>
             </div>
-        </div>
+
+            <!-- ===== Phase 3: المراجعة والتسجيل ===== -->
+            <div class="surface review-summary" id="reviewSummary">
+                <div class="surface-title"><span class="num">٣</span> مراجعة البيانات والتسجيل</div>
+                <div class="review-row">
+                    <span class="label"><i class="fas fa-building"></i> الفرع</span>
+                    <span class="value" id="reviewInstitute">-</span>
+                </div>
+                <div class="review-row">
+                    <span class="label"><i class="fas fa-graduation-cap"></i> الدبلوم</span>
+                    <span class="value" id="reviewDiploma">-</span>
+                </div>
+                <div class="review-row">
+                    <span class="label"><i class="fas fa-user"></i> الاسم</span>
+                    <span class="value" id="reviewName">-</span>
+                </div>
+                <div class="review-row">
+                    <span class="label"><i class="fas fa-id-card"></i> رقم الهوية</span>
+                    <span class="value" id="reviewNationalId">-</span>
+                </div>
+            </div>
+
+            <button type="submit" id="issueBtn" class="btn btn-success w-100 text-white">
+                <i class="fas fa-file-arrow-down me-2"></i> إصدار المشهد
+            </button>
+        </form>
 
         <p class="footer-note">بياناتك تُستخدم فقط لإصدار مشهد لا مانع من الالتحاق بالدراسة.</p>
     </div>
@@ -319,6 +483,8 @@
         const clientCard = document.getElementById('clientCard');
         const notFoundCard = document.getElementById('notFoundCard');
         const blockedCard = document.getElementById('blockedCard');
+        const existingCard = document.getElementById('existingCard');
+        const downloadExistingBtn = document.getElementById('downloadExistingBtn');
         const issueBtn = document.getElementById('issueBtn');
         const clientIdInput = document.getElementById('clientIdInput');
         const diplomaIdInput = document.getElementById('diplomaIdInput');
@@ -333,10 +499,24 @@
         const showRegisterBtn = document.getElementById('showRegisterBtn');
         const registerSubmitBtn = document.getElementById('registerSubmitBtn');
         const registerErrorCard = document.getElementById('registerErrorCard');
+        const reviewSummary = document.getElementById('reviewSummary');
 
-        const stepInstitute = document.getElementById('stepInstitute');
-        const stepDiploma = document.getElementById('stepDiploma');
-        const stepSearch = document.getElementById('stepSearch');
+        // عناصر الـ Stepper الزخرفي (١ البحث / ٢ البيانات الشخصية / ٣ المراجعة والتسجيل)
+        const phase1 = document.getElementById('phase1');
+        const phase2 = document.getElementById('phase2');
+        const phase3 = document.getElementById('phase3');
+        const phaseLine1 = document.getElementById('phaseLine1');
+        const phaseLine2 = document.getElementById('phaseLine2');
+
+        function setPhase(n) {
+            [phase1, phase2, phase3].forEach((p, i) => {
+                p.classList.remove('active', 'done');
+                if (i + 1 < n) p.classList.add('done');
+                else if (i + 1 === n) p.classList.add('active');
+            });
+            phaseLine1.classList.toggle('done', n > 1);
+            phaseLine2.classList.toggle('done', n > 2);
+        }
 
         // بنقرا التوكن من الكوكي مباشرة بدل الحقل المخفي، عشان لو الصفحة اتخزنت
         // في أي كاش (CDN/متصفح) التوكن المستخدم يفضل هو الحالي الفعلي دايماً
@@ -355,22 +535,22 @@
                 diplomaDetails.style.display = 'none';
                 return;
             }
-            const parts = [];
+            const chips = [];
+            chips.push(`<span class="chip"><i class="fas fa-graduation-cap"></i> دبلومة</span>`);
             if (opt.dataset.hours) {
-                parts.push(`<span><i class="fas fa-clock"></i> ${opt.dataset.hours} ساعة</span>`);
+                chips.push(`<span class="chip"><i class="fas fa-clock"></i> ${opt.dataset.hours} ساعة</span>`);
             }
             if (opt.dataset.duration) {
-                parts.push(`<span><i class="fas fa-calendar"></i> ${opt.dataset.duration}</span>`);
+                chips.push(`<span class="chip"><i class="fas fa-calendar"></i> ${opt.dataset.duration}</span>`);
             }
             if (opt.dataset.studyMode) {
-                parts.push(`<span><i class="fas fa-chalkboard"></i> ${studyModeLabels[opt.dataset.studyMode] || opt.dataset.studyMode}</span>`);
+                chips.push(`<span class="chip"><i class="fas fa-chalkboard"></i> ${studyModeLabels[opt.dataset.studyMode] || opt.dataset.studyMode}</span>`);
             }
-            if (!parts.length) {
-                diplomaDetails.style.display = 'none';
-                return;
-            }
-            diplomaDetails.innerHTML = parts.join('');
-            diplomaDetails.style.display = 'flex';
+            diplomaDetails.innerHTML = `
+                <div class="diploma-title"><i class="fas fa-book-open"></i> ${opt.dataset.name || opt.textContent}</div>
+                <div class="chips">${chips.join('')}</div>
+            `;
+            diplomaDetails.style.display = 'block';
         }
 
         function applyStudyMode(mode) {
@@ -393,8 +573,8 @@
                 studyModeChoice.style.display = 'none';
                 studyModeFixedText.style.display = 'flex';
                 studyModeFixedText.innerHTML = mode === 'offline'
-                    ? '<span><i class="fas fa-building"></i> هذا البرنامج حضوري فقط</span>'
-                    : '<span><i class="fas fa-laptop"></i> هذا البرنامج أونلاين فقط</span>';
+                    ? '<span class="chip"><i class="fas fa-building"></i> هذا البرنامج حضوري فقط</span>'
+                    : '<span class="chip"><i class="fas fa-laptop"></i> هذا البرنامج أونلاين فقط</span>';
                 studyModeHidden.value = mode;
             }
         }
@@ -412,19 +592,24 @@
             }
         });
 
-        function setStepState(step, state) {
-            step.classList.remove('active', 'done');
-            if (state) step.classList.add(state);
+        function updateReview() {
+            const instOpt = instituteSelect.options[instituteSelect.selectedIndex];
+            const dipOpt = diplomaSelect.options[diplomaSelect.selectedIndex];
+            document.getElementById('reviewInstitute').textContent = instOpt && instOpt.value ? instOpt.textContent : '-';
+            document.getElementById('reviewDiploma').textContent = dipOpt && dipOpt.value ? (dipOpt.dataset.name || dipOpt.textContent) : '-';
         }
 
         function resetClientState() {
             clientCard.style.display = 'none';
             notFoundCard.style.display = 'none';
             blockedCard.style.display = 'none';
+            existingCard.style.display = 'none';
             issueBtn.style.display = 'none';
             registerBox.style.display = 'none';
             registerErrorCard.style.display = 'none';
+            reviewSummary.style.display = 'none';
             clientIdInput.value = '';
+            setPhase(1);
         }
 
         function showBlocked(block) {
@@ -432,6 +617,16 @@
             document.getElementById('blockedContactName').textContent = block.contact_name;
             document.getElementById('blockedContactPhone').textContent = block.contact_phone || 'غير متوفر';
             blockedCard.style.display = 'block';
+            setPhase(1);
+        }
+
+        function showExisting(existing, client) {
+            document.getElementById('existingNumber').textContent = existing.permission_number;
+            document.getElementById('existingDate').textContent = existing.issue_date;
+            const url = `{% url 'portal:download_existing' %}?national_id=${encodeURIComponent(client.national_id)}&institute_id=${instituteSelect.value}`;
+            downloadExistingBtn.href = url;
+            existingCard.style.display = 'block';
+            setPhase(2);
         }
 
         function showClient(client) {
@@ -442,7 +637,12 @@
             registerBox.style.display = 'none';
             clientIdInput.value = client.id;
             issueBtn.style.display = 'block';
-            setStepState(stepSearch, 'done');
+
+            updateReview();
+            document.getElementById('reviewName').textContent = client.full_name;
+            document.getElementById('reviewNationalId').textContent = client.national_id;
+            reviewSummary.style.display = 'block';
+            setPhase(3);
         }
 
         instituteSelect.addEventListener('change', async () => {
@@ -455,9 +655,6 @@
             searchBtn.disabled = true;
             nationalIdInput.value = '';
             instituteIdInput.value = instituteSelect.value;
-            setStepState(stepInstitute, 'active');
-            setStepState(stepDiploma, null);
-            setStepState(stepSearch, null);
 
             const instituteId = instituteSelect.value;
             if (!instituteId) {
@@ -473,14 +670,13 @@
                 const opt = document.createElement('option');
                 opt.value = d.id;
                 opt.textContent = `${d.name} (${d.duration_months} شهر)`;
+                opt.dataset.name = d.name;
                 if (d.hours) opt.dataset.hours = d.hours;
                 if (d.duration) opt.dataset.duration = d.duration;
                 if (d.study_mode) opt.dataset.studyMode = d.study_mode;
                 diplomaSelect.appendChild(opt);
             });
             diplomaSelect.disabled = false;
-            setStepState(stepInstitute, 'done');
-            setStepState(stepDiploma, 'active');
         });
 
         diplomaSelect.addEventListener('change', () => {
@@ -493,8 +689,6 @@
             const selectedOpt = diplomaSelect.options[diplomaSelect.selectedIndex];
             showDiplomaDetails(selectedOpt);
             applyStudyMode(hasDiploma ? (selectedOpt.dataset.studyMode || '') : '');
-            setStepState(stepDiploma, hasDiploma ? 'done' : 'active');
-            setStepState(stepSearch, hasDiploma ? 'active' : null);
         });
 
         async function doSearch() {
@@ -511,10 +705,13 @@
 
                 if (data.found && data.blocked) {
                     showBlocked(data.block);
+                } else if (data.found && data.has_existing) {
+                    showExisting(data.existing, data.client);
                 } else if (data.found) {
                     showClient(data.client);
                 } else {
                     notFoundCard.style.display = 'block';
+                    setPhase(1);
                 }
             } finally {
                 searchBtn.disabled = false;
@@ -529,6 +726,7 @@
 
         showRegisterBtn.addEventListener('click', () => {
             registerBox.style.display = 'block';
+            setPhase(2);
             registerBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
         });
 
@@ -570,7 +768,7 @@
                 }
             } finally {
                 registerSubmitBtn.disabled = false;
-                registerSubmitBtn.innerHTML = '<i class="fas fa-check me-1"></i> تسجيل والمتابعة';
+                registerSubmitBtn.innerHTML = '<i class="fas fa-check me-2"></i> تسجيل والمتابعة';
             }
         });
 
