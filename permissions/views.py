@@ -21,6 +21,7 @@ from core.mixins import (
 )
 from programs.models import Diploma, Course
 from .models import PermissionSlip, PermissionTemplate
+from .utils import find_blocking_active_permission, blocking_info
 
 logger = logging.getLogger('edu_system')
 
@@ -96,6 +97,19 @@ class PermissionCreateView(EmployeeRequiredMixin, CreateView):
             form.instance.institute = user.managed_institute
         elif form.instance.client_id:
             form.instance.institute = form.instance.client.institute
+
+        # منع إصدار إذن جديد لو عند الطالب إذن نشط بالفعل في معهد تاني
+        blocking_permission = find_blocking_active_permission(form.instance.client, form.instance.institute_id)
+        if blocking_permission:
+            info = blocking_info(blocking_permission)
+            form.add_error(
+                None,
+                f"يوجد للطالب إذن نشط بالفعل من معهد \"{info['institute_name']}\" "
+                f"(رقم الإذن: {info['permission_number']}). "
+                f"يجب التواصل مع {info['contact_name']} على {info['contact_phone'] or 'غير متوفر'} "
+                f"لإلغاء الإذن القديم أولاً، ثم إعادة المحاولة."
+            )
+            return self.form_invalid(form)
 
         program = form.instance.diploma or form.instance.course
 

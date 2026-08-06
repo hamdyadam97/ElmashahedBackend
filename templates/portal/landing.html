@@ -240,6 +240,16 @@
                                 <i class="fas fa-user-plus me-1"></i> سجّل بياناتك الآن
                             </button>
                         </div>
+
+                        <div id="blockedCard" class="not-found-card">
+                            <i class="fas fa-triangle-exclamation me-1"></i>
+                            يوجد للطالب إذن نشط بالفعل من معهد "<span id="blockedInstitute"></span>".
+                            <div class="mt-2">
+                                لازم التواصل مع <strong id="blockedContactName"></strong>
+                                على <strong id="blockedContactPhone"></strong>
+                                لإلغاء الإذن القديم، وبعدها تقدر تعيد المحاولة.
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -308,6 +318,7 @@
         const searchBtn = document.getElementById('searchBtn');
         const clientCard = document.getElementById('clientCard');
         const notFoundCard = document.getElementById('notFoundCard');
+        const blockedCard = document.getElementById('blockedCard');
         const issueBtn = document.getElementById('issueBtn');
         const clientIdInput = document.getElementById('clientIdInput');
         const diplomaIdInput = document.getElementById('diplomaIdInput');
@@ -409,10 +420,18 @@
         function resetClientState() {
             clientCard.style.display = 'none';
             notFoundCard.style.display = 'none';
+            blockedCard.style.display = 'none';
             issueBtn.style.display = 'none';
             registerBox.style.display = 'none';
             registerErrorCard.style.display = 'none';
             clientIdInput.value = '';
+        }
+
+        function showBlocked(block) {
+            document.getElementById('blockedInstitute').textContent = block.institute_name;
+            document.getElementById('blockedContactName').textContent = block.contact_name;
+            document.getElementById('blockedContactPhone').textContent = block.contact_phone || 'غير متوفر';
+            blockedCard.style.display = 'block';
         }
 
         function showClient(client) {
@@ -490,7 +509,9 @@
                 const res = await fetch(`{% url 'portal:api_search_client' %}?national_id=${encodeURIComponent(nationalId)}&institute_id=${instituteId}`);
                 const data = await res.json();
 
-                if (data.found) {
+                if (data.found && data.blocked) {
+                    showBlocked(data.block);
+                } else if (data.found) {
                     showClient(data.client);
                 } else {
                     notFoundCard.style.display = 'block';

@@ -12,6 +12,7 @@ from programs.models import Diploma
 from clients.models import Client
 from accounts.models import User
 from permissions.models import PermissionSlip
+from permissions.utils import find_blocking_active_permission, blocking_info
 
 logger = logging.getLogger('edu_system')
 
@@ -85,8 +86,17 @@ def api_search_client(request):
     if not client:
         return JsonResponse({'found': False})
 
+    blocking_permission = find_blocking_active_permission(client, institute_id)
+    if blocking_permission:
+        return JsonResponse({
+            'found': True,
+            'blocked': True,
+            'block': blocking_info(blocking_permission),
+        })
+
     return JsonResponse({
         'found': True,
+        'blocked': False,
         'client': {
             'id': client.id,
             'full_name': client.full_name,
@@ -182,6 +192,22 @@ class IssueView(View):
         institute = Institute.objects.filter(pk=institute_id, status=Institute.Status.ACTIVE).first()
         if not institute:
             institute = client.institute
+
+        # حماية إضافية (server-side): منع الإصدار لو عند الطالب إذن نشط في معهد تاني بالفعل
+        blocking_permission = find_blocking_active_permission(client, institute.id)
+        if blocking_permission:
+            info = blocking_info(blocking_permission)
+            html = f"""
+            <html dir="rtl" lang="ar"><head><meta charset="UTF-8"><title>لا يمكن الإصدار</title>
+            <style>body{{font-family:Arial,sans-serif;background:#fef2f2;padding:40px;text-align:center;color:#7f1d1d}}
+            .box{{background:#fff;border:1px solid #fecaca;border-radius:12px;padding:24px;max-width:480px;margin:0 auto}}
+            </style></head><body><div class="box">
+            <h3>لا يمكن إصدار المشهد</h3>
+            <p>يوجد للطالب إذن نشط بالفعل من معهد "{info['institute_name']}".</p>
+            <p>يجب التواصل مع <strong>{info['contact_name']}</strong> على الرقم <strong>{info['contact_phone'] or 'غير متوفر'}</strong> لإلغاء الإذن القديم أولاً، ثم إعادة المحاولة.</p>
+            </div></body></html>
+            """
+            return HttpResponse(html, status=409)
 
         # حماية: التأكد إن الدبلومة فعلاً مرتبطة بالفرع ده
         diploma = get_object_or_404(

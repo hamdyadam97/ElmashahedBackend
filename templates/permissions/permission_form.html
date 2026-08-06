@@ -26,6 +26,13 @@
             <form method="post" novalidate id="permissionForm">
                 {% csrf_token %}
 
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    <i class="fas fa-triangle-exclamation me-2"></i>
+                    {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+                </div>
+                {% endif %}
+
                 <div class="mb-3">
                     <label class="form-label">العميل <span class="required-mark">*</span></label>
                     <select name="client" class="form-select" required>
