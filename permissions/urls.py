@@ -10,6 +10,7 @@ urlpatterns = [
     path('api/institute-programs/', views.ApiInstituteProgramsView.as_view(), name='api_institute_programs'),
     path('<int:pk>/', views.PermissionDetailView.as_view(), name='permission_detail'),
     path('<int:pk>/pdf/', views.PermissionPDFView.as_view(), name='permission_pdf'),
+    path('<int:pk>/send-email/', views.PermissionSendEmailView.as_view(), name='permission_send_email'),
     path('<int:pk>/download/', views.PermissionDownloadView.as_view(), name='permission_download'),
     path('<int:pk>/cancel/', views.PermissionCancelView.as_view(), name='permission_cancel'),
     

@@ -11,13 +11,17 @@ from django.db.models import Q
 from django.http import HttpResponse, FileResponse, JsonResponse
 from django.utils import timezone
 from django.template import Context, Template
+from django.template.loader import render_to_string
+from django.core.mail import EmailMultiAlternatives
+from django.core.exceptions import PermissionDenied
 from django.conf import settings
 from weasyprint import HTML
 from io import BytesIO
 
 from core.mixins import (
     EmployeeRequiredMixin, AdminRequiredMixin, BranchManagerRequiredMixin,
-    InstituteScopedMixin, InstituteScopedDetailMixin, SearchMixin, FilterMixin
+    InstituteScopedMixin, InstituteScopedDetailMixin, can_view_institute,
+    SearchMixin, FilterMixin
 )
 from institutes.models import Institute
 from clients.models import Client
@@ -263,6 +267,46 @@ class PermissionPDFView(LoginRequiredMixin, View):
         if user.is_employee():
             return permission.issued_by == user
         return False
+
+
+class PermissionSendEmailView(EmployeeRequiredMixin, View):
+    """إرسال الإذن للعميل بالبريد الإلكتروني يدويًا (بدل الإرسال التلقائي القديم)"""
+
+    def get(self, request, pk):
+        permission = get_object_or_404(PermissionSlip, pk=pk)
+
+        if not can_view_institute(request.user, permission.institute):
+            raise PermissionDenied('غير مصرح لك بهذا الإجراء')
+
+        client = permission.client
+        redirect_to = request.META.get('HTTP_REFERER') or 'permissions:permission_list'
+
+        if not client.email:
+            messages.error(request, f'لا يوجد بريد إلكتروني مسجل للعميل "{client.full_name}".')
+            return redirect(redirect_to)
+
+        try:
+            subject = f"تأكيد إصدار إذن تسجيل: {client.full_name}"
+            from_email = 'hamdy.adam@ararhni.com'
+            site_url = request.build_absolute_uri('/').rstrip('/')
+
+            html_content = render_to_string('emails/permission_email.html', {
+                'obj': permission,
+                'site_url': site_url,
+            })
+            text_content = f"مرحباً {client.full_name}، تم إصدار إذن تسجيلك رقم {permission.permission_number}."
+
+            msg = EmailMultiAlternatives(subject, text_content, from_email, [client.email])
+            msg.attach_alternative(html_content, "text/html")
+            msg.send()
+
+            logger.info(f'Permission {permission.permission_number} emailed to {client.email} manually by {request.user.username}')
+            messages.success(request, f'تم إرسال الإذن بالبريد الإلكتروني إلى {client.email} بنجاح.')
+        except Exception as e:
+            logger.error(f'Error manually sending permission email: {str(e)}')
+            messages.error(request, 'حدث خطأ أثناء إرسال البريد الإلكتروني، حاول مرة أخرى.')
+
+        return redirect(redirect_to)
 
 
 class PermissionDownloadView(LoginRequiredMixin, View):

@@ -156,8 +156,11 @@
                                     <td>{{ perm.expiry_date|date:"Y-m-d" }}</td>
                                     <td><span class="status-badge {{ perm.status }}">{{ perm.get_status_display }}</span></td>
                                     <td>
-                                        <a href="{% url 'permissions:permission_pdf' perm.pk %}" class="btn btn-sm btn-danger" target="_blank">
+                                        <a href="{% url 'permissions:permission_pdf' perm.pk %}" class="btn btn-sm btn-danger" target="_blank" title="عرض PDF">
                                             <i class="fas fa-file-pdf"></i>
+                                        </a>
+                                        <a href="{% url 'permissions:permission_send_email' perm.pk %}" class="btn btn-sm btn-primary" title="إرسال بالبريد الإلكتروني" onclick="return confirm('هل تريد إرسال هذا الإذن بالبريد الإلكتروني للعميل؟');">
+                                            <i class="fas fa-envelope"></i>
                                         </a>
                                     </td>
                                 </tr>
