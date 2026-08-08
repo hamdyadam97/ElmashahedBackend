@@ -37,7 +37,18 @@ class Institute(BaseModel):
     )
     signature_image = models.ImageField(upload_to='institutes/signatures/', blank=True, verbose_name=_('Signature Image'))
     stamp_image = models.ImageField(upload_to='institutes/stamps/', blank=True, verbose_name=_('Stamp Image'))
-    
+
+    # الموظف اللي اسمه بيظهر كمدير قبول وتسجيل على المشاهد الصادرة من هذا الفرع
+    registration_officer = models.ForeignKey(
+        'accounts.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='registration_officer_for',
+        verbose_name=_('Registration Officer'),
+        help_text=_('Employee whose name is shown as the admissions & registration manager on issued PDFs')
+    )
+
     # الحالة
     status = models.CharField(
         max_length=20,

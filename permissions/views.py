@@ -298,6 +298,14 @@ def generate_permission_pdf(permission):
             """
             background_html = '<div class="bg-watermark"></div>'
 
+        sig_b64 = ''
+        if institute.signature_image and os.path.exists(institute.signature_image.path):
+            sig_b64 = get_b64(institute.signature_image.path)
+
+        stamp_b64 = ''
+        if institute.stamp_image and os.path.exists(institute.stamp_image.path):
+            stamp_b64 = get_b64(institute.stamp_image.path)
+
         custom_html = f"""
         <html>
             <head>
@@ -339,7 +347,9 @@ def generate_permission_pdf(permission):
         'program': permission.get_program(),
         'issued_by': permission.issued_by,
         'today': timezone.now().date(),
-        
+        'sig_b64': sig_b64,
+        'stamp_b64': stamp_b64,
+        'registration_officer': institute.registration_officer,
     })
     
     try:

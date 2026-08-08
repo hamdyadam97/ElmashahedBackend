@@ -24,7 +24,7 @@ class InstituteAdmin(admin.ModelAdmin):
             'fields': ('logo', 'header_image', 'footer_text')
         }),
         (_('PDF Settings'), {
-            'fields': ('pdf_template', 'signature_image', 'stamp_image','background_img'),
+            'fields': ('pdf_template', 'signature_image', 'stamp_image', 'registration_officer', 'background_img'),
             'classes': ('collapse',)
         }),
         (_('Dates'), {
@@ -32,5 +32,15 @@ class InstituteAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
-    
+
     readonly_fields = ['created_at', 'updated_at']
+    autocomplete_fields = ['registration_officer']
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'registration_officer':
+            from accounts.models import User
+            kwargs['queryset'] = User.objects.filter(
+                is_active=True,
+                role__in=[User.Role.EMPLOYEE, User.Role.BRANCH_MANAGER]
+            ).order_by('first_name', 'last_name')
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
