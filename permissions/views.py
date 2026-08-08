@@ -235,13 +235,49 @@ def get_b64(path):
     return ""
 
 
+FONT_STACKS = {
+    'arial': "'Arial', sans-serif",
+    'cairo': "'Cairo', 'Arial', sans-serif",
+}
+
+# ملفات كل خط مضمّنة Base64 مباشرة داخل الـ CSS (زي صورة الخلفية بالظبط) بدل الاعتماد
+# على url() نسبي، لأن تحليل base_url في WeasyPrint مش مضمون يفضل شغال على كل بيئة/سيرفر
+CUSTOM_FONT_FILES = {
+    'cairo': [('normal', 'Cairo-Regular.ttf'), ('bold', 'Cairo-Bold.ttf')],
+}
+
+
+def build_font_face_css(font_choice):
+    files = CUSTOM_FONT_FILES.get(font_choice)
+    if not files:
+        return ''
+
+    faces = []
+    for weight, filename in files:
+        font_path = os.path.join(settings.BASE_DIR, 'static', 'fonts', filename)
+        font_b64 = get_b64(font_path)
+        if not font_b64:
+            continue
+        faces.append(f"""
+                    @font-face {{
+                        font-family: '{font_choice.capitalize()}';
+                        src: url('data:font/ttf;base64,{font_b64}');
+                        font-weight: {weight};
+                    }}
+        """)
+    return ''.join(faces)
+
+
 def generate_permission_pdf(permission):
     """توليد PDF بناءً على قالب المعهد الخاص"""
-    
+
     institute = permission.institute
-    
+
     try:
         template_obj = institute.permission_template
+
+        font_stack = FONT_STACKS.get(template_obj.font_family, FONT_STACKS['arial'])
+        font_face_css = build_font_face_css(template_obj.font_family)
 
         background_css = ""
         background_html = ""
@@ -268,7 +304,8 @@ def generate_permission_pdf(permission):
                 <meta charset="UTF-8">
                 <style>
                     @page {{ size: {template_obj.page_size} {template_obj.orientation}; margin: 0; }}
-                    body {{ font-family: 'Arial', sans-serif; direction: rtl; margin: 0; }}
+                    {font_face_css}
+                    body {{ font-family: {font_stack}; direction: rtl; margin: 0; }}
                     .page-container {{ padding: 1.5cm; box-sizing: border-box; }}
                     {template_obj.custom_css}
                     {background_css}

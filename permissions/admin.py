@@ -56,10 +56,10 @@ class PermissionSlipAdmin(admin.ModelAdmin):
 
 @admin.register(PermissionTemplate)
 class PermissionTemplateAdmin(admin.ModelAdmin):
-    list_display = ['institute', 'page_size', 'orientation', 'created_at']
-    list_filter = ['page_size', 'orientation']
+    list_display = ['institute', 'font_family', 'page_size', 'orientation', 'created_at']
+    list_filter = ['font_family', 'page_size', 'orientation']
     search_fields = ['institute__name']
-    
+
     fieldsets = (
         (_('Institute'), {
             'fields': ('institute',)
@@ -68,7 +68,7 @@ class PermissionTemplateAdmin(admin.ModelAdmin):
             'fields': ('header_content', 'body_content', 'footer_content')
         }),
         (_('Styling'), {
-            'fields': ('custom_css', 'page_size', 'orientation'),
+            'fields': ('font_family', 'custom_css', 'page_size', 'orientation'),
             'classes': ('collapse',)
         }),
     )

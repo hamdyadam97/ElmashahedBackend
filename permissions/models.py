@@ -202,7 +202,11 @@ class PermissionSlip(BaseModel):
 
 class PermissionTemplate(BaseModel):
     """قوالب PDF للأذونات لكل معهد"""
-    
+
+    class FontChoice(models.TextChoices):
+        ARIAL = 'arial', _('Arial (افتراضي)')
+        CAIRO = 'cairo', _('Cairo (عربي حديث)')
+
     institute = models.OneToOneField(
         'institutes.Institute',
         on_delete=models.CASCADE,
@@ -231,6 +235,15 @@ class PermissionTemplate(BaseModel):
         blank=True,
         verbose_name=_('Custom CSS'),
         help_text=_('Custom CSS styles for PDF')
+    )
+
+    # خط المشهد
+    font_family = models.CharField(
+        max_length=20,
+        choices=FontChoice.choices,
+        default=FontChoice.ARIAL,
+        verbose_name=_('Font'),
+        help_text=_('Font used in the generated PDF')
     )
     
     # الإعدادات
