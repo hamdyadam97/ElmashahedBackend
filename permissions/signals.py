@@ -10,7 +10,8 @@ from .models import PermissionSlip
 logger = logging.getLogger('edu_system')
 
 
-@receiver(post_save, sender=PermissionSlip)
+# تم إيقاف الإرسال التلقائي للإيميل بناءً على طلب العميل - الدالة موجودة لسه لو احتجنا نرجعها
+# @receiver(post_save, sender=PermissionSlip)
 def send_auto_email(sender, instance, created, **kwargs):
     if created:
         try:

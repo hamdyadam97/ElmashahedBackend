@@ -78,7 +78,7 @@
                                     {{ reg.client.institute.name }}
                                 </small>
                             </td>
-                            <td>{{ reg.registered_by.get_full_name|default:reg.registered_by.username }}</td>
+                            <td>{% if reg.registered_by %}{{ reg.registered_by.get_full_name|default:reg.registered_by.username }}{% else %}<span class="text-muted">-</span>{% endif %}</td>
                             <td>
                                 <span class="status-badge {{ reg.status }}">
                                     {{ reg.get_status_display }}

@@ -115,37 +115,66 @@ class InstituteScopedPermissionMixin(InstituteScopedMixin):
     institute_field = 'institute'
 
 
+class InstituteScopedDetailMixin:
+    """
+    Mixin لصفحات التفاصيل (DetailView) - يمنع فتح سجل مش تابع لنطاق المستخدم عن طريق
+    الرابط المباشر، حتى لو مش ظاهر أصلاً في صفحة القائمة (بترجع 403 بدل ما تعرض البيانات).
+    ملاحظة: يجب استخدامه مع LoginRequiredMixin.
+    """
+
+    def get_object_institute(self, obj):
+        """المعهد المرتبط بالسجل - override في الـ View لو مختلف (مثلاً لو الموديل نفسه هو المعهد)"""
+        return getattr(obj, 'institute', None)
+
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset)
+        user = self.request.user
+
+        if user.is_admin() or user.is_superuser:
+            return obj
+
+        obj_institute = self.get_object_institute(obj)
+        if obj_institute is None:
+            raise PermissionDenied('غير مصرح لك بعرض هذا السجل')
+
+        if user.is_regional_manager():
+            allowed = user.managed_institutes.filter(pk=obj_institute.pk).exists()
+        elif user.is_branch_manager():
+            allowed = user.managed_institute_id == obj_institute.pk
+        elif user.is_employee():
+            allowed = user.institute_id == obj_institute.pk
+        else:
+            allowed = False
+
+        if not allowed:
+            raise PermissionDenied('غير مصرح لك بعرض هذا السجل')
+
+        return obj
+
+
 class InstituteScopedRegistrationMixin(InstituteScopedMixin):
     """
-    Mixin خاص للتسجيلات لأن لها علاقتين (diploma, course)
+    Mixin خاص للتسجيلات - النطاق بيتحدد عبر معهد العميل نفسه (client.institute)،
+    مش عبر الدبلومة/الدورة، لأنها بقت متاحة لأكتر من معهد في نفس الوقت (M2M)
     """
     def get_queryset(self):
         queryset = super(InstituteScopedMixin, self).get_queryset()
         user = self.request.user
-        
+
         if user.is_admin() or user.is_superuser:
             return queryset
         elif user.is_regional_manager():
             institutes = user.managed_institutes.all()
-            return queryset.filter(
-                Q(diploma__institute__in=institutes) |
-                Q(course__institute__in=institutes)
-            )
+            return queryset.filter(client__institute__in=institutes)
         elif user.is_branch_manager():
             institute = user.managed_institute
             if institute:
-                return queryset.filter(
-                    Q(diploma__institute=institute) |
-                    Q(course__institute=institute)
-                )
+                return queryset.filter(client__institute=institute)
             return queryset.none()
         elif user.is_employee():
             institute = user.institute
             if institute:
-                return queryset.filter(
-                    Q(diploma__institute=institute) |
-                    Q(course__institute=institute)
-                )
+                return queryset.filter(client__institute=institute)
             return queryset.none()
         return queryset.none()
 

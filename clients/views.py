@@ -10,7 +10,7 @@ import logging
 
 from core.mixins import (
     EmployeeRequiredMixin, BranchManagerRequiredMixin,
-    InstituteScopedMixin, SearchMixin, FilterMixin, SoftDeleteMixin
+    InstituteScopedMixin, InstituteScopedDetailMixin, SearchMixin, FilterMixin, SoftDeleteMixin
 )
 from core.utils import get_pdf_response
 from institutes.models import Institute
@@ -72,7 +72,7 @@ class ClientCreateView(EmployeeRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class ClientDetailView(LoginRequiredMixin, DetailView):
+class ClientDetailView(LoginRequiredMixin, InstituteScopedDetailMixin, DetailView):
     """تفاصيل العميل"""
     model = Client
     template_name = 'clients/client_detail.html'

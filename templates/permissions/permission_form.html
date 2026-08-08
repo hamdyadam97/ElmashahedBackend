@@ -33,35 +33,55 @@
                 </div>
                 {% endif %}
 
+                {% if show_institute_field %}
+                <div class="mb-3">
+                    <label class="form-label">الفرع <span class="required-mark">*</span></label>
+                    <select name="institute" class="form-select" id="institute_select" required>
+                        <option value="">اختر الفرع</option>
+                        {% for institute in institutes %}
+                        <option value="{{ institute.pk }}">{{ institute.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="text-muted">حدد الفرع اللي هيصدر منه الإذن</small>
+                </div>
+                {% else %}
+                <input type="hidden" id="fixed_institute_id" value="{{ fixed_institute_id }}">
+                {% endif %}
+
                 <div class="mb-3">
                     <label class="form-label">العميل <span class="required-mark">*</span></label>
-                    <select name="client" class="form-select" required>
+                    <select name="client" class="form-select" id="client_select" required>
                         <option value="">اختر العميل</option>
                         {% for client in clients %}
                         <option value="{{ client.pk }}" {% if request.GET.client == client.pk|stringformat:"s" %}selected{% endif %}>{{ client.full_name }} - {{ client.national_id }}</option>
                         {% endfor %}
                     </select>
+                    <div id="clientCheckStatus" class="alert py-2 mt-2 mb-0" style="display:none;"></div>
                 </div>
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label">الدبلومة</label>
-                        <select name="diploma" class="form-select" id="diploma_select">
-                            <option value="">-</option>
+                        <select name="diploma" class="form-select" id="diploma_select" {% if show_institute_field %}disabled{% endif %}>
+                            <option value="">{% if show_institute_field %}-- اختر الفرع أولاً --{% else %}-{% endif %}</option>
+                            {% if not show_institute_field %}
                             {% for diploma in diplomas %}
                             <option value="{{ diploma.pk }}" data-study-mode="{{ diploma.study_mode }}">{{ diploma.name }}</option>
                             {% endfor %}
+                            {% endif %}
                         </select>
                         <small class="text-muted">اختر الدبلومة أو الدورة</small>
                     </div>
 
                     <div class="col-md-6 mb-3">
                         <label class="form-label">الدورة</label>
-                        <select name="course" class="form-select" id="course_select">
-                            <option value="">-</option>
+                        <select name="course" class="form-select" id="course_select" {% if show_institute_field %}disabled{% endif %}>
+                            <option value="">{% if show_institute_field %}-- اختر الفرع أولاً --{% else %}-{% endif %}</option>
+                            {% if not show_institute_field %}
                             {% for course in courses %}
                             <option value="{{ course.pk }}" data-study-mode="{{ course.study_mode }}">{{ course.name }}</option>
                             {% endfor %}
+                            {% endif %}
                         </select>
                     </div>
                 </div>
@@ -96,7 +116,7 @@
                 </div>
 
                 <div class="d-flex gap-2 pt-2 border-top">
-                    <button type="submit" class="btn btn-primary px-4">
+                    <button type="submit" class="btn btn-primary px-4" id="submitBtn">
                         <i class="fas fa-file-pdf me-2"></i>إصدار الإذن
                     </button>
                     <a href="{% url 'permissions:permission_list' %}" class="btn btn-outline-secondary">إلغاء</a>
@@ -115,6 +135,90 @@
     const studyModeChoice = document.getElementById('studyModeChoice');
     const studyModeHidden = document.getElementById('studyModeHidden');
     const permissionForm = document.getElementById('permissionForm');
+    const instituteSelect = document.getElementById('institute_select');
+    const fixedInstituteInput = document.getElementById('fixed_institute_id');
+    const clientSelect = document.getElementById('client_select');
+    const clientCheckStatus = document.getElementById('clientCheckStatus');
+    const submitBtn = document.getElementById('submitBtn');
+
+    function currentInstituteId() {
+        if (instituteSelect) return instituteSelect.value;
+        if (fixedInstituteInput) return fixedInstituteInput.value;
+        return '';
+    }
+
+    // لو أدمن/مدير إقليمي بيختار الفرع بنفسه - نجيب البرامج الخاصة بيه عبر AJAX
+    if (instituteSelect) {
+        instituteSelect.addEventListener('change', async () => {
+            diplomaSelect.innerHTML = '<option value="">-- جاري التحميل --</option>';
+            courseSelect.innerHTML = '<option value="">-- جاري التحميل --</option>';
+            diplomaSelect.disabled = true;
+            courseSelect.disabled = true;
+            applyStudyMode('');
+            clientCheckStatus.style.display = 'none';
+            submitBtn.disabled = false;
+
+            const instituteId = instituteSelect.value;
+            if (!instituteId) {
+                diplomaSelect.innerHTML = '<option value="">-- اختر الفرع أولاً --</option>';
+                courseSelect.innerHTML = '<option value="">-- اختر الفرع أولاً --</option>';
+                return;
+            }
+
+            const res = await fetch(`{% url 'permissions:api_institute_programs' %}?institute_id=${instituteId}`);
+            const data = await res.json();
+
+            diplomaSelect.innerHTML = '<option value="">-</option>';
+            data.diplomas.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d.id;
+                opt.textContent = d.name;
+                opt.dataset.studyMode = d.study_mode;
+                diplomaSelect.appendChild(opt);
+            });
+
+            courseSelect.innerHTML = '<option value="">-</option>';
+            data.courses.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = c.name;
+                opt.dataset.studyMode = c.study_mode;
+                courseSelect.appendChild(opt);
+            });
+
+            diplomaSelect.disabled = false;
+            courseSelect.disabled = false;
+
+            checkClientPermission();
+        });
+    }
+
+    // فحص فوري: هل عند العميل المختار إذن نشط بالفعل (نفس الفرع أو فرع تاني)
+    async function checkClientPermission() {
+        clientCheckStatus.style.display = 'none';
+        submitBtn.disabled = false;
+
+        const clientId = clientSelect.value;
+        const instituteId = currentInstituteId();
+        if (!clientId || !instituteId) return;
+
+        const res = await fetch(`{% url 'permissions:api_check_client' %}?client_id=${clientId}&institute_id=${instituteId}`);
+        const data = await res.json();
+
+        if (data.blocked) {
+            clientCheckStatus.className = 'alert alert-danger py-2 mt-2 mb-0';
+            clientCheckStatus.innerHTML = `<i class="fas fa-triangle-exclamation me-1"></i> يوجد للطالب إذن نشط بالفعل من معهد "${data.block.institute_name}" (رقم الإذن: ${data.block.permission_number}). يجب التواصل مع ${data.block.contact_name} على ${data.block.contact_phone || 'غير متوفر'} لإلغاء الإذن القديم أولاً.`;
+            clientCheckStatus.style.display = 'block';
+            submitBtn.disabled = true;
+        } else if (data.has_existing) {
+            clientCheckStatus.className = 'alert alert-warning py-2 mt-2 mb-0';
+            clientCheckStatus.innerHTML = `<i class="fas fa-circle-info me-1"></i> يوجد للطالب إذن نشط بالفعل في نفس الفرع (رقم الإذن: ${data.existing.permission_number}، بتاريخ ${data.existing.issue_date}). لا يمكن إصدار إذن مكرر.`;
+            clientCheckStatus.style.display = 'block';
+            submitBtn.disabled = true;
+        }
+    }
+
+    clientSelect.addEventListener('change', checkClientPermission);
 
     function applyStudyMode(mode) {
         if (!mode) {

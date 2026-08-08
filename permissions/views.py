@@ -8,7 +8,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.urls import reverse_lazy
 from django.db.models import Q
-from django.http import HttpResponse, FileResponse
+from django.http import HttpResponse, FileResponse, JsonResponse
 from django.utils import timezone
 from django.template import Context, Template
 from django.conf import settings
@@ -17,11 +17,16 @@ from io import BytesIO
 
 from core.mixins import (
     EmployeeRequiredMixin, AdminRequiredMixin, BranchManagerRequiredMixin,
-    InstituteScopedMixin, SearchMixin, FilterMixin
+    InstituteScopedMixin, InstituteScopedDetailMixin, SearchMixin, FilterMixin
 )
+from institutes.models import Institute
+from clients.models import Client
 from programs.models import Diploma, Course
 from .models import PermissionSlip, PermissionTemplate
-from .utils import find_blocking_active_permission, blocking_info
+from .utils import (
+    find_blocking_active_permission, blocking_info,
+    find_existing_permission, existing_info,
+)
 
 logger = logging.getLogger('edu_system')
 
@@ -55,47 +60,77 @@ class PermissionCreateView(EmployeeRequiredMixin, CreateView):
     """إنشاء إذن جديد"""
     model = PermissionSlip
     template_name = 'permissions/permission_form.html'
-    fields = ['client', 'diploma', 'course', 'study_mode', 'expiry_date', 'notes']
     success_url = reverse_lazy('permissions:permission_list')
+
+    def _fixed_institute(self, user):
+        """معهد الموظف/مدير الفرع الثابت - None لو أدمن أو مدير إقليمي (بيختار الفرع بنفسه)"""
+        return user.institute or user.managed_institute
+
+    def _selectable_institutes(self, user):
+        if user.is_regional_manager():
+            return user.managed_institutes.filter(status=Institute.Status.ACTIVE)
+        return Institute.objects.filter(status=Institute.Status.ACTIVE)
+
+    def get_form_class(self):
+        from django.forms import modelform_factory
+        field_list = ['client', 'diploma', 'course', 'study_mode', 'expiry_date', 'notes']
+        if not self._fixed_institute(self.request.user):
+            field_list.insert(1, 'institute')
+        return modelform_factory(PermissionSlip, fields=field_list)
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
         user = self.request.user
-        institute = user.institute or user.managed_institute
+        institute = self._fixed_institute(user)
 
-        # الدبلومة/الدورة لازم تكون مرتبطة فعلياً بمعهد الموظف (أو كل المعاهد لو أدمن/مدير إقليمي)
         if institute:
+            # موظف/مدير فرع - الفرع ثابت، البرامج والعملاء بتاعت فرعه بس
             form.fields['diploma'].queryset = Diploma.objects.filter(institutes=institute, status='active', is_deleted=False)
             form.fields['course'].queryset = Course.objects.filter(institutes=institute, status='active', is_deleted=False)
             form.fields['client'].queryset = institute.clients.filter(status='active', is_deleted=False)
         else:
-            form.fields['diploma'].queryset = Diploma.objects.filter(status='active', is_deleted=False)
-            form.fields['course'].queryset = Course.objects.filter(status='active', is_deleted=False)
+            # أدمن/مدير إقليمي - هيختار الفرع بنفسه، فالبرامج بتتفلتر عبر AJAX بعد اختياره في الواجهة.
+            # لازم برضه نحدد نطاق الدبلومة/الدورة هنا حسب الفرع المُرسل فعليًا في الـ POST، وإلا
+            # هيفشل التحقق من صحة الفورم بصمت (queryset فاضي = أي قيمة مُرسلة تُعتبر غير صالحة)
+            form.fields['institute'].queryset = self._selectable_institutes(user)
+            form.fields['institute'].required = True
+            form.fields['client'].queryset = Client.objects.filter(status='active', is_deleted=False)
+
+            submitted_institute_id = self.request.POST.get('institute') if self.request.method == 'POST' else None
+            if submitted_institute_id:
+                form.fields['diploma'].queryset = Diploma.objects.filter(institutes=submitted_institute_id, status='active', is_deleted=False)
+                form.fields['course'].queryset = Course.objects.filter(institutes=submitted_institute_id, status='active', is_deleted=False)
+            else:
+                form.fields['diploma'].queryset = Diploma.objects.none()
+                form.fields['course'].queryset = Course.objects.none()
 
         # اختياري - لو فاضي بناخد تاريخ انتهاء البرنامج تلقائياً (انظر form_valid)
         form.fields['expiry_date'].required = False
         form.fields['study_mode'].required = False
 
         return form
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         form = self.get_form()
         context['clients'] = form.fields['client'].queryset
         context['diplomas'] = form.fields['diploma'].queryset
         context['courses'] = form.fields['course'].queryset
+        context['show_institute_field'] = 'institute' in form.fields
+        if context['show_institute_field']:
+            context['institutes'] = form.fields['institute'].queryset
         return context
-    
+
     def form_valid(self, form):
         user = self.request.user
         form.instance.issued_by = user
 
-        # الإذن بيتربط بفرع الموظف اللي بيصدره، مش بفرع الدبلومة (اللي بقت متاحة لأكتر من فرع)
-        if user.institute:
-            form.instance.institute = user.institute
-        elif user.managed_institute:
-            form.instance.institute = user.managed_institute
-        elif form.instance.client_id:
+        fixed_institute = self._fixed_institute(user)
+        if fixed_institute:
+            # الإذن بيتربط بفرع الموظف اللي بيصدره، مش بفرع الدبلومة (اللي بقت متاحة لأكتر من فرع)
+            form.instance.institute = fixed_institute
+        elif not form.instance.institute_id and form.instance.client_id:
+            # احتياطي أخير لو حصل خطأ ما - نرجع لمعهد العميل
             form.instance.institute = form.instance.client.institute
 
         # منع إصدار إذن جديد لو عند الطالب إذن نشط بالفعل في معهد تاني
@@ -108,6 +143,18 @@ class PermissionCreateView(EmployeeRequiredMixin, CreateView):
                 f"(رقم الإذن: {info['permission_number']}). "
                 f"يجب التواصل مع {info['contact_name']} على {info['contact_phone'] or 'غير متوفر'} "
                 f"لإلغاء الإذن القديم أولاً، ثم إعادة المحاولة."
+            )
+            return self.form_invalid(form)
+
+        # منع إصدار إذن مكرر لو عند الطالب إذن نشط بالفعل في نفس الفرع
+        existing_permission = find_existing_permission(form.instance.client, form.instance.institute_id)
+        if existing_permission:
+            info = existing_info(existing_permission)
+            form.add_error(
+                None,
+                f"يوجد للطالب إذن نشط بالفعل في نفس الفرع "
+                f"(رقم الإذن: {info['permission_number']}، بتاريخ {info['issue_date']}). "
+                f"لا يمكن إصدار إذن آخر مكرر."
             )
             return self.form_invalid(form)
 
@@ -130,7 +177,57 @@ class PermissionCreateView(EmployeeRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class PermissionDetailView(LoginRequiredMixin, DetailView):
+class ApiCheckClientPermissionView(EmployeeRequiredMixin, View):
+    """AJAX: فحص فوري - هل عند العميل إذن نشط بالفعل (في نفس الفرع أو فرع تاني) قبل إصدار إذن جديد"""
+
+    def get(self, request):
+        client_id = request.GET.get('client_id')
+        institute_id = request.GET.get('institute_id')
+
+        if not client_id or not institute_id:
+            return JsonResponse({'blocked': False, 'has_existing': False})
+
+        client = get_object_or_404(Client, pk=client_id, is_deleted=False)
+
+        blocking_permission = find_blocking_active_permission(client, institute_id)
+        if blocking_permission:
+            return JsonResponse({
+                'blocked': True,
+                'has_existing': False,
+                'block': blocking_info(blocking_permission),
+            })
+
+        existing_permission = find_existing_permission(client, institute_id)
+        if existing_permission:
+            return JsonResponse({
+                'blocked': False,
+                'has_existing': True,
+                'existing': existing_info(existing_permission),
+            })
+
+        return JsonResponse({'blocked': False, 'has_existing': False})
+
+
+class ApiInstituteProgramsView(EmployeeRequiredMixin, View):
+    """AJAX: قائمة الدبلومات والدورات النشطة المرتبطة فعلياً بالفرع المختار (لفورم إصدار الإذن الداخلي)"""
+
+    def get(self, request):
+        institute_id = request.GET.get('institute_id')
+        if not institute_id:
+            return JsonResponse({'diplomas': [], 'courses': []})
+
+        diplomas = Diploma.objects.filter(
+            institutes__id=institute_id, status='active', is_deleted=False
+        ).order_by('name').values('id', 'name', 'study_mode')
+
+        courses = Course.objects.filter(
+            institutes__id=institute_id, status='active', is_deleted=False
+        ).order_by('name').values('id', 'name', 'study_mode')
+
+        return JsonResponse({'diplomas': list(diplomas), 'courses': list(courses)})
+
+
+class PermissionDetailView(LoginRequiredMixin, InstituteScopedDetailMixin, DetailView):
     """تفاصيل الإذن"""
     model = PermissionSlip
     template_name = 'permissions/permission_detail.html'

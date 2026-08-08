@@ -58,7 +58,13 @@
                         </tr>
                         <tr>
                             <td><strong>أصدره:</strong></td>
-                            <td>{{ permission.issued_by.get_full_name|default:permission.issued_by.username }}</td>
+                            <td>
+                                {% if permission.issued_by %}
+                                    {{ permission.issued_by.get_full_name|default:permission.issued_by.username }}
+                                {% else %}
+                                    <span class="text-muted">إصدار ذاتي (البوابة العامة)</span>
+                                {% endif %}
+                            </td>
                         </tr>
                         {% if permission.notes %}
                         <tr>

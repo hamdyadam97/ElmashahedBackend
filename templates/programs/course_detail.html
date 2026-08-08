@@ -82,7 +82,7 @@
                             <tr>
                                 <td><span class="fw-semibold">{{ reg.client.name }}</span></td>
                                 <td>{{ reg.registration_date|date:"Y-m-d" }}</td>
-                                <td>{{ reg.registered_by.get_full_name|default:reg.registered_by.username }}</td>
+                                <td>{% if reg.registered_by %}{{ reg.registered_by.get_full_name|default:reg.registered_by.username }}{% else %}<span class="text-muted">-</span>{% endif %}</td>
                                 <td>
                                     <span class="badge {% if reg.status == 'confirmed' %}bg-success{% elif reg.status == 'pending' %}bg-warning{% else %}bg-secondary{% endif %}">
                                         {{ reg.get_status_display }}

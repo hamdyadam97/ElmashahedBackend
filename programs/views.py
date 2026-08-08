@@ -11,7 +11,7 @@ import logging
 
 from core.mixins import (
     AdminRequiredMixin, BranchManagerRequiredMixin, EmployeeRequiredMixin,
-    InstituteScopedMixin, InstituteScopedRegistrationMixin,
+    InstituteScopedMixin, InstituteScopedRegistrationMixin, InstituteScopedDetailMixin,
     SearchMixin, FilterMixin, SoftDeleteMixin
 )
 from core.utils import get_pdf_response
@@ -332,11 +332,14 @@ class RegistrationCreateView(EmployeeRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class RegistrationDetailView(LoginRequiredMixin, DetailView):
+class RegistrationDetailView(LoginRequiredMixin, InstituteScopedDetailMixin, DetailView):
     """تفاصيل التسجيل"""
     model = ProgramRegistration
     template_name = 'programs/registration_detail.html'
     context_object_name = 'registration'
+
+    def get_object_institute(self, obj):
+        return obj.client.institute
 
 
 # ==================== Import/Export Functions ====================
